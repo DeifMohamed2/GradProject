@@ -31,7 +31,13 @@ app.set('view engine', 'ejs');
 
 
 // middleware & static files
-app.use(cors())
+app.use(
+  cors({
+    origin: '*', // Or replace '*' with specific origins, e.g., ['https://your-friend-frontend.com']
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 app.use(express.json())
 app.use(morgan('dev'));
 app.use(express.static('public'))
