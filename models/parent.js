@@ -13,7 +13,8 @@ const parentSchema = new Schema({
 
     email: {
         type: String,
-        required: false
+        required: false,
+        unique: true
     },
 
     phoneNumber: {
@@ -34,6 +35,7 @@ const parentSchema = new Schema({
 
     balance: {
         type: Number,
+        default: 0,
         required: true
     }
 

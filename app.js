@@ -10,7 +10,7 @@ const cors = require('cors');
 
 const adminRoute = require('./routes/adminRoute');
 const parentRoute = require('./routes/parentRoute');
-
+// console.log(adminRoute);
 // express app
 const app = express();
 app.use(express.json());
@@ -19,7 +19,10 @@ app.use(express.json());
 // connect to mongodb & listen for requests
 const dbURI = process.env.MONGO_URI;
 mongoose.connect(dbURI)
-    .then((result) => app.listen(3000))
+    .then((result) => {
+        app.listen(9700)
+        console.log('connected to db , server started on port 9700');
+    } )
     .catch((err) => console.log(err));
     
 
