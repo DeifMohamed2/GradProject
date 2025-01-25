@@ -25,7 +25,7 @@ const loginParent =async (req,res) => {
       }
 
       const token = jwt.sign({ parentId: parent._id }, jwtSecret);
-      res.cookie('token', token, { httpOnly: true });
+      // res.cookie('token', token, { httpOnly: true });
       return res.status(200).json({ message: true , parent , token });
   } catch (error) {
       return res.status(500).json({ message: false});
