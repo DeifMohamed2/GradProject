@@ -7,7 +7,7 @@ const router = express.Router();
 const parentController = require('../controllers/parentController.js');
 
 const authMiddleware = async (req, res, next) => {
-    const token = req.headers.token;
+    const token = req.cookies.token;
     if (!token) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
