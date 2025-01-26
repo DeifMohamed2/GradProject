@@ -7,12 +7,13 @@ const router = express.Router();
 const parentController = require('../controllers/parentController.js');
 
 const authMiddleware = async (req, res, next) => {
+    try {
     const token = req.header('Authorization').replace('Bearer ', '');
     if (!token) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
     
-    try {
+
         const decode = jwt.verify(token, jwtSecret);
         req.parentId = decode.parentId;
         const parent = await Parent.findOne({ _id: decode.parentId });
