@@ -26,6 +26,10 @@ const parentSchema = new Schema({
         type: Number,
         required:false,
     },
+    numberOfChildren: {
+        type: Number,
+        required: false
+    },
 
     childs:[{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
 
