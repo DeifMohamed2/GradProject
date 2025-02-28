@@ -41,6 +41,7 @@ router.post('/login', adminController.loginAdmin);
 
 router.post('/createParentAccount', authMiddleware, adminController.createParentAccount);
 
+router.post('/createStudentAccount', authMiddleware, adminController.createStudentAccount);
 
 
 

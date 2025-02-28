@@ -36,5 +36,13 @@ router.post('/login', parentController.loginParent);
 
 router.get('/profileData', authMiddleware, parentController.getProfileData);
 
+router.get('/dashboard', authMiddleware, parentController.dashbard_get);
+
+router.get('/get_child_insights/:id' , authMiddleware, parentController.getChildInsights);
+
+// routes Wallet
+
+router.get('/getWallet', authMiddleware, parentController.getWallet);
+
 
 module.exports = router;

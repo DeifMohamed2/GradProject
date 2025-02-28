@@ -10,7 +10,11 @@ const parentSchema = new Schema({
         type: String,
         required: true
     },
-
+    profilePicture :{
+        type: String,
+        required: false,
+        default:'',
+    },
     email: {
         type: String,
         required: false,
