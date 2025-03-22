@@ -1,6 +1,8 @@
 const Parent = require('../models/parent');
+const Student = require('../models/student');
 const Attendance = require('../models/attendance');
 const Expense = require('../models/expenses');
+const Grade = require('../models/Grade');
 const Transaction = require('../models/transaction');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
@@ -153,10 +155,178 @@ const getWallet = async (req, res) => {
 }
 
 
+const sendMoney = async (req,res) =>{
+    const {studentId} = req.params;
+    const {amount , pinCode} = req.body;
+    const parent = req.parent;
+
+      const transaction = await Transaction.create({
+              amount,
+              type: 'credit',
+              student: studentId,
+              status: 'pending'
+            });
+
+
+    if(!amount || !pinCode){
+        transaction.status = 'failed';
+        await transaction.save();
+        return res.status(400).json({message: 'All fields are required'});
+    }
+
+
+    if(parent.pinCode !== pinCode){
+        transaction.status = 'failed';
+        await transaction.save();
+        return res.status(400).json({message: 'Invalid pin code'});
+    }
+
+
+    if(parent.balance < amount){
+        transaction.status = 'failed';
+        await transaction.save();
+        return res.status(400).json({message: 'Insufficient balance'});
+    }
+
+
+
+    try {
+        const student = await Student.findById(studentId);
+        if(!student){
+            transaction.status = 'failed';
+            await transaction.save();
+            return res.status(404).json({message: 'Student not found'});
+        }
+
+        
+        transaction.status = 'Completed';
+        await transaction.save();
+
+        parent.balance -= amount;
+        student.balance += amount;
+        
+
+        parent.transactionHistory.push(transaction._id);
+        
+        await parent.save();
+        await student.save();
+
+        return res.status(200).json({message: 'Money sent successfully', transaction});
+
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({message: false});
+      }
+
+}
+
+const updateProfile = async (req, res) => {
+  const { parent } = req;
+  const { username, email, phoneNumber, age, profilePicture } = req.body;
+
+
+  try {
+    const updatedParent = await Parent.findByIdAndUpdate(
+      parent._id,
+      { username : username||parent.username
+      , email : email||parent.email
+      , phoneNumber : phoneNumber||parent.phoneNumber
+      , age : age||parent.age
+      , profilePicture : profilePicture||parent.profilePicture
+      },
+      { new: true }
+    );
+    
+
+    return res.status(200).json({ message: 'Profile updated successfully', parent: updatedParent });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: false });
+  }
+}
+
+
+
+const forgetPassword = async (req, res) => {
+  const { email } = req.body;
+  const parent = await Parent.findOne({ email });
+  if (!parent) {
+    return res.status(404).json({ message: 'Parent not found' });
+  }
+
+  const pinAuth = Math.floor(1000 + Math.random() * 9000);
+  parent.pinAuth = pinAuth;
+  await parent.save();
+
+  const token = jwt.sign({ parentId: parent._id }, jwtSecret);
+
+  // Send email to parent
+  return res.status(200).json({ message: 'Email sent successfully', pinAuth, token });
+};
+
+const updatePassword = async (req, res) => {
+  const { password, pinAuth } = req.body;
+  const parent = req.parent;
+
+  if (parent.pinAuth !== pinAuth) {
+    return res.status(403).json({ message: 'Unauthorized' });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  parent.password = hashedPassword;
+
+  parent.pinAuth = false;
+  await parent.save();
+
+  return res.status(200).json({ message: 'Password updated successfully' });
+};
+
+
+const getStudentAllData = async (req, res) => {
+  const { parent } = req;
+  const { id } = req.params;
+  try {
+    if (!parent.childs.includes(id)) {
+      return res.status(403).json({ message: 'Unauthorized access' });
+    }
+
+    const studentData = await Student.findById(id)
+      .populate('attendances')
+      .populate('expenses')
+      .populate('Grades')
+      .exec();
+
+    if (!studentData) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    return res
+      .status(200)
+      .json({
+        message: 'Student data fetched successfully',
+        student: studentData,
+      });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({ message: false });
+  }
+};
+
+
+
+
 module.exports = {
   loginParent,
   dashbard_get,
   getProfileData,
   getChildInsights,
   getWallet,
+  sendMoney,
+  updateProfile,
+  forgetPassword,
+  updatePassword,
+
+  getStudentAllData,
+
 };

@@ -39,6 +39,7 @@ const studentSchema = new Schema(
       required: false,
       default: '',
     },
+    Grades : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Grade' }],
     messageHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
     attendances: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Attendance' }],
     expenses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Expense' }],

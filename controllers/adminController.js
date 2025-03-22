@@ -158,34 +158,34 @@ const createStudentAccount = async (req, res) => {
 //   }
 // };
 
-const addTestTransactions = async (req, res) => {
-  try {
-    const parentId = '67c1e2afa73179097a18b974';
-    const testTransactions = [
-      { student: parentId, amount: 100, type: 'deposit', status: 'completed' },
-      { student: parentId, amount: 50, type: 'withdrawal', status: 'pending' },
-      { student: parentId, amount: 200, type: 'deposit', status: 'completed' },
-      { student: parentId, amount: 75, type: 'withdrawal', status: 'failed' },
-      { student: parentId, amount: 150, type: 'deposit', status: 'completed' },
-      { student: parentId, amount: 25, type: 'withdrawal', status: 'pending' },
-      { student: parentId, amount: 300, type: 'deposit', status: 'completed' },
-      { student: parentId, amount: 100, type: 'withdrawal', status: 'failed' },
-    ];
+// const addTestTransactions = async (req, res) => {
+//   try {
+//     const parentId = '67c1e2afa73179097a18b974';
+//     const testTransactions = [
+//       { student: parentId, amount: 100, type: 'deposit', status: 'completed' },
+//       { student: parentId, amount: 50, type: 'withdrawal', status: 'pending' },
+//       { student: parentId, amount: 200, type: 'deposit', status: 'completed' },
+//       { student: parentId, amount: 75, type: 'withdrawal', status: 'failed' },
+//       { student: parentId, amount: 150, type: 'deposit', status: 'completed' },
+//       { student: parentId, amount: 25, type: 'withdrawal', status: 'pending' },
+//       { student: parentId, amount: 300, type: 'deposit', status: 'completed' },
+//       { student: parentId, amount: 100, type: 'withdrawal', status: 'failed' },
+//     ];
 
-    const createdTransactions = await Transaction.insertMany(testTransactions);
+//     const createdTransactions = await Transaction.insertMany(testTransactions);
 
-    await Parent.findByIdAndUpdate('67c1e201a73179097a18b96d', {
-      $push: {
-        transactionHistory: { $each: createdTransactions.map(transaction => transaction._id) },
-      },
-    });
+//     await Parent.findByIdAndUpdate('67c1e201a73179097a18b96d', {
+//       $push: {
+//         transactionHistory: { $each: createdTransactions.map(transaction => transaction._id) },
+//       },
+//     });
 
-    return res.status(200).json({ message: 'Test transactions added successfully' });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: 'An error occurred', error: error.message });
-  }
-};
+//     return res.status(200).json({ message: 'Test transactions added successfully' });
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json({ message: 'An error occurred', error: error.message });
+//   }
+// };
 
 
 // addTestAttendance();

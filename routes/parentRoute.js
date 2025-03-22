@@ -34,7 +34,6 @@ const authMiddleware = async (req, res, next) => {
 
 router.post('/login', parentController.loginParent);
 
-router.get('/profileData', authMiddleware, parentController.getProfileData);
 
 router.get('/dashboard', authMiddleware, parentController.dashbard_get);
 
@@ -43,6 +42,22 @@ router.get('/get_child_insights/:id' , authMiddleware, parentController.getChild
 // routes Wallet
 
 router.get('/getWallet', authMiddleware, parentController.getWallet);
+
+router.post('/sendMoney/:studentId', authMiddleware, parentController.sendMoney);
+
+
+// routes for transaction history
+
+router.get('/profileData', authMiddleware, parentController.getProfileData);
+
+router.put('/updateProfile' , authMiddleware, parentController.updateProfile);
+
+router.post('/forgetPassword', parentController.forgetPassword);    
+
+router.put('/updatePassword' ,authMiddleware , parentController.updatePassword);
+
+
+router.get('/get-student-all-data/:id', authMiddleware, parentController.getStudentAllData);
 
 
 module.exports = router;

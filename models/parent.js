@@ -35,6 +35,11 @@ const parentSchema = new Schema({
         required: false
     },
 
+    pinCode: {
+        type: String,
+        required: true
+    },
+
     childs:[{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
 
     transactionHistory : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }],
@@ -45,8 +50,12 @@ const parentSchema = new Schema({
         type: Number,
         default: 0,
         required: true
-    }
+    },
 
+    pinAuth: {
+        type: String,
+        default: false
+    }
 
 }, { timestamps: true });
 

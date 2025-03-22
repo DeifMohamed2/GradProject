@@ -63,6 +63,8 @@ app.use(session({
 app.get('/', (req, res) => {
     res.render('index', { title: 'Home' });
 });
+
+
 app.use('/admin' , adminRoute);
 app.use('/parent' , parentRoute);
 
