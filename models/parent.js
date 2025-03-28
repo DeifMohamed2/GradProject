@@ -26,6 +26,11 @@ const parentSchema = new Schema({
         required: true
     },
 
+    address: {
+        type: String,
+        required: false
+    },
+
     age: {
         type: Number,
         required:false,

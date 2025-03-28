@@ -121,40 +121,27 @@ const createStudentAccount = async (req, res) => {
 // const addTestAttendance = async (req, res) => {
 //   try {
 //     const studentId = '67c1e287a73179097a18b970';
-//     const testAttendances = [
-//       { student: studentId, date: new Date(), status: 'present' },
-//       { student: studentId, date: new Date(), status: 'present' },
-//       { student: studentId, date: new Date(), status: 'absent' },
-//       { student: studentId, date: new Date(), status: 'late' },
-//       { student: studentId, date: new Date(), status: 'present' },
-//       { student: studentId, date: new Date(), status: 'absent' },
-//       { student: studentId, date: new Date(), status: 'late' },
-//       { student: studentId, date: new Date(), status: 'present' },
-//       { student: studentId, date: new Date(), status: 'present' },
-//       { student: studentId, date: new Date(), status: 'absent' },
-//     ];
+//     const startDate = new Date('2025-02-01');
+//     const endDate = new Date('2025-03-01');
+//     const testAttendances = [];
+//     const statuses = ['present', 'absent', 'late'];
 
-//     const testExpenses = [
-//       { student: studentId, amount: 150, type: 'books', status: 'paid' },
-//       { student: studentId, amount: 75, type: 'uniform', status: 'unpaid' },
-//       { student: studentId, amount: 250, type: 'tuition', status: 'paid' },
-//       { student: studentId, amount: 100, type: 'transportation', status: 'unpaid' },
-//     ];
+//     for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
+//       const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+//       testAttendances.push({ student: studentId, date: new Date(date), status: randomStatus });
+//       if (testAttendances.length >= 40) break;
+//     }
 
-//     const createdExpenses = await Expense.insertMany(testExpenses);
 //     const createdAttendances = await Attendance.insertMany(testAttendances);
 
 //     await Student.findByIdAndUpdate(studentId, {
 //       $push: {
-//         expenses: { $each: createdExpenses.map(expense => expense._id) },
 //         attendances: { $each: createdAttendances.map(attendance => attendance._id) },
 //       },
 //     });
-
-//     // return res.status(200).json({ message: 'Test data added successfully' });
+//     console.log('Attendances added successfully');
 //   } catch (error) {
 //     console.log(error);
-//     return res.status(500).json({ message: 'An error occurred', error: error.message });
 //   }
 // };
 

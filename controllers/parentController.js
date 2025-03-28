@@ -314,6 +314,35 @@ const getStudentAllData = async (req, res) => {
 };
 
 
+const updatePinCode = async (req, res) => {
+  const { parent } = req;
+  const { pinCode1, pinCode2 } = req.body;
+
+  try {
+    if(pinCode1.length<6 || pinCode2.length<6){
+      return res.status(400).json({ message: 'Pin code must be 6 characters' });
+    }
+    if (!pinCode1 || !pinCode2) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+    if (pinCode1 === parent.pinCode) {
+      return res.status(400).json({ message: 'New pin code cannot be same as old pin code' });
+    }
+
+    if(pinCode1 == pinCode2){
+      parent.pinCode = pinCode1;    
+
+    await parent.save();
+    return res.status(200).json({ message: 'Pin code updated successfully' });
+  }else{
+    return res.status(400).json({ message: 'Pin code not match' });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: false });
+  }
+}
+
 
 
 module.exports = {
@@ -328,5 +357,6 @@ module.exports = {
   updatePassword,
 
   getStudentAllData,
+  updatePinCode,
 
 };

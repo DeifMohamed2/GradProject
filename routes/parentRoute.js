@@ -39,6 +39,8 @@ router.get('/dashboard', authMiddleware, parentController.dashbard_get);
 
 router.get('/get_child_insights/:id' , authMiddleware, parentController.getChildInsights);
 
+router.put('/updatePinCode', authMiddleware, parentController.updatePinCode);
+
 // routes Wallet
 
 router.get('/getWallet', authMiddleware, parentController.getWallet);
