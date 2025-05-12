@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Parent Account | School Management System</title>
+    <%- include('./partials/styles') %>
+    <style>
+        .success-box {
+            display: none;
+            background-color: rgba(46, 204, 113, 0.1);
+            border: 1px solid var(--success-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .success-box h4 {
+            color: var(--success-color);
+            margin-bottom: 10px;
+        }
+        
+        .success-box p {
+            margin-bottom: 0;
+        }
+        
+        .code-display {
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 1.2rem;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .form-section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .form-section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <%- include('./partials/sidebar', { activePage: 'create-parent' }) %>
+    
+    <!-- Main Content -->
+    <div class="content">
+        <%- include('./partials/header', { pageTitle: 'Create Parent Account' }) %>
+        
+        <div class="success-box" id="success-box">
+            <h4><i class="fas fa-check-circle me-2"></i> Parent Account Created Successfully!</h4>
+            <p>The parent account has been created. Here is the parent's unique code:</p>
+            <div class="code-display" id="parent-code">-</div>
+            <p class="small text-muted">Share this code with the parent. They will need it to link with their children's accounts.</p>
+            <div class="d-flex justify-content-between mt-3">
+                <button class="btn btn-outline-primary btn-sm" onclick="copyCode()">
+                    <i class="fas fa-copy me-1"></i> Copy Code
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="resetForm()">
+                    <i class="fas fa-plus me-1"></i> Create Another Parent
+                </button>
+            </div>
+        </div>
+        
+        <div class="card" id="form-card">
+            <div class="card-header">
+                <i class="fas fa-users me-2"></i> Parent Information
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <div><i class="fas fa-info-circle me-2"></i> <strong>Form Field Guide:</strong></div>
+                    <ul class="mb-0 mt-1">
+                        <li>Fields marked with <span class="text-danger">*</span> are required.</li>
+                        <li>Fields marked as (Optional) can be left blank.</li>
+                    </ul>
+                </div>
+                
+                <form id="create-parent-form">
+                    <!-- Account Information Section -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-user me-2"></i>Account Information</div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                                <div class="invalid-feedback">Please enter a username.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="toggle-password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback">Please enter a password.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Personal Information Section -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-id-card me-2"></i>Personal Information</div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="firstName" name="firstName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="lastName" name="lastName" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="dateOfBirth" class="form-label">Date of Birth (Optional)</label>
+                                <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="age" class="form-label">Age <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="age" name="age" min="18" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="gender" class="form-label">Gender (Optional)</label>
+                                <select class="form-select" id="gender" name="gender">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="phoneNumber" class="form-label">Primary Phone <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="alternatePhone" class="form-label">Alternate Phone (Optional)</label>
+                                <input type="tel" class="form-control" id="alternatePhone" name="alternatePhone">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Address (Optional)</label>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <input type="text" class="form-control" id="street" name="address.street" placeholder="Street Address">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <input type="text" class="form-control" id="city" name="address.city" placeholder="City">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <input type="text" class="form-control" id="state" name="address.state" placeholder="State/Province">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <input type="text" class="form-control" id="zipCode" name="address.zipCode" placeholder="Zip/Postal Code">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <input type="text" class="form-control" id="country" name="address.country" placeholder="Country">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Professional Information Section -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-briefcase me-2"></i>Professional Information (Optional)</div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="occupation" class="form-label">Occupation</label>
+                                <input type="text" class="form-control" id="occupation" name="occupation">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="education" class="form-label">Education</label>
+                                <input type="text" class="form-control" id="education" name="education">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Workplace Information</label>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <input type="text" class="form-control" id="companyName" name="workplaceInfo.companyName" placeholder="Company Name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <input type="text" class="form-control" id="position" name="workplaceInfo.position" placeholder="Position/Title">
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <input type="text" class="form-control" id="workplaceAddress" name="workplaceInfo.address" placeholder="Workplace Address">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <input type="tel" class="form-control" id="workplacePhone" name="workplaceInfo.phone" placeholder="Workplace Phone">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Family Information Section -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-home me-2"></i>Family Information</div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="maritalStatus" class="form-label">Marital Status <span class="text-danger">*</span></label>
+                                <select class="form-select" id="maritalStatus" name="maritalStatus" required>
+                                    <option value="Married" selected>Married</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Divorced">Divorced</option>
+                                    <option value="Widowed">Widowed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="relationshipToStudent" class="form-label">Relationship to Student <span class="text-danger">*</span></label>
+                                <select class="form-select" id="relationshipToStudent" name="relationshipToStudent" required>
+                                    <option value="Father">Father</option>
+                                    <option value="Mother">Mother</option>
+                                    <option value="Guardian">Guardian</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="numberOfChildren" class="form-label">Number of Children (Optional)</label>
+                                <input type="number" class="form-control" id="numberOfChildren" name="numberOfChildren" min="1">
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label for="preferredContactMethod" class="form-label">Preferred Contact Method <span class="text-danger">*</span></label>
+                                <select class="form-select" id="preferredContactMethod" name="preferredContactMethod" required>
+                                    <option value="Email" selected>Email</option>
+                                    <option value="Phone">Phone</option>
+                                    <option value="SMS">SMS</option>
+                                    <option value="WhatsApp">WhatsApp</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div id="spouseInfoSection" class="spouse-info">
+                            <div class="row">
+                                <div class="col-md-12 mb-2">
+                                    <label class="form-label">Spouse Information</label>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" id="spouseName" name="spouseInfo.name" placeholder="Spouse Name">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <input type="tel" class="form-control" id="spousePhone" name="spouseInfo.phoneNumber" placeholder="Spouse Phone">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <input type="email" class="form-control" id="spouseEmail" name="spouseInfo.email" placeholder="Spouse Email">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control" id="spouseOccupation" name="spouseInfo.occupation" placeholder="Spouse Occupation">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Emergency Contact Section -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-exclamation-circle me-2"></i>Emergency Contact (Optional)</div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="emergencyContactName" class="form-label">Emergency Contact Name</label>
+                                <input type="text" class="form-control" id="emergencyContactName" name="emergencyContact.name">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="emergencyContactRelationship" class="form-label">Relationship</label>
+                                <input type="text" class="form-control" id="emergencyContactRelationship" name="emergencyContact.relationship">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="emergencyContactPhone" class="form-label">Emergency Contact Phone</label>
+                                <input type="tel" class="form-control" id="emergencyContactPhone" name="emergencyContact.phone">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Financial Information Section -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-dollar-sign me-2"></i>Financial Information</div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="balance" class="form-label">Initial Balance <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="balance" name="balance" value="0" min="0" step="0.01" required>
+                                </div>
+                                <div class="form-text">Initial account balance.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="reset" class="btn btn-outline-secondary me-md-2">
+                            <i class="fas fa-redo me-1"></i> Reset
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submit-btn">
+                            <i class="fas fa-save me-1"></i> Create Parent Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <%- include('./partials/scripts') %>
+    
+    <script>
+        // Toggle password visibility
+        document.getElementById('toggle-password').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const icon = this.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+        
+        // Toggle spouse information based on marital status
+        document.getElementById('maritalStatus').addEventListener('change', function() {
+            const spouseInfoSection = document.getElementById('spouseInfoSection');
+            
+            if (this.value === 'Married') {
+                spouseInfoSection.style.display = 'block';
+            } else {
+                spouseInfoSection.style.display = 'none';
+            }
+        });
+        
+        // Calculate age based on date of birth
+        document.getElementById('dateOfBirth').addEventListener('change', function() {
+            const dob = new Date(this.value);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const monthDiff = today.getMonth() - dob.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            
+            document.getElementById('age').value = age;
+        });
+        
+        // Form submission
+        document.getElementById('create-parent-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Basic form validation
+            const form = this;
+            if (!form.checkValidity()) {
+                e.stopPropagation();
+                form.classList.add('was-validated');
+                return;
+            }
+            
+            // Get form data
+            const formData = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                phoneNumber: document.getElementById('phoneNumber').value,
+                alternatePhone: document.getElementById('alternatePhone').value,
+                age: parseInt(document.getElementById('age').value),
+                balance: parseFloat(document.getElementById('balance').value) || 0,
+                dateOfBirth: document.getElementById('dateOfBirth').value || null,
+                gender: document.getElementById('gender').value || null,
+                occupation: document.getElementById('occupation').value || null,
+                education: document.getElementById('education').value || null,
+                maritalStatus: document.getElementById('maritalStatus').value,
+                relationshipToStudent: document.getElementById('relationshipToStudent').value,
+                numberOfChildren: document.getElementById('numberOfChildren').value || null,
+                preferredContactMethod: document.getElementById('preferredContactMethod').value,
+                address: {
+                    street: document.getElementById('street').value || null,
+                    city: document.getElementById('city').value || null,
+                    state: document.getElementById('state').value || null,
+                    zipCode: document.getElementById('zipCode').value || null,
+                    country: document.getElementById('country').value || null
+                },
+                workplaceInfo: {
+                    companyName: document.getElementById('companyName').value || null,
+                    position: document.getElementById('position').value || null,
+                    address: document.getElementById('workplaceAddress').value || null,
+                    phone: document.getElementById('workplacePhone').value || null
+                },
+                spouseInfo: document.getElementById('maritalStatus').value === 'Married' ? {
+                    name: document.getElementById('spouseName').value || null,
+                    phoneNumber: document.getElementById('spousePhone').value || null,
+                    email: document.getElementById('spouseEmail').value || null,
+                    occupation: document.getElementById('spouseOccupation').value || null
+                } : null,
+                emergencyContact: {
+                    name: document.getElementById('emergencyContactName').value || null,
+                    relationship: document.getElementById('emergencyContactRelationship').value || null,
+                    phone: document.getElementById('emergencyContactPhone').value || null
+                }
+            };
+            
+            // Show loading state
+            const submitBtn = document.getElementById('submit-btn');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Creating...';
+            submitBtn.disabled = true;
+            
+            // Make API request
+            fetch('/admin/createParentAccount', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reset button
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+                
+                if (data.message === 'Parent account created successfully') {
+                    // Show success message and code
+                    document.getElementById('parent-code').textContent = data.parent.parentCode;
+                    document.getElementById('success-box').style.display = 'block';
+                    document.getElementById('form-card').style.display = 'none';
+                } else {
+                    // Show error
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'An error occurred while creating the parent account.'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while creating the parent account.'
+                });
+            });
+        });
+        
+        // Copy parent code to clipboard
+        function copyCode() {
+            const codeElement = document.getElementById('parent-code');
+            const code = codeElement.textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                // Show success message
+                const originalText = codeElement.innerHTML;
+                codeElement.innerHTML = '<i class="fas fa-check me-1"></i> Copied!';
+                
+                setTimeout(() => {
+                    codeElement.innerHTML = originalText;
+                }, 2000);
+            });
+        }
+        
+        // Reset form and show form card again
+        function resetForm() {
+            document.getElementById('create-parent-form').reset();
+            document.getElementById('success-box').style.display = 'none';
+            document.getElementById('form-card').style.display = 'block';
+        }
+    </script>
+</body>
+</html> 

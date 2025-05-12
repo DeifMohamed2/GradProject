@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Details | School Management System</title>
+    <%- include('./partials/styles') %>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .student-header {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .student-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .student-info {
+            padding-left: 20px;
+        }
+        
+        .student-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .student-code {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+        
+        .student-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        
+        .meta-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: rgba(52, 152, 219, 0.15);
+            color: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+        }
+        
+        .status-badge {
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-active {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+        }
+        
+        .status-inactive {
+            background-color: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+        }
+        
+        .status-graduated {
+            background-color: rgba(52, 152, 219, 0.15);
+            color: #3498db;
+        }
+        
+        .status-transferred {
+            background-color: rgba(243, 156, 18, 0.15);
+            color: #f39c12;
+        }
+        
+        .status-suspended {
+            background-color: rgba(155, 89, 182, 0.15);
+            color: #9b59b6;
+        }
+        
+        .detail-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            color: var(--primary-color);
+        }
+        
+        .info-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            height: 100%;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .info-table th {
+            width: 35%;
+            font-weight: 600;
+            color: #34495e;
+        }
+        
+        .tab-pane {
+            padding: 20px 0;
+        }
+        
+        .attendance-card {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+        
+        .attendance-header {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 10px 10px 0 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .attendance-body {
+            padding: 20px;
+            background-color: white;
+        }
+        
+        .attendance-calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .calendar-day {
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .calendar-day.present {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+        }
+        
+        .calendar-day.absent {
+            background-color: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+        }
+        
+        .calendar-day.holiday {
+            background-color: rgba(155, 89, 182, 0.15);
+            color: #9b59b6;
+        }
+        
+        .expense-table th, .expense-table td {
+            vertical-align: middle;
+        }
+        
+        .expense-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .expense-paid {
+            background-color: #2ecc71;
+        }
+        
+        .expense-pending {
+            background-color: #f39c12;
+        }
+        
+        .expense-overdue {
+            background-color: #e74c3c;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .parent-card {
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .parent-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .parent-info {
+            flex-grow: 1;
+            padding-left: 15px;
+        }
+        
+        .parent-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .parent-relation {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+        
+        .parent-contact {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        
+        .parent-contact a {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+        
+        .parent-action {
+            margin-left: auto;
+        }
+
+        /* Attendance Stats Styles */
+        .attendance-stats {
+            margin-top: 20px;
+        }
+        
+        .attendance-stat-item {
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+        
+        .text-success {
+            color: #2ecc71 !important;
+        }
+        
+        .text-danger {
+            color: #e74c3c !important;
+        }
+        
+        .text-warning {
+            color: #f39c12 !important;
+        }
+        
+        /* Chart Container Styles */
+        .chart-container {
+            position: relative;
+            margin: 0 auto 20px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            max-height: 350px; /* Prevent excessive growth */
+            transition: all 0.3s ease;
+        }
+        
+        .chart-shadow {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Fix chart hover issue */
+        canvas {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        
+        /* Chart tooltip customization */
+        .chart-tooltip {
+            background-color: rgba(0, 0, 0, 0.8) !important;
+            border-radius: 5px !important;
+            color: white !important;
+            font-family: 'Poppins', sans-serif !important;
+            font-size: 12px !important;
+            padding: 8px 12px !important;
+            pointer-events: none !important;
+            position: absolute !important;
+            transform: translate(-50%, 0) !important;
+            transition: all 0.1s ease !important;
+            z-index: 99 !important;
+        }
+        
+        /* Stats cards */
+        .stats-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            height: 100%;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stats-card .icon {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 10px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .stats-card:hover .icon {
+            transform: scale(1.1);
+        }
+        
+        .stats-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stats-card .label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+        
+        .attendance-pills .badge {
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .attendance-pills .badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .icon-present {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+        }
+        
+        .icon-absent {
+            background-color: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+        }
+        
+        .icon-late {
+            background-color: rgba(243, 156, 18, 0.15);
+            color: #f39c12;
+        }
+        
+        /* Performance Progress Bar */
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+            background-color: #f5f5f5;
+            overflow: hidden;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-bar {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            transition: width 0.6s ease;
+        }
+    </style>
+</head>
+<body>
+    <%- include('./partials/sidebar', { activePage: 'students' }) %>
+    
+    <!-- Main Content -->
+    <div class="content">
+        <%- include('./partials/header', { pageTitle: 'Student Details' }) %>
+        
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-end mb-4">
+            <div class="action-buttons">
+                <a href="/admin/students" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Students
+                </a>
+                <button class="btn btn-outline-primary" id="edit-student-btn">
+                    <i class="bi bi-pencil me-1"></i> Edit Student
+                </button>
+                <button class="btn btn-outline-danger" id="delete-student-btn">
+                    <i class="bi bi-trash me-1"></i> Delete Student
+                </button>
+            </div>
+        </div>
+        
+        <!-- Student Header -->
+        <div class="student-header">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="d-flex">
+                        <img src="<%= student.profilePicture || `https://ui-avatars.com/api/?name=${student.firstName}+${student.lastName}&background=3498db&color=fff&size=120` %>" class="student-avatar" alt="<%= student.firstName %>">
+                        <div class="student-info">
+                            <div class="student-name"><%= student.firstName %> <%= student.lastName %></div>
+                            <div class="student-code">Student Code: <span class="badge bg-light text-dark"><%= student.studentCode %></span></div>
+                            <div class="student-meta">
+                                <div class="meta-item">
+                                    <div class="meta-icon">
+                                        <i class="bi bi-mortarboard"></i>
+                                    </div>
+                                    <div>Grade <%= student.grade %> - <%= student.section %></div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="meta-icon">
+                                        <i class="bi bi-calendar3"></i>
+                                    </div>
+                                    <div><%= student.academicYear %></div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="meta-icon">
+                                        <i class="bi bi-geo-alt"></i>
+                                    </div>
+                                    <div><%= student.classroom || 'No classroom assigned' %></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <span class="status-badge status-<%= student.status.toLowerCase() %>">
+                        <i class="bi bi-circle-fill me-1"></i> <%= student.status %>
+                    </span>
+                    <div class="mt-3">
+                        <span class="text-muted">Enrollment Date:</span>
+                        <span class="ms-2"><%= new Date(student.enrollmentDate).toLocaleDateString() %></span>
+                    </div>
+                    <div class="mt-1">
+                        <span class="text-muted">Roll Number:</span>
+                        <span class="ms-2"><%= student.rollNumber || 'Not assigned' %></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Student Details Tabs -->
+        <ul class="nav nav-tabs mb-4" id="studentTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button" role="tab" aria-controls="personal" aria-selected="true">
+                    <i class="bi bi-person me-1"></i> Personal Info
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="academic-tab" data-bs-toggle="tab" data-bs-target="#academic" type="button" role="tab" aria-controls="academic" aria-selected="false">
+                    <i class="bi bi-book me-1"></i> Academic
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance" type="button" role="tab" aria-controls="attendance" aria-selected="false">
+                    <i class="bi bi-calendar-check me-1"></i> Attendance
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="finances-tab" data-bs-toggle="tab" data-bs-target="#finances" type="button" role="tab" aria-controls="finances" aria-selected="false">
+                    <i class="bi bi-cash-coin me-1"></i> Finances
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="family-tab" data-bs-toggle="tab" data-bs-target="#family" type="button" role="tab" aria-controls="family" aria-selected="false">
+                    <i class="bi bi-people me-1"></i> Family
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="studentTabsContent">
+            <!-- Personal Information Tab -->
+            <div class="tab-pane fade show active" id="personal" role="tabpanel" aria-labelledby="personal-tab">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="info-card">
+                            <div class="section-title">Basic Information</div>
+                            <table class="table info-table">
+                                <tbody>
+                                    <tr>
+                                        <th>Full Name</th>
+                                        <td><%= student.firstName %> <%= student.lastName %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Date of Birth</th>
+                                        <td><%= new Date(student.dateOfBirth).toLocaleDateString() %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Age</th>
+                                        <td><%= student.age %> years</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Gender</th>
+                                        <td><%= student.gender %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email</th>
+                                        <td><a href="mailto:<%= student.email %>"><%= student.email %></a></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Contact Phone</th>
+                                        <td><%= student.contactPhone || 'Not provided' %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Address</th>
+                                        <td><%= student.address || 'Not provided' %></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="info-card">
+                            <div class="section-title">Medical Information</div>
+                            <table class="table info-table">
+                                <tbody>
+                                    <tr>
+                                        <th>Blood Group</th>
+                                        <td><%= student.bloodGroup || 'Not provided' %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Medical Conditions</th>
+                                        <td>
+                                            <% if (student.medicalConditions && student.medicalConditions.length > 0) { %>
+                                                <ul class="mb-0 ps-3">
+                                                    <% student.medicalConditions.forEach(condition => { %>
+                                                        <li><%= condition %></li>
+                                                    <% }); %>
+                                                </ul>
+                                            <% } else { %>
+                                                None
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Emergency Contact</th>
+                                        <td>
+                                            <% if (student.emergencyContact && student.emergencyContact.name) { %>
+                                                <div><%= student.emergencyContact.name %></div>
+                                                <div><%= student.emergencyContact.relationship %></div>
+                                                <div><%= student.emergencyContact.phone %></div>
+                                            <% } else { %>
+                                                Not provided
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Academic Tab -->
+            <div class="tab-pane fade" id="academic" role="tabpanel" aria-labelledby="academic-tab">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="info-card">
+                            <div class="section-title">Academic Information</div>
+                            <table class="table info-table">
+                                <tbody>
+                                    <tr>
+                                        <th>Grade</th>
+                                        <td>Grade <%= student.grade %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Section</th>
+                                        <td><%= student.section %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Academic Year</th>
+                                        <td><%= student.academicYear %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Classroom</th>
+                                        <td><%= student.classroom || 'Not assigned' %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Roll Number</th>
+                                        <td><%= student.rollNumber || 'Not assigned' %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Enrollment Date</th>
+                                        <td><%= new Date(student.enrollmentDate).toLocaleDateString() %></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="info-card">
+                            <div class="section-title">Grades Overview</div>
+                            <% if (student.Grades && student.Grades.length > 0) { %>
+                                <div class="text-center mb-3">
+                                    <div class="stats-card mb-3" style="background-color: rgba(52, 152, 219, 0.05);">
+                                        <div class="value" style="color: #3498db;"><%= gradesData.averageScore %></div>
+                                        <div class="label">Average Score</div>
+                                    </div>
+                                </div>
+                            <% } else { %>
+                                <div class="alert alert-info mb-0">
+                                    <i class="bi bi-info-circle me-2"></i> No grades available for this student yet.
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                
+                <% if (student.Grades && student.Grades.length > 0) { %>
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <div class="chart-container">
+                                <div class="chart-title">Performance by Subject</div>
+                                <canvas id="gradesChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="info-card">
+                                <div class="section-title">Detailed Subject Performance</div>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Subject</th>
+                                                <th>Grade</th>
+                                                <th>Score</th>
+                                                <th>Performance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% 
+                                            // Group grades by subject
+                                            const subjectGrades = {};
+                                            student.Grades.forEach(grade => {
+                                                if (!subjectGrades[grade.subject]) {
+                                                    subjectGrades[grade.subject] = [];
+                                                }
+                                                subjectGrades[grade.subject].push(grade);
+                                            });
+                                            
+                                            Object.keys(subjectGrades).forEach(subject => {
+                                                const grades = subjectGrades[subject];
+                                                const latestGrade = grades[grades.length - 1];
+                                                const score = latestGrade.score || latestGrade.grade;
+                                                
+                                                let performanceClass = 'secondary';
+                                                if (score >= 90) performanceClass = 'success';
+                                                else if (score >= 80) performanceClass = 'primary';
+                                                else if (score >= 70) performanceClass = 'info';
+                                                else if (score >= 60) performanceClass = 'warning';
+                                                else performanceClass = 'danger';
+                                            %>
+                                                <tr>
+                                                    <td><%= subject %></td>
+                                                    <td><%= latestGrade.grade %></td>
+                                                    <td><%= latestGrade.score || '-' %></td>
+                                                    <td>
+                                                        <div class="progress" style="height: 10px;">
+                                                            <div class="progress-bar bg-<%= performanceClass %>" role="progressbar" 
+                                                                 style="width: <%= score %>%;" 
+                                                                 aria-valuenow="<%= score %>" 
+                                                                 aria-valuemin="0" 
+                                                                 aria-valuemax="100"></div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+            
+            <!-- Attendance Tab -->
+            <div class="tab-pane fade" id="attendance" role="tabpanel" aria-labelledby="attendance-tab">
+                <div class="row">
+                    <div class="col-12 mb-4">
+                        <div class="attendance-card">
+                            <div class="attendance-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Attendance Summary</h5>
+                                    <div class="attendance-pills">
+                                        <span class="badge rounded-pill bg-success text-white px-3 py-2 fs-6">
+                                            <i class="bi bi-check-circle me-1"></i> Present: <%= attendanceStats.presentPercentage %>%
+                                        </span>
+                                        <span class="badge rounded-pill bg-danger text-white px-3 py-2 fs-6 ms-2">
+                                            <i class="bi bi-x-circle me-1"></i> Absent: <%= attendanceStats.absentPercentage %>%
+                                        </span>
+                                        <span class="badge rounded-pill bg-warning text-dark px-3 py-2 fs-6 ms-2">
+                                            <i class="bi bi-clock me-1"></i> Late: <%= attendanceStats.latePercentage %>%
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="attendance-body">
+                                <% if (student.attendances && student.attendances.length > 0) { %>
+                                    <div class="row mb-4">
+                                        <div class="col-md-3">
+                                            <div class="stats-card">
+                                                <div class="icon icon-present">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </div>
+                                                <div class="value text-success"><%= attendanceStats.presentPercentage %>%</div>
+                                                <div class="label">Present</div>
+                                                <div class="small text-muted mt-2"><%= attendanceStats.present %> days</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stats-card">
+                                                <div class="icon icon-absent">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </div>
+                                                <div class="value text-danger"><%= attendanceStats.absentPercentage %>%</div>
+                                                <div class="label">Absent</div>
+                                                <div class="small text-muted mt-2"><%= attendanceStats.absent %> days</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stats-card">
+                                                <div class="icon icon-late">
+                                                    <i class="bi bi-clock"></i>
+                                                </div>
+                                                <div class="value text-warning"><%= attendanceStats.latePercentage %>%</div>
+                                                <div class="label">Late</div>
+                                                <div class="small text-muted mt-2"><%= attendanceStats.late %> days</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stats-card">
+                                                <div class="icon" style="background-color: rgba(52, 152, 219, 0.15); color: #3498db;">
+                                                    <i class="bi bi-calendar-check"></i>
+                                                </div>
+                                                <div class="value" style="color: #3498db;"><%= attendanceStats.total %></div>
+                                                <div class="label">Total Days</div>
+                                                <div class="small text-muted mt-2">School days recorded</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <div class="chart-container chart-shadow">
+                                                <div class="chart-title">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span>Overall Attendance Distribution</span>
+                                                        <span class="badge rounded-pill bg-light text-dark"><%= attendanceStats.total %> Total Days</span>
+                                                    </div>
+                                                </div>
+                                                <canvas id="attendanceDonutChart"></canvas>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <div class="chart-container chart-shadow">
+                                                <div class="chart-title">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span>Monthly Attendance Trends</span>
+                                                        <span class="badge rounded-pill bg-light text-dark">Last 6 Months</span>
+                                                    </div>
+                                                </div>
+                                                <canvas id="attendanceMonthlyChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mt-4">
+                                        <div class="col-12">
+                                            <div class="info-card">
+                                                <div class="section-title d-flex justify-content-between align-items-center">
+                                                    <span>All Attendance Records</span>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="me-3">
+                                                            <select id="recordsPerPage" class="form-select form-select-sm" aria-label="Records per page">
+                                                                <option value="10" <%= attendancePagination && attendancePagination.limit === 10 ? 'selected' : '' %>>10 per page</option>
+                                                                <option value="25" <%= attendancePagination && attendancePagination.limit === 25 ? 'selected' : '' %>>25 per page</option>
+                                                                <option value="50" <%= attendancePagination && attendancePagination.limit === 50 ? 'selected' : '' %>>50 per page</option>
+                                                                <option value="100" <%= attendancePagination && attendancePagination.limit === 100 ? 'selected' : '' %>>100 per page</option>
+                                                            </select>
+                                                        </div>
+                                                        <span class="badge rounded-pill bg-light text-dark">
+                                                            Total: <%= attendanceStats.total %> records
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered table-hover">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th>Date</th>
+                                                                <th>Day</th>
+                                                                <th>Status</th>
+                                                                <th>Remarks</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <% 
+                                                            // Use paginated attendance records
+                                                            if (paginatedAttendances && paginatedAttendances.length > 0) {
+                                                                paginatedAttendances.forEach(attendance => { 
+                                                                    const date = new Date(attendance.date);
+                                                                    const statusClass = 
+                                                                        attendance.status === 'present' ? 'success' : 
+                                                                        attendance.status === 'absent' ? 'danger' : 'warning';
+                                                                    const statusIcon =
+                                                                        attendance.status === 'present' ? 'check-circle-fill' : 
+                                                                        attendance.status === 'absent' ? 'x-circle-fill' : 'exclamation-circle-fill';
+                                                            %>
+                                                                <tr>
+                                                                    <td><%= date.toLocaleDateString() %></td>
+                                                                    <td><%= date.toLocaleDateString('en-US', {weekday: 'long'}) %></td>
+                                                                    <td>
+                                                                        <span class="badge bg-<%= statusClass %>">
+                                                                            <i class="bi bi-<%= statusIcon %> me-1"></i>
+                                                                            <%= attendance.status.charAt(0).toUpperCase() + attendance.status.slice(1) %>
+                                                                        </span>
+                                                                    </td>
+                                                                    <td><%= attendance.remarks || '-' %></td>
+                                                                </tr>
+                                                            <% })} else { %>
+                                                                <tr>
+                                                                    <td colspan="4" class="text-center">No attendance records available for this student.</td>
+                                                                </tr>
+                                                            <% } %>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                
+                                                <!-- Pagination Controls -->
+                                                <% if (attendancePagination && attendancePagination.totalPages > 1) { %>
+                                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                                    <div class="pagination-info">
+                                                        Showing <%= Math.min((attendancePagination.page - 1) * attendancePagination.limit + 1, attendancePagination.total) %> 
+                                                        to <%= Math.min(attendancePagination.page * attendancePagination.limit, attendancePagination.total) %>
+                                                        of <%= attendancePagination.total %> records
+                                                    </div>
+                                                    <nav aria-label="Attendance pagination">
+                                                        <ul class="pagination">
+                                                            <!-- Previous button -->
+                                                            <li class="page-item <%= !attendancePagination.hasPrevPage ? 'disabled' : '' %>">
+                                                                <a class="page-link pagination-link" href="javascript:void(0);" data-page="<%= attendancePagination.page - 1 %>" aria-label="Previous">
+                                                                    <span aria-hidden="true">&laquo;</span>
+                                                                </a>
+                                                            </li>
+                                                            
+                                                            <!-- Page numbers -->
+                                                            <% 
+                                                            const startPage = Math.max(1, attendancePagination.page - 2);
+                                                            const endPage = Math.min(attendancePagination.totalPages, startPage + 4);
+                                                            for (let i = startPage; i <= endPage; i++) { %>
+                                                                <li class="page-item <%= i === attendancePagination.page ? 'active' : '' %>">
+                                                                    <a class="page-link pagination-link" href="javascript:void(0);" data-page="<%= i %>"><%= i %></a>
+                                                                </li>
+                                                            <% } %>
+                                                            
+                                                            <!-- Next button -->
+                                                            <li class="page-item <%= !attendancePagination.hasNextPage ? 'disabled' : '' %>">
+                                                                <a class="page-link pagination-link" href="javascript:void(0);" data-page="<%= attendancePagination.page + 1 %>" aria-label="Next">
+                                                                    <span aria-hidden="true">&raquo;</span>
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </nav>
+                                                </div>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% } else { %>
+                                    <div class="alert alert-info mb-0">
+                                        <i class="bi bi-info-circle me-2"></i> No attendance records available for this student yet.
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Finances Tab -->
+            <div class="tab-pane fade" id="finances" role="tabpanel" aria-labelledby="finances-tab">
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="info-card">
+                            <div class="section-title">Financial Summary</div>
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <div class="stats-card">
+                                        <div class="icon" style="background-color: rgba(39, 174, 96, 0.15); color: #27ae60;">
+                                            <i class="bi bi-cash-coin"></i>
+                                        </div>
+                                        <div class="value" style="color: #27ae60;">$<%= expensesData.totalAmount.toFixed(2) %></div>
+                                        <div class="label">Total Expenses</div>
+                                        <div class="small text-muted mt-2">All time charges</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="stats-card">
+                                        <div class="icon" style="background-color: rgba(231, 76, 60, 0.15); color: #e74c3c;">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                        </div>
+                                        <div class="value" style="color: #e74c3c;">$<%= expensesData.unpaidAmount.toFixed(2) %></div>
+                                        <div class="label">Unpaid Expenses</div>
+                                        <div class="small text-muted mt-2">Pending + Overdue</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="stats-card">
+                                        <div class="icon" style="background-color: rgba(46, 204, 113, 0.15); color: #2ecc71;">
+                                            <i class="bi bi-check-circle"></i>
+                                        </div>
+                                        <div class="value" style="color: #2ecc71;">$<%= expensesData.paidAmount.toFixed(2) %></div>
+                                        <div class="label">Paid Expenses</div>
+                                        <div class="small text-muted mt-2">Completed payments</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="stats-card">
+                                        <div class="icon" style="background-color: rgba(52, 152, 219, 0.15); color: #3498db;">
+                                            <i class="bi bi-wallet2"></i>
+                                        </div>
+                                        <div class="value" style="color: #3498db;">$<%= student.balance ? student.balance.toFixed(2) : '0.00' %></div>
+                                        <div class="label">Current Balance</div>
+                                        <div class="small text-muted mt-2">Available funds</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <% if (student.expenses && student.expenses.length > 0) { %>
+                        <div class="col-md-6 mb-4">
+                            <div class="chart-container">
+                                <div class="chart-title">Expense Breakdown by Type</div>
+                                <canvas id="expenseTypeChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="chart-container">
+                                <div class="chart-title">Payment Status</div>
+                                <canvas id="expenseStatusChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <% if (expensesData.failedPurchases.length > 0) { %>
+                            <div class="col-md-12 mb-4">
+                                <div class="info-card">
+                                    <div class="section-title">Failed Purchases</div>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Description</th>
+                                                    <th>Type</th>
+                                                    <th>Date</th>
+                                                    <th>Amount</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% expensesData.failedPurchases.forEach(expense => { 
+                                                    const expenseDate = new Date(expense.date || expense.createdAt);
+                                                    let statusClass, statusIcon;
+                                                    
+                                                    if (expense.status === 'pending') {
+                                                        statusClass = 'warning';
+                                                        statusIcon = 'hourglass-split';
+                                                    } else { // overdue
+                                                        statusClass = 'danger';
+                                                        statusIcon = 'exclamation-triangle-fill';
+                                                    }
+                                                    
+                                                    // Get type icon
+                                                    let typeIcon;
+                                                    switch (expense.type) {
+                                                        case 'tuition':
+                                                            typeIcon = 'mortarboard';
+                                                            break;
+                                                        case 'books':
+                                                            typeIcon = 'book';
+                                                            break;
+                                                        case 'transportation':
+                                                            typeIcon = 'bus-front';
+                                                            break;
+                                                        case 'meal':
+                                                            typeIcon = 'cup-hot';
+                                                            break;
+                                                        case 'uniform':
+                                                            typeIcon = 'person-badge';
+                                                            break;
+                                                        case 'activity':
+                                                            typeIcon = 'trophy';
+                                                            break;
+                                                        default:
+                                                            typeIcon = 'tag';
+                                                    }
+                                                %>
+                                                    <tr>
+                                                        <td><%= expense.description || 'School Fee' %></td>
+                                                        <td>
+                                                            <span class="badge bg-light text-dark">
+                                                                <i class="bi bi-<%= typeIcon %> me-1"></i>
+                                                                <%= expense.type ? expense.type.charAt(0).toUpperCase() + expense.type.slice(1) : 'Other' %>
+                                                            </span>
+                                                        </td>
+                                                        <td><%= expenseDate.toLocaleDateString() %></td>
+                                                        <td class="text-<%= statusClass %> fw-bold">$<%= expense.amount.toFixed(2) %></td>
+                                                        <td>
+                                                            <span class="badge bg-<%= statusClass %>">
+                                                                <i class="bi bi-<%= statusIcon %> me-1"></i>
+                                                                <%= expense.status.charAt(0).toUpperCase() + expense.status.slice(1) %>
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <div class="btn-group btn-group-sm" role="group">
+                                                                <button type="button" class="btn btn-outline-primary edit-expense-btn" 
+                                                                        data-id="<%= expense._id %>"
+                                                                        data-bs-toggle="tooltip" 
+                                                                        title="Edit">
+                                                                    <i class="bi bi-pencil"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-outline-success mark-paid-btn" 
+                                                                        data-id="<%= expense._id %>"
+                                                                        data-bs-toggle="tooltip" 
+                                                                        title="Mark as Paid">
+                                                                    <i class="bi bi-check-lg"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-outline-danger delete-expense-btn" 
+                                                                        data-id="<%= expense._id %>"
+                                                                        data-bs-toggle="tooltip" 
+                                                                        title="Delete">
+                                                                    <i class="bi bi-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                <% }); %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        <% } %>
+                    <% } %>
+                    
+                    <div class="col-md-12 mb-4">
+                        <div class="info-card">
+                            <div class="section-title d-flex justify-content-between align-items-center">
+                                <span>Paid Expenses History</span>
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
+                                    <i class="bi bi-plus-circle me-1"></i> Add Expense
+                                </button>
+                            </div>
+                            <% if (student.expenses && student.expenses.length > 0) { %>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Description</th>
+                                                <th>Type</th>
+                                                <th>Date</th>
+                                                <th>Amount</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% 
+                                            // Filter only paid expenses and sort by date (most recent first)
+                                            const paidExpenses = student.expenses
+                                                .filter(expense => expense.status === 'paid')
+                                                .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
+                                            
+                                            if (paidExpenses.length > 0) {
+                                                paidExpenses.forEach(expense => { 
+                                                    const expenseDate = new Date(expense.date || expense.createdAt);
+                                                    
+                                                    // Get type icon
+                                                    let typeIcon;
+                                                    switch (expense.type) {
+                                                        case 'tuition':
+                                                            typeIcon = 'mortarboard';
+                                                            break;
+                                                        case 'books':
+                                                            typeIcon = 'book';
+                                                            break;
+                                                        case 'transportation':
+                                                            typeIcon = 'bus-front';
+                                                            break;
+                                                        case 'meal':
+                                                            typeIcon = 'cup-hot';
+                                                            break;
+                                                        case 'uniform':
+                                                            typeIcon = 'person-badge';
+                                                            break;
+                                                        case 'activity':
+                                                            typeIcon = 'trophy';
+                                                            break;
+                                                        default:
+                                                            typeIcon = 'tag';
+                                                    }
+                                            %>
+                                                <tr>
+                                                    <td>
+                                                        <%= expense.description || 'School Fee' %>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-light text-dark">
+                                                            <i class="bi bi-<%= typeIcon %> me-1"></i>
+                                                            <%= expense.type ? expense.type.charAt(0).toUpperCase() + expense.type.slice(1) : 'Other' %>
+                                                        </span>
+                                                    </td>
+                                                    <td><%= expenseDate.toLocaleDateString() %></td>
+                                                    <td class="text-success fw-bold">
+                                                        $<%= expense.amount.toFixed(2) %>
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group btn-group-sm" role="group">
+                                                            <button type="button" class="btn btn-outline-primary edit-expense-btn" 
+                                                                    data-id="<%= expense._id %>"
+                                                                    data-bs-toggle="tooltip" 
+                                                                    title="Edit">
+                                                                <i class="bi bi-pencil"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-outline-danger delete-expense-btn" 
+                                                                    data-id="<%= expense._id %>"
+                                                                    data-bs-toggle="tooltip" 
+                                                                    title="Delete">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <% }); 
+                                            } else { %>
+                                                <tr>
+                                                    <td colspan="5" class="text-center">No paid expenses yet</td>
+                                                </tr>
+                                            <% } %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <% } else { %>
+                                <div class="alert alert-info mb-0">
+                                    <i class="bi bi-info-circle me-2"></i> No expense records available for this student yet.
+                                    <button class="btn btn-sm btn-outline-primary ms-3" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
+                                        <i class="bi bi-plus-circle me-1"></i> Add Expense
+                                    </button>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Family Tab -->
+            <div class="tab-pane fade" id="family" role="tabpanel" aria-labelledby="family-tab">
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <% if (student.parent) { %>
+                            <div class="parent-card">
+                                <img src="<%= student.parent.profilePicture || `https://ui-avatars.com/api/?name=${student.parent.firstName}+${student.parent.lastName}&background=2ecc71&color=fff` %>" 
+                                     class="parent-avatar" 
+                                     alt="<%= student.parent.firstName %>">
+                                <div class="parent-info">
+                                    <div class="parent-name"><%= student.parent.firstName %> <%= student.parent.lastName %></div>
+                                    <div class="parent-relation">
+                                        <span class="badge bg-light text-dark"><%= student.parent.relationshipToStudent || 'Parent' %></span>
+                                        <span class="badge bg-light text-dark ms-2"><%= student.parent.parentCode %></span>
+                                    </div>
+                                    <div class="parent-contact">
+                                        <a href="mailto:<%= student.parent.email %>"><i class="bi bi-envelope me-1"></i> <%= student.parent.email %></a>
+                                        <a href="tel:<%= student.parent.phoneNumber %>"><i class="bi bi-telephone me-1"></i> <%= student.parent.phoneNumber %></a>
+                                    </div>
+                                </div>
+                                <div class="parent-action">
+                                    <a href="/admin/parents/<%= student.parent._id %>" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye me-1"></i> View Parent
+                                    </a>
+                                </div>
+                            </div>
+                        <% } else { %>
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-circle me-2"></i> This student is not linked to any parent yet.
+                                <a href="/admin/link-children" class="alert-link ms-2">Link with a parent</a>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('./partials/scripts') %>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Track tab changes and update URL
+        document.querySelectorAll('.nav-link').forEach(tabLink => {
+            tabLink.addEventListener('shown.bs.tab', function(event) {
+                // Get the active tab ID without the '-tab' suffix
+                const activeTab = event.target.id.replace('-tab', '');
+                
+                // Update URL without reloading the page
+                const url = new URL(window.location.href);
+                url.searchParams.set('activeTab', activeTab);
+                window.history.replaceState({}, '', url);
+            });
+        });
+        
+        // Delete student confirmation
+        document.getElementById('delete-student-btn').addEventListener('click', function() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This action cannot be undone!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#7f8c8d',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Send delete request
+                    fetch(`/admin/students/<%= student._id %>`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: 'Student has been deleted.',
+                                confirmButtonColor: '#3498db'
+                            }).then(() => {
+                                // Redirect to students list
+                                window.location.href = '/admin/students';
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message || 'Failed to delete student',
+                                confirmButtonColor: '#3498db'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while deleting the student',
+                            confirmButtonColor: '#3498db'
+                        });
+                    });
+                }
+            });
+        });
+        
+        // Edit student redirect
+        document.getElementById('edit-student-btn').addEventListener('click', function() {
+            window.location.href = `/admin/students/<%= student._id %>/edit`;
+        });
+        
+        // Charts initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set global Chart.js options
+            Chart.defaults.font.family = "'Poppins', 'Helvetica', 'Arial', sans-serif";
+            Chart.defaults.font.size = 12;
+            Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            Chart.defaults.plugins.tooltip.padding = 10;
+            Chart.defaults.plugins.tooltip.cornerRadius = 4;
+            Chart.defaults.plugins.tooltip.titleFont.weight = 'bold';
+            Chart.defaults.animation.duration = 2000;
+            Chart.defaults.animation.easing = 'easeOutQuart';
+            
+            <% if (student.attendances && student.attendances.length > 0) { %>
+                // Attendance Donut Chart
+                const attendanceDonutCtx = document.getElementById('attendanceDonutChart').getContext('2d');
+                const attendanceDonutChart = new Chart(attendanceDonutCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Present', 'Absent', 'Late'],
+                        datasets: [{
+                            data: [
+                                <%= attendanceStats.presentPercentage %>, 
+                                <%= attendanceStats.absentPercentage %>, 
+                                <%= attendanceStats.latePercentage %>
+                            ],
+                            backgroundColor: [
+                                'rgba(46, 204, 113, 0.7)',
+                                'rgba(231, 76, 60, 0.7)',
+                                'rgba(243, 156, 18, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(46, 204, 113, 1)',
+                                'rgba(231, 76, 60, 1)',
+                                'rgba(243, 156, 18, 1)'
+                            ],
+                            borderWidth: 1,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            animateRotate: true,
+                            animateScale: true
+                        },
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 10,
+                                top: 0,
+                                bottom: 0
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 15
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.label}: ${context.raw}%`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Monthly Attendance Chart
+                const monthlyAttendanceCtx = document.getElementById('attendanceMonthlyChart').getContext('2d');
+                const monthlyAttendanceChart = new Chart(monthlyAttendanceCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: [
+                            <% attendanceStats.lastSixMonths.forEach(monthData => { %>
+                                '<%= monthData.month %> <%= monthData.year %>',
+                            <% }); %>
+                        ],
+                        datasets: [
+                            {
+                                label: 'Present',
+                                data: [
+                                    <% attendanceStats.lastSixMonths.forEach(monthData => { %>
+                                        <%= monthData.present %>,
+                                    <% }); %>
+                                ],
+                                backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                                borderColor: 'rgba(46, 204, 113, 1)',
+                                borderWidth: 1,
+                                borderRadius: 4
+                            },
+                            {
+                                label: 'Absent',
+                                data: [
+                                    <% attendanceStats.lastSixMonths.forEach(monthData => { %>
+                                        <%= monthData.absent %>,
+                                    <% }); %>
+                                ],
+                                backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                                borderColor: 'rgba(231, 76, 60, 1)',
+                                borderWidth: 1,
+                                borderRadius: 4
+                            },
+                            {
+                                label: 'Late',
+                                data: [
+                                    <% attendanceStats.lastSixMonths.forEach(monthData => { %>
+                                        <%= monthData.late %>,
+                                    <% }); %>
+                                ],
+                                backgroundColor: 'rgba(243, 156, 18, 0.7)',
+                                borderColor: 'rgba(243, 156, 18, 1)',
+                                borderWidth: 1,
+                                borderRadius: 4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 10,
+                                top: 10,
+                                bottom: 0
+                            }
+                        },
+                        scales: {
+                            x: {
+                                stacked: true,
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                stacked: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 15
+                                }
+                            }
+                        }
+                    }
+                });
+            <% } %>
+            
+            <% if (student.Grades && student.Grades.length > 0) { %>
+                // Grades Chart
+                const gradesCtx = document.getElementById('gradesChart').getContext('2d');
+                const gradesChart = new Chart(gradesCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: [<% gradesData.subjects.forEach(subject => { %>'<%= subject %>',<% }); %>],
+                        datasets: [{
+                            label: 'Subject Scores',
+                            data: [<% gradesData.scores.forEach(score => { %><%= score %>,<% }); %>],
+                            backgroundColor: [
+                                'rgba(52, 152, 219, 0.7)',
+                                'rgba(155, 89, 182, 0.7)',
+                                'rgba(52, 73, 94, 0.7)',
+                                'rgba(22, 160, 133, 0.7)',
+                                'rgba(39, 174, 96, 0.7)',
+                                'rgba(41, 128, 185, 0.7)',
+                                'rgba(142, 68, 173, 0.7)',
+                                'rgba(44, 62, 80, 0.7)',
+                                'rgba(241, 196, 15, 0.7)',
+                                'rgba(230, 126, 34, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(52, 152, 219, 1)',
+                                'rgba(155, 89, 182, 1)',
+                                'rgba(52, 73, 94, 1)',
+                                'rgba(22, 160, 133, 1)',
+                                'rgba(39, 174, 96, 1)',
+                                'rgba(41, 128, 185, 1)',
+                                'rgba(142, 68, 173, 1)',
+                                'rgba(44, 62, 80, 1)',
+                                'rgba(241, 196, 15, 1)',
+                                'rgba(230, 126, 34, 1)'
+                            ],
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            hoverBackgroundColor: [
+                                'rgba(52, 152, 219, 0.9)',
+                                'rgba(155, 89, 182, 0.9)',
+                                'rgba(52, 73, 94, 0.9)',
+                                'rgba(22, 160, 133, 0.9)',
+                                'rgba(39, 174, 96, 0.9)',
+                                'rgba(41, 128, 185, 0.9)',
+                                'rgba(142, 68, 173, 0.9)',
+                                'rgba(44, 62, 80, 0.9)',
+                                'rgba(241, 196, 15, 0.9)',
+                                'rgba(230, 126, 34, 0.9)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 10,
+                                top: 10,
+                                bottom: 0
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Score: ${context.raw}%`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            <% } %>
+            
+            <% if (student.expenses && student.expenses.length > 0) { %>
+                // Create expense chart data
+                // Expense Type Chart
+                const typeLabels = [];
+                const typeAmounts = [];
+                const typeColors = [];
+                const typeBorders = [];
+                
+                // Type colors mapping
+                const typeColorMap = {
+                    tuition: { bg: 'rgba(52, 152, 219, 0.7)', border: 'rgba(52, 152, 219, 1)' },
+                    books: { bg: 'rgba(155, 89, 182, 0.7)', border: 'rgba(155, 89, 182, 1)' },
+                    transportation: { bg: 'rgba(52, 73, 94, 0.7)', border: 'rgba(52, 73, 94, 1)' },
+                    meal: { bg: 'rgba(22, 160, 133, 0.7)', border: 'rgba(22, 160, 133, 1)' },
+                    uniform: { bg: 'rgba(39, 174, 96, 0.7)', border: 'rgba(39, 174, 96, 1)' },
+                    activity: { bg: 'rgba(41, 128, 185, 0.7)', border: 'rgba(41, 128, 185, 1)' },
+                    other: { bg: 'rgba(230, 126, 34, 0.7)', border: 'rgba(230, 126, 34, 1)' }
+                };
+                
+                <% Object.keys(expensesData.byType).forEach(type => { %>
+                    typeLabels.push('<%= expensesData.byType[type].label %>');
+                    typeAmounts.push(<%= expensesData.byType[type].amount.toFixed(2) %>);
+                    typeColors.push(typeColorMap['<%= type %>'] ? typeColorMap['<%= type %>'].bg : typeColorMap.other.bg);
+                    typeBorders.push(typeColorMap['<%= type %>'] ? typeColorMap['<%= type %>'].border : typeColorMap.other.border);
+                <% }); %>
+                
+                // Expense Type Chart
+                const expenseTypeCtx = document.getElementById('expenseTypeChart').getContext('2d');
+                const expenseTypeChart = new Chart(expenseTypeCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: typeLabels,
+                        datasets: [{
+                            data: typeAmounts,
+                            backgroundColor: typeColors,
+                            borderColor: typeBorders,
+                            borderWidth: 1,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '60%',
+                        layout: {
+                            padding: 20
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 15,
+                                    boxWidth: 10
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.dataset.data.reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
+                                        const percentage = Math.round((value * 100) / total);
+                                        return `${label}: $${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Payment Status Chart
+                const statusLabels = ['Paid', 'Pending', 'Overdue'];
+                const statusAmounts = [
+                    <%= expensesData.byStatus.paid.toFixed(2) %>,
+                    <%= expensesData.byStatus.pending.toFixed(2) %>,
+                    <%= expensesData.byStatus.overdue.toFixed(2) %>
+                ];
+                const statusColors = [
+                    'rgba(46, 204, 113, 0.7)',  // Paid - green
+                    'rgba(243, 156, 18, 0.7)',  // Pending - yellow
+                    'rgba(231, 76, 60, 0.7)'    // Overdue - red
+                ];
+                const statusBorders = [
+                    'rgba(46, 204, 113, 1)',
+                    'rgba(243, 156, 18, 1)',
+                    'rgba(231, 76, 60, 1)'
+                ];
+                
+                const expenseStatusCtx = document.getElementById('expenseStatusChart').getContext('2d');
+                const expenseStatusChart = new Chart(expenseStatusCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: statusLabels,
+                        datasets: [{
+                            data: statusAmounts,
+                            backgroundColor: statusColors,
+                            borderColor: statusBorders,
+                            borderWidth: 1,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: 20
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 15,
+                                    boxWidth: 10
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.dataset.data.reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
+                                        const percentage = Math.round((value * 100) / total);
+                                        return `${label}: $${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            <% } %>
+            
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+            
+            // Set current date as default for expense date field
+            document.getElementById('expense-date').valueAsDate = new Date();
+            
+            // Handle add/edit expense modal
+            const expenseModal = document.getElementById('addExpenseModal');
+            const expenseForm = document.getElementById('expense-form');
+            const expenseIdField = document.getElementById('expense-id');
+            const expenseDescField = document.getElementById('expense-description');
+            const expenseTypeField = document.getElementById('expense-type');
+            const expenseAmountField = document.getElementById('expense-amount');
+            const expenseDateField = document.getElementById('expense-date');
+            const expenseStatusField = document.getElementById('expense-status');
+            
+            // Reset form when modal is opened for adding new expense
+            expenseModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const isEdit = button && button.classList.contains('edit-expense-btn');
+                
+                // Change modal title based on add/edit
+                document.getElementById('addExpenseModalLabel').textContent = isEdit ? 'Edit Expense' : 'Add New Expense';
+                
+                if (!isEdit) {
+                    // Reset form for new expense
+                    expenseForm.reset();
+                    expenseIdField.value = '';
+                    expenseDateField.valueAsDate = new Date();
+                }
+            });
+            
+            // Handle edit expense button
+            document.querySelectorAll('.edit-expense-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const expenseId = this.dataset.id;
+                    
+                    // Show loading
+                    Swal.fire({
+                        title: 'Loading...',
+                        text: 'Please wait while we fetch expense data',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    // Fetch expense data
+                    fetch(`/admin/expenses/${expenseId}`, {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        Swal.close();
+                        
+                        if (data.success) {
+                            const expense = data.data;
+                            
+                            // Populate form fields
+                            expenseIdField.value = expense._id;
+                            expenseDescField.value = expense.description || '';
+                            expenseTypeField.value = expense.type || 'other';
+                            expenseAmountField.value = expense.amount;
+                            expenseDateField.value = new Date(expense.date || expense.createdAt).toISOString().split('T')[0];
+                            expenseStatusField.value = expense.status;
+                            
+                            // Show modal
+                            const modal = new bootstrap.Modal(expenseModal);
+                            modal.show();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message || 'Failed to fetch expense data',
+                                confirmButtonColor: '#3498db'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while fetching expense data',
+                            confirmButtonColor: '#3498db'
+                        });
+                    });
+                });
+            });
+            
+            // Handle save expense button
+            document.getElementById('save-expense-btn').addEventListener('click', function() {
+                // Validate form
+                if (!expenseForm.checkValidity()) {
+                    expenseForm.reportValidity();
+                    return;
+                }
+                
+                // Get form data
+                const expenseData = {
+                    description: expenseDescField.value,
+                    type: expenseTypeField.value,
+                    amount: parseFloat(expenseAmountField.value),
+                    date: expenseDateField.value,
+                    status: expenseStatusField.value,
+                    student: '<%= student._id %>'
+                };
+                
+                // Show loading
+                Swal.fire({
+                    title: 'Saving...',
+                    text: 'Please wait while we save the expense',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Determine if adding or updating
+                const isUpdate = expenseIdField.value !== '';
+                const url = isUpdate 
+                    ? `/admin/expenses/${expenseIdField.value}` 
+                    : '/admin/expenses';
+                const method = isUpdate ? 'PUT' : 'POST';
+                
+                // Send request
+                fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(expenseData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: `Expense ${isUpdate ? 'updated' : 'added'} successfully`,
+                            confirmButtonColor: '#3498db'
+                        }).then(() => {
+                            // Close modal and reload page
+                            const modal = bootstrap.Modal.getInstance(expenseModal);
+                            modal.hide();
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || `Failed to ${isUpdate ? 'update' : 'add'} expense`,
+                            confirmButtonColor: '#3498db'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: `An error occurred while ${isUpdate ? 'updating' : 'adding'} the expense`,
+                        confirmButtonColor: '#3498db'
+                    });
+                });
+            });
+            
+            // Handle mark as paid button
+            document.querySelectorAll('.mark-paid-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const expenseId = this.dataset.id;
+                    
+                    Swal.fire({
+                        title: 'Mark as Paid?',
+                        text: "This will mark this expense as paid.",
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#2ecc71',
+                        cancelButtonColor: '#7f8c8d',
+                        confirmButtonText: 'Yes, mark as paid'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Send update request
+                            fetch(`/admin/expenses/${expenseId}/mark-paid`, {
+                                method: 'PUT'
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Marked as Paid',
+                                        text: 'Expense has been marked as paid',
+                                        confirmButtonColor: '#3498db'
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: data.message || 'Failed to mark expense as paid',
+                                        confirmButtonColor: '#3498db'
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'An error occurred while updating the expense',
+                                    confirmButtonColor: '#3498db'
+                                });
+                            });
+                        }
+                    });
+                });
+            });
+            
+            // Handle delete expense button
+            document.querySelectorAll('.delete-expense-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const expenseId = this.dataset.id;
+                    
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "This expense will be permanently deleted.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#e74c3c',
+                        cancelButtonColor: '#7f8c8d',
+                        confirmButtonText: 'Yes, delete it'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Send delete request
+                            fetch(`/admin/expenses/${expenseId}`, {
+                                method: 'DELETE'
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Deleted',
+                                        text: 'Expense has been deleted',
+                                        confirmButtonColor: '#3498db'
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: data.message || 'Failed to delete expense',
+                                        confirmButtonColor: '#3498db'
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'An error occurred while deleting the expense',
+                                    confirmButtonColor: '#3498db'
+                                });
+                            });
+                        }
+                    });
+                });
+            });
+        });
+        
+        // Fix for pagination links to preserve other query parameters
+        document.querySelectorAll('.pagination-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Get the page number from data attribute
+                const pageNum = this.getAttribute('data-page');
+                
+                if (pageNum) {
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('attendancePage', pageNum);
+                    // Add active tab parameter to URL
+                    currentUrl.searchParams.set('activeTab', 'attendance');
+                    window.location.href = currentUrl.toString();
+                }
+            });
+        });
+        
+        // Handle records per page change for attendance
+        document.getElementById('recordsPerPage')?.addEventListener('change', function() {
+            const selectedLimit = this.value;
+            const currentUrl = new URL(window.location.href);
+            
+            // Update or add the attendanceLimit parameter
+            currentUrl.searchParams.set('attendanceLimit', selectedLimit);
+            
+            // Reset to page 1 when changing the limit
+            currentUrl.searchParams.set('attendancePage', '1');
+            
+            // Add active tab parameter to URL
+            currentUrl.searchParams.set('activeTab', 'attendance');
+            
+            // Navigate to the new URL
+            window.location.href = currentUrl.toString();
+        });
+        
+        // Check URL parameters for active tab on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = urlParams.get('activeTab');
+            
+            if (activeTab) {
+                // Activate the correct tab based on URL parameter
+                const tabToActivate = document.getElementById(`${activeTab}-tab`);
+                if (tabToActivate) {
+                    const tab = new bootstrap.Tab(tabToActivate);
+                    tab.show();
+                }
+            }
+        });
+    </script>
+
+    <!-- Add Expense Modal -->
+    <div class="modal fade" id="addExpenseModal" tabindex="-1" aria-labelledby="addExpenseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addExpenseModalLabel">Add New Expense</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="expense-form">
+                        <input type="hidden" id="expense-id">
+                        <div class="mb-3">
+                            <label for="expense-description" class="form-label">Description</label>
+                            <input type="text" class="form-control" id="expense-description" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="expense-type" class="form-label">Type</label>
+                            <select class="form-select" id="expense-type" required>
+                                <option value="tuition">Tuition Fee</option>
+                                <option value="books">Books & Supplies</option>
+                                <option value="transportation">Transportation</option>
+                                <option value="meal">Meal Plan</option>
+                                <option value="uniform">Uniform</option>
+                                <option value="activity">Activity Fee</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="expense-amount" class="form-label">Amount ($)</label>
+                            <input type="number" step="0.01" min="0" class="form-control" id="expense-amount" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="expense-date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="expense-date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="expense-status" class="form-label">Status</label>
+                            <select class="form-select" id="expense-status" required>
+                                <option value="pending">Pending</option>
+                                <option value="paid">Paid</option>
+                                <option value="overdue">Overdue</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-expense-btn">Save Expense</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

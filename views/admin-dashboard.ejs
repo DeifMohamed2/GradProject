@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | School Management System</title>
+    <%- include('./partials/styles') %>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card {
+            display: flex;
+            align-items: center;
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .bg-primary-light {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .bg-success-light {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+        }
+        
+        .bg-warning-light {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .bg-danger-light {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+        }
+        
+        .bg-info-light {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+        
+        .bg-secondary-light {
+            background-color: rgba(149, 165, 166, 0.1);
+            color: #95a5a6;
+        }
+        
+        .stat-content h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-content p {
+            color: #7f8c8d;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .recent-activity {
+            margin-bottom: 30px;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1rem;
+        }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-content h5 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+        
+        .activity-content p {
+            color: #7f8c8d;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .activity-time {
+            color: #95a5a6;
+            font-size: 0.8rem;
+        }
+        
+        .quick-actions {
+            margin-bottom: 30px;
+        }
+        
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            text-decoration: none;
+            color: var(--secondary-color);
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .action-btn i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .action-btn span {
+            font-weight: 500;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 250px;
+            margin-bottom: 20px;
+        }
+        
+        .data-summary {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .data-summary-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .data-summary-item:last-child {
+            border-bottom: none;
+        }
+        
+        .data-summary-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .data-summary-content {
+            flex: 1;
+        }
+        
+        .data-summary-content h5 {
+            font-size: 0.95rem;
+            margin-bottom: 3px;
+        }
+        
+        .data-summary-content p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+        
+        .data-summary-value {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .performance-indicator {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+        
+        .performance-indicator.up {
+            color: var(--success-color);
+        }
+        
+        .performance-indicator.down {
+            color: var(--danger-color);
+        }
+        
+        .performance-indicator i {
+            margin-right: 5px;
+        }
+        
+        .calendar-container {
+            height: 350px;
+            overflow-y: auto;
+        }
+        
+        .upcoming-event {
+            border-left: 4px solid var(--primary-color);
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            background: rgba(52, 152, 219, 0.05);
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .upcoming-event h5 {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+        
+        .upcoming-event p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+        
+        .upcoming-event .event-date {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 3px;
+        }
+        
+        .progress-card {
+            padding: 15px;
+        }
+        
+        .progress-item {
+            margin-bottom: 15px;
+        }
+        
+        .progress-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .progress-item h6 {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .progress-item h6 span {
+            font-weight: 400;
+            color: #7f8c8d;
+        }
+        
+        .progress {
+            height: 8px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <%- include('./partials/sidebar', { activePage: 'dashboard' }) %>
+    
+    <!-- Main Content -->
+    <div class="content">
+        <%- include('./partials/header', { pageTitle: 'Admin Dashboard' }) %>
+        
+        <!-- Overview Section -->
+        <div class="dashboard-cards">
+            <div class="card">
+                <div class="card-body stat-card">
+                    <div class="stat-icon bg-primary-light">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3><%= studentsCount %></h3>
+                        <p>Total Students</p>
+                        <div class="performance-indicator <%= studentGrowthRate >= 0 ? 'up' : 'down' %>">
+                            <i class="fas fa-arrow-<%= studentGrowthRate >= 0 ? 'up' : 'down' %>"></i> <%= Math.abs(studentGrowthRate) %>% from last month
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body stat-card">
+                    <div class="stat-icon bg-success-light">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3><%= parentsCount %></h3>
+                        <p>Total Parents</p>
+                        <div class="performance-indicator <%= parentGrowthRate >= 0 ? 'up' : 'down' %>">
+                            <i class="fas fa-arrow-<%= parentGrowthRate >= 0 ? 'up' : 'down' %>"></i> <%= Math.abs(parentGrowthRate) %>% from last month
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body stat-card">
+                    <div class="stat-icon bg-warning-light">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3><%= attendanceRate %>%</h3>
+                        <p>Attendance Rate</p>
+                        <div class="performance-indicator <%= attendanceGrowthRate >= 0 ? 'up' : 'down' %>">
+                            <i class="fas fa-arrow-<%= attendanceGrowthRate >= 0 ? 'up' : 'down' %>"></i> <%= Math.abs(attendanceGrowthRate) %>% from last month
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body stat-card">
+                    <div class="stat-icon bg-danger-light">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>$<%= totalExpenses.toFixed(2) || 0 %></h3>
+                        <p>Total Expenses</p>
+                        <div class="performance-indicator <%= expensesGrowthRate >= 0 ? 'up' : 'down' %>">
+                            <i class="fas fa-arrow-<%= expensesGrowthRate >= 0 ? 'up' : 'down' %>"></i> <%= Math.abs(expensesGrowthRate) %>% from last month
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <!-- Enrollment Trends Chart -->
+            <div class="col-lg-8 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-chart-line me-2"></i> Enrollment Trends
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                Last 6 Months
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <li><a class="dropdown-item" href="#">Last 3 Months</a></li>
+                                <li><a class="dropdown-item" href="#">Last 6 Months</a></li>
+                                <li><a class="dropdown-item" href="#">Last Year</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="enrollmentChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Attendance Summary -->
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <i class="fas fa-chart-pie me-2"></i> Attendance Overview
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="attendanceChart"></canvas>
+                        </div>
+                        <div class="text-center mt-2">
+                            <small class="text-muted">Average attendance rate: <%= attendanceRate %>%</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <!-- Recent Activity -->
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <i class="fas fa-history me-2"></i> Recent Activity
+                    </div>
+                    <div class="card-body">
+                        <% if (recentActivities && recentActivities.length > 0) { %>
+                            <% recentActivities.forEach(activity => { %>
+                                <div class="activity-item">
+                                    <div class="activity-icon bg-<%= activity.type %>-light">
+                                        <i class="fas fa-<%= activity.icon %>"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h5><%= activity.title %></h5>
+                                        <p><%= activity.description %></p>
+                                        <span class="activity-time"><%= activity.time %></span>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <div class="text-center py-4">
+                                <i class="fas fa-info-circle me-2"></i> No recent activities found.
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Financial Summary -->
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <i class="fas fa-dollar-sign me-2"></i> Financial Summary
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="financialChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <!-- Quick Stats Cards -->
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <i class="fas fa-book me-2"></i> Grade Metrics
+                    </div>
+                    <div class="card-body">
+                        <div class="progress-card">
+                            <div class="progress-item">
+                                <h6>Above Average <span>45%</span></h6>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 45%"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <h6>Average <span>30%</span></h6>
+                                <div class="progress">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 30%"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <h6>Below Average <span>25%</span></h6>
+                                <div class="progress">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 25%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="/admin/grades" class="btn btn-sm btn-outline-primary">View Detailed Report</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Calendar Events -->
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <i class="fas fa-calendar me-2"></i> Upcoming Events
+                    </div>
+                    <div class="card-body">
+                        <div class="calendar-container">
+                            <div class="upcoming-event">
+                                <div class="event-date">Today • 2:00 PM</div>
+                                <h5>Parent-Teacher Meeting</h5>
+                                <p>For Grade 10 students</p>
+                            </div>
+                            <div class="upcoming-event">
+                                <div class="event-date">Tomorrow • 9:00 AM</div>
+                                <h5>Science Exhibition</h5>
+                                <p>School auditorium</p>
+                            </div>
+                            <div class="upcoming-event">
+                                <div class="event-date">Nov 15, 2023 • 10:00 AM</div>
+                                <h5>Annual Sports Day</h5>
+                                <p>School playground</p>
+                            </div>
+                            <div class="upcoming-event">
+                                <div class="event-date">Nov 20, 2023 • 9:30 AM</div>
+                                <h5>Board Meeting</h5>
+                                <p>Conference room</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="col-lg-4 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-bolt me-2"></i> Quick Actions
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <a href="/admin/create-student" class="action-btn">
+                                    <i class="fas fa-user-graduate"></i>
+                                    <span>Add Student</span>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="/admin/create-parent" class="action-btn">
+                                    <i class="fas fa-users"></i>
+                                    <span>Add Parent</span>
+                                </a>
+                            </div>
+                            <div class="col-6 mt-3">
+                                <a href="/admin/link-children" class="action-btn">
+                                    <i class="fas fa-link"></i>
+                                    <span>Link Children</span>
+                                </a>
+                            </div>
+                            <div class="col-6 mt-3">
+                                <a href="/admin/expenses" class="action-btn">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    <span>Manage Expenses</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('./partials/scripts') %>
+    
+    <script>
+        // Enrollment Trends Chart
+        const enrollmentCtx = document.getElementById('enrollmentChart').getContext('2d');
+        const enrollmentChart = new Chart(enrollmentCtx, {
+            type: 'line',
+            data: {
+                labels: <%- JSON.stringify(enrollmentData.months) %>,
+                datasets: [{
+                    label: 'New Students',
+                    data: <%- JSON.stringify(enrollmentData.students) %>,
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    borderColor: 'rgba(52, 152, 219, 1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Attendance Overview Chart
+        const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+        const attendanceChart = new Chart(attendanceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Present', 'Late', 'Absent'],
+                datasets: [{
+                    data: [
+                        <%= parseFloat(attendanceRate) || 0 %>,
+                        <%= (100 - parseFloat(attendanceRate)) * 0.6 || 0 %>,
+                        <%= (100 - parseFloat(attendanceRate)) * 0.4 || 0 %>
+                    ],
+                    backgroundColor: [
+                        'rgba(46, 204, 113, 0.8)',
+                        'rgba(243, 156, 18, 0.8)',
+                        'rgba(231, 76, 60, 0.8)'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+        
+        // Financial Chart
+        const financialCtx = document.getElementById('financialChart').getContext('2d');
+        const financialChart = new Chart(financialCtx, {
+            type: 'bar',
+            data: {
+                labels: <%- JSON.stringify(financialData.months) %>,
+                datasets: [{
+                    label: 'Income',
+                    data: <%- JSON.stringify(financialData.income) %>,
+                    backgroundColor: 'rgba(46, 204, 113, 0.7)'
+                }, {
+                    label: 'Expenses',
+                    data: <%- JSON.stringify(financialData.expenses) %>,
+                    backgroundColor: 'rgba(231, 76, 60, 0.7)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

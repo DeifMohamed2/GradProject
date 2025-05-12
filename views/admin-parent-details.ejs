@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent Details | School Management System</title>
+    <%- include('./partials/styles') %>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .parent-header {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .parent-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .parent-info {
+            padding-left: 20px;
+        }
+        
+        .parent-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .parent-code {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+        
+        .parent-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        
+        .meta-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: rgba(52, 152, 219, 0.15);
+            color: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+        }
+        
+        .relation-badge {
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .relation-father {
+            background-color: rgba(52, 152, 219, 0.15);
+            color: #3498db;
+        }
+        
+        .relation-mother {
+            background-color: rgba(155, 89, 182, 0.15);
+            color: #9b59b6;
+        }
+        
+        .relation-guardian {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+        }
+        
+        .relation-other {
+            background-color: rgba(243, 156, 18, 0.15);
+            color: #f39c12;
+        }
+        
+        .detail-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            color: var(--primary-color);
+        }
+        
+        .info-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            height: 100%;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .info-table th {
+            width: 35%;
+            font-weight: 600;
+            color: #34495e;
+        }
+        
+        .tab-pane {
+            padding: 20px 0;
+        }
+        
+        .child-card {
+            background-color: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .child-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .child-header {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+        }
+        
+        .child-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .child-info {
+            margin-left: 15px;
+        }
+        
+        .child-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .child-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .child-detail {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            display: flex;
+            align-items: center;
+        }
+        
+        .child-detail i {
+            margin-right: 5px;
+        }
+        
+        .child-body {
+            padding: 15px;
+        }
+        
+        .child-stats {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        
+        .stats-item {
+            text-align: center;
+            padding: 10px;
+            min-width: 120px;
+        }
+        
+        .stats-title {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        .stats-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .child-footer {
+            padding: 10px 15px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .transaction-table th, .transaction-table td {
+            vertical-align: middle;
+        }
+        
+        .transaction-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .transaction-completed {
+            background-color: #2ecc71;
+        }
+        
+        .transaction-pending {
+            background-color: #f39c12;
+        }
+        
+        .transaction-failed {
+            background-color: #e74c3c;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Transaction Section Styles */
+        .transaction-table th, .transaction-table td {
+            vertical-align: middle;
+        }
+        
+        .transaction-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .transaction-completed {
+            background-color: #2ecc71;
+        }
+        
+        .transaction-pending {
+            background-color: #f39c12;
+        }
+        
+        .transaction-failed {
+            background-color: #e74c3c;
+        }
+        
+        .filter-btn.active, .status-filter-btn.active {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .sort-header {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .sort-header i {
+            font-size: 0.75rem;
+            opacity: 0.5;
+            margin-left: 5px;
+        }
+        
+        .sort-header i.text-primary {
+            opacity: 1;
+        }
+        
+        .transaction-row:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+        
+        .pagination-info {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        
+        #transactionPagination .page-link {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        #searchTransaction:focus {
+            box-shadow: none;
+        }
+        
+        .input-group-text {
+            color: #6c757d;
+        }
+        
+        /* Transaction Type Badges */
+        .badge.bg-success { /* Payment */
+            background-color: #2ecc71 !important;
+        }
+        
+        .badge.bg-primary { /* Withdrawal */
+            background-color: #3498db !important;
+        }
+        
+        .badge.bg-info { /* Charge */
+            background-color: #17a2b8 !important;
+        }
+        
+        .badge.bg-danger { /* Failed */
+            background-color: #e74c3c !important;
+        }
+        
+        /* Enhanced Filter Styles */
+        .transaction-filters {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .filter-btn, .status-filter-btn {
+            border-radius: 20px;
+            padding: 6px 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: none;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-btn {
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .filter-btn:hover, .status-filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .filter-btn.active {
+            background-color: #3498db;
+            color: white;
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+        
+        .filter-btn[data-filter="all"].active {
+            background-color: #3498db;
+        }
+        
+        .filter-btn[data-filter="payment"].active {
+            background-color: #2ecc71;
+        }
+        
+        .filter-btn[data-filter="withdrawal"].active {
+            background-color: #9b59b6;
+        }
+        
+        .filter-btn[data-filter="charge"].active {
+            background-color: #17a2b8;
+        }
+        
+        .status-filter-btn {
+            border: 1px solid #e0e0e0;
+            background-color: #f8f9fa;
+            color: #495057;
+        }
+        
+        .status-filter-btn[data-filter="completed"].active {
+            background-color: #2ecc71;
+            color: white;
+            box-shadow: 0 4px 8px rgba(46, 204, 113, 0.3);
+        }
+        
+        .status-filter-btn[data-filter="pending"].active {
+            background-color: #f39c12;
+            color: white;
+            box-shadow: 0 4px 8px rgba(243, 156, 18, 0.3);
+        }
+        
+        .status-filter-btn[data-filter="failed"].active {
+            background-color: #e74c3c;
+            color: white;
+            box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+        }
+        
+        .filter-summary {
+            display: flex;
+            align-items: center;
+        }
+        
+        .filter-summary .badge {
+            font-size: 0.85rem;
+            padding: 7px 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .search-wrapper {
+            position: relative;
+        }
+        
+        .search-wrapper .input-group {
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .search-wrapper .input-group-text {
+            background-color: white;
+            border-right: none;
+        }
+        
+        .search-wrapper .form-control {
+            border-left: none;
+            padding-left: 0;
+        }
+        
+        .search-wrapper .form-control:focus {
+            box-shadow: none;
+            border-color: #ced4da;
+        }
+        
+        .date-filter-dropdown .dropdown-menu {
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: none;
+        }
+        
+        .transaction-table thead th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <%- include('./partials/sidebar', { activePage: 'parents' }) %>
+    
+    <!-- Main Content -->
+    <div class="content">
+        <%- include('./partials/header', { pageTitle: 'Parent Details' }) %>
+        
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-end mb-4">
+            <div class="action-buttons">
+                <a href="/admin/parents" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Parents
+                </a>
+                <button class="btn btn-outline-success" id="manage-balance-btn">
+                    <i class="bi bi-cash-coin me-1"></i> Manage Balance
+                </button>
+                <button class="btn btn-outline-primary" id="edit-parent-btn">
+                    <i class="bi bi-pencil me-1"></i> Edit Parent
+                </button>
+                <button class="btn btn-outline-danger" id="delete-parent-btn">
+                    <i class="bi bi-trash me-1"></i> Delete Parent
+                </button>
+            </div>
+        </div>
+        
+        <!-- Parent Header -->
+        <div class="parent-header">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="d-flex">
+                        <img src="<%= parent.profilePicture || `https://ui-avatars.com/api/?name=${parent.firstName}+${parent.lastName}&background=3498db&color=fff&size=120` %>" class="parent-avatar" alt="<%= parent.firstName %>">
+                        <div class="parent-info">
+                            <div class="parent-name"><%= parent.firstName %> <%= parent.lastName %></div>
+                            <div class="parent-code">Parent Code: <span class="badge bg-light text-dark"><%= parent.parentCode %></span></div>
+                            <div class="parent-meta">
+                                <div class="meta-item">
+                                    <div class="meta-icon">
+                                        <i class="bi bi-envelope"></i>
+                                    </div>
+                                    <div><a href="mailto:<%= parent.email %>"><%= parent.email %></a></div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="meta-icon">
+                                        <i class="bi bi-telephone"></i>
+                                    </div>
+                                    <div><a href="tel:<%= parent.phoneNumber %>"><%= parent.phoneNumber %></a></div>
+                                </div>
+                                <% if (parent.alternatePhone) { %>
+                                    <div class="meta-item">
+                                        <div class="meta-icon">
+                                            <i class="bi bi-telephone-plus"></i>
+                                        </div>
+                                        <div><a href="tel:<%= parent.alternatePhone %>"><%= parent.alternatePhone %></a></div>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <span class="relation-badge relation-<%= parent.relationshipToStudent ? parent.relationshipToStudent.toLowerCase() : 'other' %>">
+                        <i class="bi bi-person-fill me-1"></i> <%= parent.relationshipToStudent || 'Parent' %>
+                    </span>
+                    <div class="mt-3">
+                        <span class="text-muted">Children:</span>
+                        <span class="ms-2 badge bg-primary"><%= parent.childs ? parent.childs.length : 0 %></span>
+                    </div>
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-end gap-3">
+                            <div class="text-center">
+                                <div class="small text-muted">Parent</div>
+                                <div class="fw-bold">$<%= financialData.parentBalance.toFixed(2) %></div>
+                            </div>
+                            <div class="text-center">
+                                <div class="small text-muted">Children</div>
+                                <div class="fw-bold">$<%= financialData.childrenBalance.toFixed(2) %></div>
+                            </div>
+                            <div class="text-center">
+                                <div class="small text-muted">Total</div>
+                                <div class="fw-bold text-success">$<%= financialData.totalBalance.toFixed(2) %></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Parent Details Tabs -->
+        <ul class="nav nav-tabs mb-4" id="parentTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button" role="tab" aria-controls="personal" aria-selected="true">
+                    <i class="bi bi-person me-1"></i> Personal Info
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="children-tab" data-bs-toggle="tab" data-bs-target="#children" type="button" role="tab" aria-controls="children" aria-selected="false">
+                    <i class="bi bi-people me-1"></i> Children
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions" type="button" role="tab" aria-controls="transactions" aria-selected="false">
+                    <i class="bi bi-cash-coin me-1"></i> Transactions
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="parentTabsContent">
+            <!-- Personal Information Tab -->
+            <div class="tab-pane fade show active" id="personal" role="tabpanel" aria-labelledby="personal-tab">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="info-card">
+                            <div class="section-title">Personal Information</div>
+                            <table class="table info-table">
+                                <tbody>
+                                    <tr>
+                                        <th>Full Name</th>
+                                        <td><%= parent.firstName %> <%= parent.lastName %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Date of Birth</th>
+                                        <td><%= parent.dateOfBirth ? new Date(parent.dateOfBirth).toLocaleDateString() : 'Not provided' %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Age</th>
+                                        <td><%= parent.age %> years</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Gender</th>
+                                        <td><%= parent.gender || 'Not provided' %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email</th>
+                                        <td><a href="mailto:<%= parent.email %>"><%= parent.email %></a></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Primary Phone</th>
+                                        <td><a href="tel:<%= parent.phoneNumber %>"><%= parent.phoneNumber %></a></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Alternate Phone</th>
+                                        <td><%= parent.alternatePhone ? parent.alternatePhone : 'Not provided' %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Address</th>
+                                        <td>
+                                            <% if (parent.address && (parent.address.street || parent.address.city || parent.address.state || parent.address.zipCode || parent.address.country)) { %>
+                                                <div><%= parent.address.street || '' %></div>
+                                                <div>
+                                                    <%= parent.address.city || '' %>
+                                                    <%= parent.address.state ? (parent.address.city ? ', ' : '') + parent.address.state : '' %>
+                                                    <%= parent.address.zipCode ? ' ' + parent.address.zipCode : '' %>
+                                                </div>
+                                                <div><%= parent.address.country || '' %></div>
+                                            <% } else { %>
+                                                Not provided
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="info-card">
+                            <div class="section-title">Professional Information</div>
+                            <table class="table info-table">
+                                <tbody>
+                                    <tr>
+                                        <th>Occupation</th>
+                                        <td><%= parent.occupation || 'Not provided' %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Education</th>
+                                        <td><%= parent.education || 'Not provided' %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Workplace</th>
+                                        <td>
+                                            <% if (parent.workplaceInfo && (parent.workplaceInfo.companyName || parent.workplaceInfo.position || parent.workplaceInfo.address || parent.workplaceInfo.phone)) { %>
+                                                <div><strong>Company:</strong> <%= parent.workplaceInfo.companyName || 'Not provided' %></div>
+                                                <div><strong>Position:</strong> <%= parent.workplaceInfo.position || 'Not provided' %></div>
+                                                <div><strong>Address:</strong> <%= parent.workplaceInfo.address || 'Not provided' %></div>
+                                                <div><strong>Phone:</strong> <%= parent.workplaceInfo.phone || 'Not provided' %></div>
+                                            <% } else { %>
+                                                Not provided
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="info-card mt-4">
+                            <div class="section-title">Family Information</div>
+                            <table class="table info-table">
+                                <tbody>
+                                    <tr>
+                                        <th>Relationship</th>
+                                        <td><%= parent.relationshipToStudent || 'Parent' %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Marital Status</th>
+                                        <td><%= parent.maritalStatus || 'Not provided' %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Number of Children</th>
+                                        <td><%= parent.numberOfChildren || (parent.childs ? parent.childs.length : 0) %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Preferred Contact</th>
+                                        <td><%= parent.preferredContactMethod || 'Email' %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Spouse Information</th>
+                                        <td>
+                                            <% if (parent.spouseInfo && parent.spouseInfo.name) { %>
+                                                <div><strong>Name:</strong> <%= parent.spouseInfo.name %></div>
+                                                <div><strong>Phone:</strong> <%= parent.spouseInfo.phoneNumber || 'Not provided' %></div>
+                                                <div><strong>Email:</strong> <%= parent.spouseInfo.email || 'Not provided' %></div>
+                                                <div><strong>Occupation:</strong> <%= parent.spouseInfo.occupation || 'Not provided' %></div>
+                                            <% } else { %>
+                                                Not provided
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Children Tab -->
+            <div class="tab-pane fade" id="children" role="tabpanel" aria-labelledby="children-tab">
+                <div class="row">
+                    <% if (parent.childs && parent.childs.length > 0) { %>
+                        <% parent.childs.forEach(child => { %>
+                            <div class="col-md-6 mb-4">
+                                <div class="child-card">
+                                    <div class="child-header">
+                                        <img src="<%= child.profilePicture || `https://ui-avatars.com/api/?name=${child.firstName}+${child.lastName}&background=2ecc71&color=fff` %>" 
+                                             class="child-avatar" 
+                                             alt="<%= child.firstName %>">
+                                        <div class="child-info">
+                                            <div class="child-name"><%= child.firstName %> <%= child.lastName %></div>
+                                            <div class="child-details">
+                                                <div class="child-detail">
+                                                    <i class="bi bi-mortarboard"></i> Grade <%= child.grade %> - <%= child.section %>
+                                                </div>
+                                                <div class="child-detail">
+                                                    <i class="bi bi-calendar3"></i> <%= child.academicYear %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="child-body">
+                                        <div class="child-stats">
+                                            <div class="stats-item">
+                                                <div class="stats-title">Attendance</div>
+                                                <div class="stats-value">
+                                                    <% 
+                                                        let attendancePercentage = 0;
+                                                        if (attendanceByStudent && attendanceByStudent[child._id]) {
+                                                            const attendance = attendanceByStudent[child._id];
+                                                            if (attendance.total > 0) {
+                                                                attendancePercentage = Math.round((attendance.present / attendance.total) * 100);
+                                                            }
+                                                        } 
+                                                    %>
+                                                    <%= attendancePercentage %>%
+                                                </div>
+                                            </div>
+                                            <div class="stats-item">
+                                                <div class="stats-title">Balance</div>
+                                                <div class="stats-value">$<%= child.balance ? child.balance.toFixed(2) : '0.00' %></div>
+                                            </div>
+                                            <div class="stats-item">
+                                                <div class="stats-title">Status</div>
+                                                <div class="stats-value">
+                                                    <span class="badge bg-<%= child.status === 'Active' ? 'success' : 'warning' %>">
+                                                        <%= child.status %>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="child-footer">
+                                        <a href="/admin/students/<%= child._id %>" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye me-1"></i> View Student
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="col-md-12">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i> This parent has no children linked yet.
+                                <a href="/admin/link-children" class="alert-link ms-2">Link children</a>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+            
+            <!-- Transactions Tab -->
+            <div class="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="info-card">
+                            <div class="section-title">Financial Summary</div>
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-light h-100">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">Parent Balance</h6>
+                                            <h3 class="mb-0 text-primary">$<%= financialData.parentBalance.toFixed(2) %></h3>
+                                            <small class="text-muted">Available funds</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-light h-100">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">Children's Balance</h6>
+                                            <h3 class="mb-0 text-info">$<%= financialData.childrenBalance.toFixed(2) %></h3>
+                                            <small class="text-muted">Children's funds</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-light h-100">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">Total Balance</h6>
+                                            <h3 class="mb-0 text-success">$<%= financialData.totalBalance.toFixed(2) %></h3>
+                                            <small class="text-muted">Combined funds</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-light h-100">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">Payment Status</h6>
+                                            <% if (financialData.paymentStatus === 'Good Standing') { %>
+                                                <h3 class="mb-0 text-success">Good Standing</h3>
+                                            <% } else if (financialData.paymentStatus === 'Pending Payments') { %>
+                                                <h3 class="mb-0 text-warning">Pending</h3>
+                                            <% } else { %>
+                                                <h3 class="mb-0 text-danger">Outstanding</h3>
+                                            <% } %>
+                                            <small class="text-muted">Account status</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Children's Financial Summary -->
+                    <div class="col-md-12 mb-4">
+                        <div class="info-card">
+                            <div class="section-title">Children's Financial Summary</div>
+                            <% if (financialData.children && financialData.children.length > 0) { %>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Grade/Section</th>
+                                                <th>Attendance</th>
+                                                <th class="text-end">Balance</th>
+                                                <th class="text-center">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% financialData.children.forEach(child => { %>
+                                                <tr>
+                                                    <td><%= child.name %></td>
+                                                    <td>Grade <%= child.grade %> - <%= child.section %></td>
+                                                    <td><%= child.attendancePercentage %>%</td>
+                                                    <td class="text-end">$<%= child.balance.toFixed(2) %></td>
+                                                    <td class="text-center">
+                                                        <a href="/admin/students/<%= child.id %>" class="btn btn-sm btn-outline-primary">
+                                                            <i class="bi bi-eye me-1"></i> View
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="table-light">
+                                                <th colspan="2">Total Children's Balance</th>
+                                                <th class="text-end">$<%= financialData.childrenBalance.toFixed(2) %></th>
+                                                <th></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            <% } else { %>
+                                <div class="alert alert-info mb-0">
+                                    <i class="bi bi-info-circle me-2"></i> No children linked to this parent yet.
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <!-- Transaction Statistics -->
+                    <div class="col-md-12 mb-4">
+                        <div class="info-card">
+                            <div class="section-title">Transaction Statistics</div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">Total Paid</h6>
+                                            <h3 class="mb-0 text-success">$<%= financialData.totalPaid.toFixed(2) %></h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">Pending Payments</h6>
+                                            <h3 class="mb-0 text-warning">$<%= financialData.totalPending.toFixed(2) %></h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">Transactions Count</h6>
+                                            <h3 class="mb-0"><%= parent.transactionHistory ? parent.transactionHistory.length : 0 %></h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Transaction History - IMPROVED VERSION -->
+                    <div class="col-md-12 mb-4">
+                        <div class="info-card">
+                            <div class="section-title d-flex justify-content-between align-items-center">
+                                <span>Transaction History</span>
+                                <button class="btn btn-sm btn-outline-primary" id="exportTransactions">
+                                    <i class="bi bi-download me-1"></i> Export
+                                </button>
+                            </div>
+                            
+                            <% if (parent.transactionHistory && parent.transactionHistory.length > 0) { %>
+                                <!-- Filters Section -->
+                                <div class="transaction-filters">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-4 mb-2 mb-md-0">
+                                            <div class="search-wrapper">
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+                                                    <input type="text" class="form-control border-start-0" id="searchTransaction" placeholder="Search transactions...">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                                                <div>
+                                                    <span class="me-2 text-muted fw-medium">Type:</span>
+                                                    <div class="btn-group" role="group">
+                                                        <button class="btn filter-btn active" data-filter="all">All</button>
+                                                        <button class="btn filter-btn" data-filter="payment">Payments</button>
+                                                        <button class="btn filter-btn" data-filter="withdrawal">Withdrawals</button>
+                                                        <button class="btn filter-btn" data-filter="charge">Charges</button>
+                                                    </div>
+                                                </div>
+                                                <div class="ms-md-3">
+                                                    <span class="me-2 text-muted fw-medium">Status:</span>
+                                                    <div class="btn-group" role="group">
+                                                        <button class="btn status-filter-btn" data-filter="completed">Completed</button>
+                                                        <button class="btn status-filter-btn" data-filter="pending">Pending</button>
+                                                        <button class="btn status-filter-btn" data-filter="failed">Failed</button>
+                                                    </div>
+                                                </div>
+                                                <div class="dropdown date-filter-dropdown ms-md-3 mt-2 mt-md-0">
+                                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dateFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="bi bi-calendar me-1"></i> Date
+                                                    </button>
+                                                    <ul class="dropdown-menu p-3" aria-labelledby="dateFilterDropdown" style="min-width: 250px;">
+                                                        <li class="mb-2">
+                                                            <label for="dateFrom" class="form-label">From:</label>
+                                                            <input type="date" class="form-control" id="dateFrom">
+                                                        </li>
+                                                        <li class="mb-2">
+                                                            <label for="dateTo" class="form-label">To:</label>
+                                                            <input type="date" class="form-control" id="dateTo">
+                                                        </li>
+                                                        <li class="d-flex justify-content-between mt-3">
+                                                            <button class="btn btn-sm btn-outline-secondary" id="clearDateFilter">Clear</button>
+                                                            <button class="btn btn-sm btn-primary" id="applyDateFilter">Apply</button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-responsive">
+                                    <table class="table transaction-table" id="transactionTable">
+                                        <thead>
+                                            <tr>
+                                                <th><a href="#" class="sort-header" data-sort="id">Transaction ID <i class="bi bi-arrow-down-up"></i></a></th>
+                                                <th><a href="#" class="sort-header" data-sort="date">Date <i class="bi bi-arrow-down-up"></i></a></th>
+                                                <th>Description</th>
+                                                <th class="text-end"><a href="#" class="sort-header" data-sort="amount">Amount <i class="bi bi-arrow-down-up"></i></a></th>
+                                                <th><a href="#" class="sort-header" data-sort="type">Type <i class="bi bi-arrow-down-up"></i></a></th>
+                                                <th><a href="#" class="sort-header" data-sort="status">Status <i class="bi bi-arrow-down-up"></i></a></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% parent.transactionHistory.forEach(transaction => { %>
+                                                <tr class="transaction-row" 
+                                                    data-id="<%= transaction._id %>"
+                                                    data-date="<%= transaction.createdAt ? new Date(transaction.createdAt).toISOString() : new Date().toISOString() %>"
+                                                    data-amount="<%= transaction.amount ? transaction.amount : 0 %>"
+                                                    data-type="<%= transaction.type %>"
+                                                    data-status="<%= transaction.status.toLowerCase() %>"
+                                                    data-description="<%= transaction.description %>">
+                                                    <td><small><%= transaction._id %></small></td>
+                                                    <td>
+                                                    <% 
+                                                    let displayDate = 'N/A';
+                                                    try { 
+                                                        if (transaction.createdAt) {
+                                                            displayDate = new Date(transaction.createdAt).toLocaleDateString();
+                                                        }
+                                                    } catch(e) { } 
+                                                    %>
+                                                    <%= displayDate %>
+                                                    </td>
+                                                    <td><%= transaction.description %></td>
+                                                    <td class="text-end">$<%= transaction.amount ? transaction.amount.toFixed(2) : '0.00' %></td>
+                                                    <td>
+                                                        <% 
+                                                        let badgeClass = 'bg-info';
+                                                        if (transaction.type === 'payment') badgeClass = 'bg-success';
+                                                        if (transaction.type === 'withdrawal') badgeClass = 'bg-primary';
+                                                        if (transaction.type === 'charge') badgeClass = 'bg-danger';
+                                                        %>
+                                                        <span class="badge <%= badgeClass %>">
+                                                            <%= transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1) %>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <% if (transaction.status === 'completed') { %>
+                                                            <span><span class="transaction-status transaction-completed"></span> Completed</span>
+                                                        <% } else if (transaction.status === 'pending') { %>
+                                                            <span><span class="transaction-status transaction-pending"></span> Pending</span>
+                                                        <% } else { %>
+                                                            <span><span class="transaction-status transaction-failed"></span> Failed</span>
+                                                        <% } %>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Pagination Controls -->
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div class="pagination-info">
+                                        Showing <span id="startRecord">1</span> to <span id="endRecord">10</span> of <span id="totalRecords"><%= parent.transactionHistory.length %></span> records
+                                    </div>
+                                    <nav aria-label="Transaction pagination">
+                                        <ul class="pagination pagination-sm mb-0" id="transactionPagination">
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" id="prevPage" aria-label="Previous">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
+                                            </li>
+                                            <!-- Pagination numbers will be dynamically inserted here -->
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" id="nextPage" aria-label="Next">
+                                                    <span aria-hidden="true">&raquo;</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            <% } else { %>
+                                <div class="alert alert-info mb-0">
+                                    <i class="bi bi-info-circle me-2"></i> No transaction records available for this parent yet.
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('./partials/scripts') %>
+    
+    <!-- Balance Management Modal -->
+    <div class="modal fade" id="manageBalanceModal" tabindex="-1" aria-labelledby="manageBalanceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="manageBalanceModalLabel">Manage Parent Balance</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="balanceForm">
+                        <div class="mb-3">
+                            <label for="transactionType" class="form-label">Transaction Type</label>
+                            <select class="form-select" id="transactionType" required>
+                                <option value="">Select transaction type</option>
+                                <option value="deposit">Deposit (Add Funds)</option>
+                                <option value="withdraw">Withdraw (Remove Funds)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Amount ($)</label>
+                            <input type="number" class="form-control" id="amount" min="0.01" step="0.01" placeholder="Enter amount" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description (Optional)</label>
+                            <textarea class="form-control" id="description" rows="2" placeholder="Enter transaction description"></textarea>
+                        </div>
+                        <div class="alert alert-info">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                <div>
+                                    <strong>Current Balance:</strong> $<span id="currentBalance"><%= financialData.parentBalance.toFixed(2) %></span>
+                                    <div id="newBalancePreview" class="mt-1 d-none">
+                                        <strong>New Balance:</strong> $<span id="newBalance">0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="saveBalanceBtn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Delete parent confirmation
+        document.getElementById('delete-parent-btn').addEventListener('click', function() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This action cannot be undone!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#7f8c8d',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Send delete request
+                    fetch(`/admin/parents/<%= parent._id %>`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: 'Parent has been deleted.',
+                                confirmButtonColor: '#3498db'
+                            }).then(() => {
+                                // Redirect to parents list
+                                window.location.href = '/admin/parents';
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message || 'Failed to delete parent',
+                                confirmButtonColor: '#3498db'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while deleting the parent',
+                            confirmButtonColor: '#3498db'
+                        });
+                    });
+                }
+            });
+        });
+        
+        // Edit parent redirect
+        document.getElementById('edit-parent-btn').addEventListener('click', function() {
+            window.location.href = `/admin/parents/<%= parent._id %>/edit`;
+        });
+        
+        // Balance Management
+        document.getElementById('manage-balance-btn').addEventListener('click', function() {
+            // Reset form
+            document.getElementById('balanceForm').reset();
+            document.getElementById('newBalancePreview').classList.add('d-none');
+            
+            // Show modal
+            new bootstrap.Modal(document.getElementById('manageBalanceModal')).show();
+        });
+        
+        // Calculate and preview new balance
+        function updateBalancePreview() {
+            const currentBalance = parseFloat(document.getElementById('currentBalance').textContent);
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const type = document.getElementById('transactionType').value;
+            let newBalance = currentBalance;
+            
+            if (type === 'deposit') {
+                newBalance = currentBalance + amount;
+            } else if (type === 'withdraw') {
+                newBalance = currentBalance - amount;
+            }
+            
+            document.getElementById('newBalance').textContent = newBalance.toFixed(2);
+            document.getElementById('newBalancePreview').classList.toggle('d-none', amount <= 0 || !type);
+        }
+        
+        document.getElementById('amount').addEventListener('input', updateBalancePreview);
+        document.getElementById('transactionType').addEventListener('change', updateBalancePreview);
+        
+        // Save balance changes
+        document.getElementById('saveBalanceBtn').addEventListener('click', function() {
+            const amount = document.getElementById('amount').value;
+            const type = document.getElementById('transactionType').value;
+            const description = document.getElementById('description').value;
+            
+            // Validate inputs
+            if (!amount || amount <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Amount',
+                    text: 'Please enter a valid amount greater than zero',
+                    confirmButtonColor: '#3498db'
+                });
+                return;
+            }
+            
+            if (!type) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Transaction Type Required',
+                    text: 'Please select a transaction type',
+                    confirmButtonColor: '#3498db'
+                });
+                return;
+            }
+            
+            // Send update request
+            fetch(`/admin/parents/<%= parent._id %>/balance`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    amount,
+                    type,
+                    description
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('manageBalanceModal')).hide();
+                    
+                    // Show success message
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Balance Updated',
+                        text: data.message,
+                        confirmButtonColor: '#3498db'
+                    }).then(() => {
+                        // Refresh page to show updated balance
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Failed to update balance',
+                        confirmButtonColor: '#3498db'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while updating the balance',
+                    confirmButtonColor: '#3498db'
+                });
+            });
+        });
+    </script>
+    
+    <!-- Transaction Management Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Only initialize if transactions tab exists
+            if (document.getElementById('transactionTable')) {
+                initializeTransactionManagement();
+            }
+        });
+        
+        function initializeTransactionManagement() {
+            // ===== Variables =====
+            const transactionTable = document.getElementById('transactionTable');
+            const tbody = transactionTable.querySelector('tbody');
+            const allRows = Array.from(tbody.querySelectorAll('tr.transaction-row'));
+            const rowsPerPage = 10;
+            let currentPage = 1;
+            let sortField = 'date';
+            let sortDirection = 'desc';
+            let filteredRows = [...allRows];
+            
+            // Filter states
+            let activeTypeFilter = 'all';
+            let activeStatusFilters = [];
+            let searchTerm = '';
+            let dateFromFilter = null;
+            let dateToFilter = null;
+            
+            // ===== Initial Setup =====
+            // Hide all rows initially
+            allRows.forEach(row => {
+                row.style.display = 'none';
+            });
+            
+            // Sort by date descending initially
+            sortRows('date', 'desc');
+            
+            // ===== Event Listeners =====
+            
+            // Type filters
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Set active filter
+                    activeTypeFilter = this.dataset.filter;
+                    
+                    // Apply filters and refresh display
+                    applyFilters();
+                });
+            });
+            
+            // Status filters
+            document.querySelectorAll('.status-filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const filter = this.dataset.filter;
+                    
+                    // Reset all status filters
+                    document.querySelectorAll('.status-filter-btn').forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    
+                    // Toggle active class
+                    this.classList.add('active');
+                    
+                    // Update active status filters
+                    activeStatusFilters = [filter];
+                    
+                    // Apply filters and refresh display
+                    applyFilters();
+                });
+            });
+            
+            // Clear status filter when clicking "All"
+            document.querySelector('.filter-btn[data-filter="all"]').addEventListener('click', function() {
+                // Clear status filter selection
+                document.querySelectorAll('.status-filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Clear status filters array
+                activeStatusFilters = [];
+                
+                // Apply filters and refresh display
+                applyFilters();
+            });
+            
+            // Search functionality
+            const searchInput = document.getElementById('searchTransaction');
+            searchInput.addEventListener('input', function() {
+                searchTerm = this.value.toLowerCase();
+                applyFilters();
+            });
+            
+            // Date filter
+            document.getElementById('applyDateFilter').addEventListener('click', function() {
+                const fromInput = document.getElementById('dateFrom');
+                const toInput = document.getElementById('dateTo');
+                
+                dateFromFilter = fromInput.value ? new Date(fromInput.value) : null;
+                dateToFilter = toInput.value ? new Date(toInput.value) : null;
+                
+                // If to date is provided without from date, set from date to earliest date
+                if (dateToFilter && !dateFromFilter) {
+                    dateFromFilter = new Date(0); // January 1, 1970
+                }
+                
+                // Apply filters and refresh display
+                applyFilters();
+                
+                // Close dropdown
+                const dropdownMenu = this.closest('.dropdown-menu');
+                if (dropdownMenu) {
+                    const dropdown = new bootstrap.Dropdown(document.getElementById('dateFilterDropdown'));
+                    dropdown.hide();
+                }
+            });
+            
+            // Clear date filter
+            document.getElementById('clearDateFilter').addEventListener('click', function() {
+                document.getElementById('dateFrom').value = '';
+                document.getElementById('dateTo').value = '';
+                
+                dateFromFilter = null;
+                dateToFilter = null;
+                
+                // Apply filters and refresh display
+                applyFilters();
+            });
+            
+            // Sorting
+            document.querySelectorAll('.sort-header').forEach(header => {
+                header.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const field = this.dataset.sort;
+                    let direction = 'asc';
+                    
+                    // If already sorting by this field, toggle direction
+                    if (sortField === field) {
+                        direction = sortDirection === 'asc' ? 'desc' : 'asc';
+                    }
+                    
+                    // Sort rows
+                    sortRows(field, direction);
+                });
+            });
+            
+            // Pagination click events
+            document.getElementById('prevPage').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    updatePagination();
+                    displayRows();
+                }
+            });
+            
+            document.getElementById('nextPage').addEventListener('click', function(e) {
+                e.preventDefault();
+                const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    updatePagination();
+                    displayRows();
+                }
+            });
+            
+            // Export transactions
+            document.getElementById('exportTransactions').addEventListener('click', function() {
+                exportTransactionsToCSV();
+            });
+            
+            // ===== Functions =====
+            
+            // Apply all active filters
+            function applyFilters() {
+                filteredRows = allRows.filter(row => {
+                    // Type filter
+                    if (activeTypeFilter !== 'all' && row.dataset.type !== activeTypeFilter) {
+                        return false;
+                    }
+                    
+                    // Status filter
+                    if (activeStatusFilters.length > 0 && !activeStatusFilters.includes(row.dataset.status)) {
+                        return false;
+                    }
+                    
+                    // Search filter
+                    if (searchTerm) {
+                        const description = row.dataset.description.toLowerCase();
+                        const id = row.dataset.id.toLowerCase();
+                        const type = row.dataset.type.toLowerCase();
+                        const status = row.dataset.status.toLowerCase();
+                        
+                        if (!description.includes(searchTerm) && 
+                            !id.includes(searchTerm) && 
+                            !type.includes(searchTerm) && 
+                            !status.includes(searchTerm)) {
+                            return false;
+                        }
+                    }
+                    
+                    // Date filter
+                    if (dateFromFilter || dateToFilter) {
+                        const rowDate = new Date(row.dataset.date);
+                        
+                        if (dateFromFilter && rowDate < dateFromFilter) {
+                            return false;
+                        }
+                        
+                        if (dateToFilter) {
+                            // Add 1 day to make the filter inclusive of the end date
+                            const adjustedDateTo = new Date(dateToFilter);
+                            adjustedDateTo.setDate(adjustedDateTo.getDate() + 1);
+                            
+                            if (rowDate > adjustedDateTo) {
+                                return false;
+                            }
+                        }
+                    }
+                    
+                    return true;
+                });
+                
+                // Reset to first page and update display
+                currentPage = 1;
+                updatePagination();
+                displayRows();
+                
+                // Update total records count
+                document.getElementById('totalRecords').textContent = filteredRows.length;
+                
+                // Update filter UI indication
+                updateFilterUI();
+            }
+            
+            // Sort rows by field and direction
+            function sortRows(field, direction) {
+                sortField = field;
+                sortDirection = direction;
+                
+                filteredRows.sort((a, b) => {
+                    let valueA, valueB;
+                    
+                    switch (field) {
+                        case 'id':
+                            valueA = a.dataset.id;
+                            valueB = b.dataset.id;
+                            break;
+                        case 'date':
+                            try {
+                                valueA = new Date(a.dataset.date);
+                                if (isNaN(valueA.getTime())) {
+                                    valueA = new Date(0); // fallback to epoch time if invalid
+                                }
+                            } catch (e) {
+                                valueA = new Date(0); // fallback to epoch time if error
+                            }
+                            
+                            try {
+                                valueB = new Date(b.dataset.date);
+                                if (isNaN(valueB.getTime())) {
+                                    valueB = new Date(0); // fallback to epoch time if invalid
+                                }
+                            } catch (e) {
+                                valueB = new Date(0); // fallback to epoch time if error
+                            }
+                            break;
+                        case 'amount':
+                            valueA = parseFloat(a.dataset.amount);
+                            valueB = parseFloat(b.dataset.amount);
+                            break;
+                        case 'type':
+                            valueA = a.dataset.type;
+                            valueB = b.dataset.type;
+                            break;
+                        case 'status':
+                            valueA = a.dataset.status;
+                            valueB = b.dataset.status;
+                            break;
+                        default:
+                            valueA = a.dataset.date;
+                            valueB = b.dataset.date;
+                    }
+                    
+                    // Compare values
+                    if (valueA < valueB) {
+                        return direction === 'asc' ? -1 : 1;
+                    }
+                    if (valueA > valueB) {
+                        return direction === 'asc' ? 1 : -1;
+                    }
+                    return 0;
+                });
+                
+                // Update UI after sorting
+                displayRows();
+                updateSortUI(field, direction);
+            }
+            
+            // Update sort icons in UI
+            function updateSortUI(field, direction) {
+                document.querySelectorAll('.sort-header').forEach(header => {
+                    // Remove all sort classes
+                    const icon = header.querySelector('i');
+                    icon.classList.remove('bi-arrow-down', 'bi-arrow-up', 'text-primary');
+                    
+                    // Add appropriate class to current sort field
+                    if (header.dataset.sort === field) {
+                        icon.classList.add(direction === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down');
+                        icon.classList.add('text-primary');
+                    }
+                });
+            }
+            
+            // Update pagination controls
+            function updatePagination() {
+                const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+                const paginationEl = document.getElementById('transactionPagination');
+                const paginationItems = Array.from(paginationEl.querySelectorAll('.page-item'));
+                
+                // Remove all page number items
+                paginationItems.forEach(item => {
+                    if (!item.querySelector('#prevPage') && !item.querySelector('#nextPage')) {
+                        item.remove();
+                    }
+                });
+                
+                // Add page number items
+                const nextPageEl = paginationEl.querySelector('li:last-child');
+                const startPage = Math.max(1, currentPage - 2);
+                const endPage = Math.min(totalPages, startPage + 4);
+                
+                for (let i = startPage; i <= endPage; i++) {
+                    const pageItem = document.createElement('li');
+                    pageItem.classList.add('page-item');
+                    if (i === currentPage) {
+                        pageItem.classList.add('active');
+                    }
+                    
+                    const pageLink = document.createElement('a');
+                    pageLink.classList.add('page-link');
+                    pageLink.href = '#';
+                    pageLink.textContent = i;
+                    pageLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        currentPage = i;
+                        updatePagination();
+                        displayRows();
+                    });
+                    
+                    pageItem.appendChild(pageLink);
+                    paginationEl.insertBefore(pageItem, nextPageEl);
+                }
+                
+                // Update prev/next buttons
+                const prevPageEl = document.getElementById('prevPage').parentNode;
+                const nextPageParent = document.getElementById('nextPage').parentNode;
+                
+                prevPageEl.classList.toggle('disabled', currentPage === 1);
+                nextPageParent.classList.toggle('disabled', currentPage === totalPages || totalPages === 0);
+                
+                // Update pagination info
+                const startRecord = Math.min((currentPage - 1) * rowsPerPage + 1, filteredRows.length);
+                const endRecord = Math.min(startRecord + rowsPerPage - 1, filteredRows.length);
+                
+                document.getElementById('startRecord').textContent = filteredRows.length ? startRecord : 0;
+                document.getElementById('endRecord').textContent = endRecord;
+            }
+            
+            // Display rows for current page
+            function displayRows() {
+                // Hide all rows
+                allRows.forEach(row => {
+                    row.style.display = 'none';
+                });
+                
+                // Calculate range for current page
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = Math.min(start + rowsPerPage, filteredRows.length);
+                
+                // Display only rows for current page
+                for (let i = start; i < end; i++) {
+                    filteredRows[i].style.display = '';
+                }
+            }
+            
+            // Export filtered transactions to CSV
+            function exportTransactionsToCSV() {
+                // Headers for CSV
+                const headers = ['Transaction ID', 'Date', 'Description', 'Amount', 'Type', 'Status'];
+                
+                // Prepare rows data
+                const rowsData = filteredRows.map(row => {
+                    let dateValue;
+                    try {
+                        dateValue = new Date(row.dataset.date).toLocaleDateString();
+                    } catch (e) {
+                        dateValue = 'N/A';
+                    }
+                    
+                    return [
+                        row.dataset.id,
+                        dateValue,
+                        row.dataset.description,
+                        '$' + parseFloat(row.dataset.amount).toFixed(2),
+                        row.dataset.type.charAt(0).toUpperCase() + row.dataset.type.slice(1),
+                        row.dataset.status.charAt(0).toUpperCase() + row.dataset.status.slice(1)
+                    ];
+                });
+                
+                // Combine headers and rows
+                const csvContent = [
+                    headers.join(','),
+                    ...rowsData.map(row => row.join(','))
+                ].join('\n');
+                
+                // Create download link
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', `parent_transactions_${new Date().toISOString().slice(0, 10)}.csv`);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            
+            // Update filter UI to show active filters
+            function updateFilterUI() {
+                // Update status badge count if filters active
+                if (filteredRows.length < allRows.length) {
+                    const filterSummary = document.createElement('div');
+                    filterSummary.className = 'mt-2 mb-3 filter-summary';
+                    filterSummary.innerHTML = `<span class="badge bg-primary">${filteredRows.length} of ${allRows.length} transactions</span>`;
+                    
+                    // Remove any existing filter summary
+                    const existingSummary = document.querySelector('.filter-summary');
+                    if (existingSummary) {
+                        existingSummary.remove();
+                    }
+                    
+                    // Add filter summary before the table
+                    const tableContainer = document.querySelector('.table-responsive');
+                    tableContainer.parentNode.insertBefore(filterSummary, tableContainer);
+                } else {
+                    // Remove filter summary if no filters active
+                    const existingSummary = document.querySelector('.filter-summary');
+                    if (existingSummary) {
+                        existingSummary.remove();
+                    }
+                }
+            }
+            
+            // Initialize everything
+            updatePagination();
+            displayRows();
+            updateSortUI('date', 'desc');
+        }
+    </script>
+</body>
+</html> 

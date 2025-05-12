@@ -1,0 +1,167 @@
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h3>School MS</h3>
+        <p>Admin Dashboard</p>
+    </div>
+    
+    <ul class="sidebar-menu">
+        <li>
+            <a href="/admin/dashboard" class="<%= activePage === 'dashboard' ? 'active' : '' %>">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </li>
+        <!-- Student Management Section -->
+        <li class="sidebar-submenu">
+            <a href="#" class="<%= activePage === 'students' || activePage === 'create-student' ? 'active' : '' %>">
+                <i class="fas fa-user-graduate"></i> Students
+                <i class="fas fa-chevron-right submenu-icon"></i>
+            </a>
+            <ul class="submenu <%= activePage === 'students' || activePage === 'create-student' ? 'show' : '' %>">
+                <li>
+                    <a href="/admin/students" class="<%= activePage === 'students' ? 'active' : '' %>">
+                        <i class="fas fa-list"></i> All Students
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/create-student" class="<%= activePage === 'create-student' ? 'active' : '' %>">
+                        <i class="fas fa-plus"></i> Add Student
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <!-- Parent Management Section -->
+        <li class="sidebar-submenu">
+            <a href="#" class="<%= activePage === 'parents' || activePage === 'create-parent' || activePage === 'link-children' ? 'active' : '' %>">
+                <i class="fas fa-users"></i> Parents
+                <i class="fas fa-chevron-right submenu-icon"></i>
+            </a>
+            <ul class="submenu <%= activePage === 'parents' || activePage === 'create-parent' || activePage === 'link-children' ? 'show' : '' %>">
+                <li>
+                    <a href="/admin/parents" class="<%= activePage === 'parents' ? 'active' : '' %>">
+                        <i class="fas fa-list"></i> All Parents
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/create-parent" class="<%= activePage === 'create-parent' ? 'active' : '' %>">
+                        <i class="fas fa-plus"></i> Add Parent
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/link-children" class="<%= activePage === 'link-children' ? 'active' : '' %>">
+                        <i class="fas fa-link"></i> Link Children
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li>
+            <a href="/admin/grades" class="<%= activePage === 'grades' ? 'active' : '' %>">
+                <i class="fas fa-book"></i> Grades
+            </a>
+        </li>
+        <li>
+            <a href="/admin/attendance" class="<%= activePage === 'attendance' ? 'active' : '' %>">
+                <i class="fas fa-calendar-check"></i> Attendance
+            </a>
+        </li>
+        <li>
+            <a href="/admin/expenses" class="<%= activePage === 'expenses' ? 'active' : '' %>">
+                <i class="fas fa-money-bill-wave"></i> Expenses
+            </a>
+        </li>
+        <li>
+            <a href="/admin/settings" class="<%= activePage === 'settings' ? 'active' : '' %>">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+        </li>
+        <li>
+            <a href="#" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </li>
+    </ul>
+</div> 
+
+<style>
+    .sidebar-submenu > a {
+        position: relative;
+    }
+    
+    .submenu-icon {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        transition: transform 0.3s ease;
+        font-size: 0.75rem;
+    }
+    
+    .sidebar-submenu > a.active .submenu-icon {
+        transform: translateY(-50%) rotate(90deg);
+    }
+    
+    .submenu {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        padding-left: 20px;
+    }
+    
+    .submenu.show {
+        max-height: 500px;
+    }
+    
+    .submenu a {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+    
+    .submenu i {
+        font-size: 0.8rem;
+        margin-right: 5px;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Toggle submenu on click
+        const submenuToggles = document.querySelectorAll('.sidebar-submenu > a');
+        
+        submenuToggles.forEach(toggle => {
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Toggle active class for the toggle
+                this.classList.toggle('active');
+                
+                // Get the submenu
+                const submenu = this.nextElementSibling;
+                
+                // Toggle show class for the submenu
+                if (submenu.classList.contains('show')) {
+                    submenu.classList.remove('show');
+                } else {
+                    // Close any open submenus first
+                    document.querySelectorAll('.submenu.show').forEach(menu => {
+                        if (menu !== submenu) {
+                            menu.classList.remove('show');
+                            menu.previousElementSibling.classList.remove('active');
+                        }
+                    });
+                    
+                    submenu.classList.add('show');
+                }
+            });
+        });
+        
+        // Auto-expand submenu if a child is active
+        const activeSublink = document.querySelector('.submenu a.active');
+        if (activeSublink) {
+            let parent = activeSublink.closest('.submenu');
+            if (parent) {
+                parent.classList.add('show');
+                parent.previousElementSibling.classList.add('active');
+            }
+        }
+    });
+</script> 

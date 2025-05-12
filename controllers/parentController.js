@@ -264,6 +264,7 @@ const forgetPassword = async (req, res) => {
   return res.status(200).json({ message: 'Email sent successfully', pinAuth, token });
 };
 
+
 const updatePassword = async (req, res) => {
   const { password, pinAuth } = req.body;
   const parent = req.parent;

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Children with Parents | School Management System</title>
+    <%- include('./partials/styles') %>
+    <style>
+        .success-box {
+            display: none;
+            background-color: rgba(46, 204, 113, 0.1);
+            border: 1px solid var(--success-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .success-box h4 {
+            color: var(--success-color);
+            margin-bottom: 10px;
+        }
+        
+        .success-box p {
+            margin-bottom: 0;
+        }
+        
+        .student-code-tag {
+            display: inline-block;
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary-color);
+            border-radius: 20px;
+            padding: 5px 12px;
+            margin: 5px;
+            font-family: monospace;
+        }
+        
+        .student-code-tag .remove-btn {
+            margin-left: 8px;
+            cursor: pointer;
+            color: var(--accent-color);
+        }
+        
+        .student-codes-container {
+            min-height: 46px;
+            border: 1px dashed #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .linked-students-table {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <%- include('./partials/sidebar', { activePage: 'link-children' }) %>
+    
+    <!-- Main Content -->
+    <div class="content">
+        <%- include('./partials/header', { pageTitle: 'Link Children with Parent' }) %>
+        
+        <div class="success-box" id="success-box">
+            <h4><i class="fas fa-check-circle me-2"></i> Students Linked Successfully!</h4>
+            <p>The following students have been linked to the parent:</p>
+            <div id="linked-students-list" class="mt-3"></div>
+            <div class="d-flex justify-content-end mt-3">
+                <button class="btn btn-outline-primary" onclick="resetForm()">
+                    <i class="fas fa-link me-1"></i> Link More Students
+                </button>
+            </div>
+        </div>
+        
+        <div class="card" id="form-card">
+            <div class="card-header">
+                <i class="fas fa-link me-2"></i> Link Students to Parent
+            </div>
+            <div class="card-body">
+                <form id="link-children-form">
+                    <div class="mb-3">
+                        <label for="parentCode" class="form-label">Parent Code</label>
+                        <input type="text" class="form-control" id="parentCode" name="parentCode" required>
+                        <div class="form-text">Enter the unique code of the parent.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="studentCode" class="form-label">Student Code</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="studentCode" name="studentCode">
+                            <button class="btn btn-outline-secondary" type="button" id="add-student-btn">
+                                <i class="fas fa-plus me-1"></i> Add
+                            </button>
+                        </div>
+                        <div class="form-text">Enter student codes one by one and click Add.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Added Student Codes</label>
+                        <div class="student-codes-container" id="student-codes-container">
+                            <!-- Student code tags will be added here -->
+                        </div>
+                        <div class="form-text">At least one student code is required.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="reset" class="btn btn-outline-secondary me-md-2" onclick="clearStudentCodes()">
+                            <i class="fas fa-redo me-1"></i> Reset
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submit-btn">
+                            <i class="fas fa-link me-1"></i> Link Students
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <%- include('./partials/scripts') %>
+    
+    <script>
+        // Student codes array
+        let studentCodes = [];
+        
+        // Add student code
+        document.getElementById('add-student-btn').addEventListener('click', function() {
+            const studentCodeInput = document.getElementById('studentCode');
+            const studentCode = studentCodeInput.value.trim();
+            
+            if (studentCode === '') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Empty Code',
+                    text: 'Please enter a student code.',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                return;
+            }
+            
+            if (studentCodes.includes(studentCode)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Duplicate Code',
+                    text: 'This student code has already been added.',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                return;
+            }
+            
+            // Add to array
+            studentCodes.push(studentCode);
+            
+            // Create tag
+            const container = document.getElementById('student-codes-container');
+            const tag = document.createElement('span');
+            tag.className = 'student-code-tag';
+            tag.innerHTML = `${studentCode} <i class="fas fa-times remove-btn" data-code="${studentCode}"></i>`;
+            container.appendChild(tag);
+            
+            // Clear input
+            studentCodeInput.value = '';
+            studentCodeInput.focus();
+            
+            // Add remove event
+            tag.querySelector('.remove-btn').addEventListener('click', function() {
+                const code = this.getAttribute('data-code');
+                removeStudentCode(code);
+            });
+        });
+        
+        // Remove student code
+        function removeStudentCode(code) {
+            studentCodes = studentCodes.filter(c => c !== code);
+            const container = document.getElementById('student-codes-container');
+            const tags = container.querySelectorAll('.student-code-tag');
+            
+            tags.forEach(tag => {
+                if (tag.textContent.trim().startsWith(code)) {
+                    container.removeChild(tag);
+                }
+            });
+        }
+        
+        // Clear all student codes
+        function clearStudentCodes() {
+            studentCodes = [];
+            document.getElementById('student-codes-container').innerHTML = '';
+        }
+        
+        // Form submission
+        document.getElementById('link-children-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const parentCode = document.getElementById('parentCode').value.trim();
+            
+            if (parentCode === '') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Missing Parent Code',
+                    text: 'Please enter a parent code.'
+                });
+                return;
+            }
+            
+            if (studentCodes.length === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No Student Codes',
+                    text: 'Please add at least one student code.'
+                });
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = document.getElementById('submit-btn');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Linking...';
+            submitBtn.disabled = true;
+            
+            // Make API request
+            fetch('/admin/link-childswithparent', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    parentCode: parentCode,
+                    studentCodes: studentCodes
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reset button
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+                
+                if (data.message === 'Students linked to parent successfully') {
+                    // Show success message with linked students
+                    const linkedStudentsList = document.getElementById('linked-students-list');
+                    linkedStudentsList.innerHTML = '';
+                    
+                    // Create table for linked students
+                    const table = document.createElement('table');
+                    table.className = 'table table-bordered linked-students-table';
+                    
+                    // Add table header
+                    const thead = document.createElement('thead');
+                    thead.innerHTML = `
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Username</th>
+                            <th>Student Code</th>
+                        </tr>
+                    `;
+                    table.appendChild(thead);
+                    
+                    // Add table body with student data
+                    const tbody = document.createElement('tbody');
+                    data.linkedStudents.forEach(student => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${student._id}</td>
+                            <td>${student.username}</td>
+                            <td><code>${student.studentCode}</code></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                    table.appendChild(tbody);
+                    
+                    // Add parent info
+                    const parentInfo = document.createElement('div');
+                    parentInfo.className = 'alert alert-info mt-3';
+                    parentInfo.innerHTML = `
+                        <strong>Parent Information:</strong><br>
+                        ID: ${data.parent._id}<br>
+                        Username: ${data.parent.username}<br>
+                        Parent Code: <code>${data.parent.parentCode}</code>
+                    `;
+                    
+                    // Add to the linked students list
+                    linkedStudentsList.appendChild(table);
+                    linkedStudentsList.appendChild(parentInfo);
+                    
+                    // Show success box and hide form
+                    document.getElementById('success-box').style.display = 'block';
+                    document.getElementById('form-card').style.display = 'none';
+                } else {
+                    // Show error
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'An error occurred while linking students to parent.'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while linking students to parent.'
+                });
+            });
+        });
+        
+        // Reset form and show form card again
+        function resetForm() {
+            document.getElementById('link-children-form').reset();
+            clearStudentCodes();
+            document.getElementById('success-box').style.display = 'none';
+            document.getElementById('form-card').style.display = 'block';
+        }
+        
+        // Add student code on Enter key
+        document.getElementById('studentCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('add-student-btn').click();
+            }
+        });
+    </script>
+</body>
+</html> 

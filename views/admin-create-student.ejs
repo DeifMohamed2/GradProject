@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Student Account | School Management System</title>
+    <%- include('./partials/styles') %>
+    <style>
+        .success-box {
+            display: none;
+            background-color: rgba(46, 204, 113, 0.1);
+            border: 1px solid var(--success-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .success-box h4 {
+            color: var(--success-color);
+            margin-bottom: 10px;
+        }
+        
+        .success-box p {
+            margin-bottom: 0;
+        }
+        
+        .code-display {
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 1.2rem;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .form-section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .form-section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <%- include('./partials/sidebar', { activePage: 'create-student' }) %>
+    
+    <!-- Main Content -->
+    <div class="content">
+        <%- include('./partials/header', { pageTitle: 'Create Student Account' }) %>
+        
+        <div class="success-box" id="success-box">
+            <h4><i class="fas fa-check-circle me-2"></i> Student Account Created Successfully!</h4>
+            <p>The student account has been created. Here is the student's unique code:</p>
+            <div class="code-display" id="student-code">-</div>
+            <p class="small text-muted">Share this code with the student or parent. They will need it to link with their parent's account.</p>
+            <div class="d-flex justify-content-between mt-3">
+                <button class="btn btn-outline-primary btn-sm" onclick="copyCode()">
+                    <i class="fas fa-copy me-1"></i> Copy Code
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="resetForm()">
+                    <i class="fas fa-plus me-1"></i> Create Another Student
+                </button>
+            </div>
+        </div>
+        
+        <div class="card" id="form-card">
+            <div class="card-header">
+                <i class="fas fa-user-graduate me-2"></i> Student Information
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <div><i class="fas fa-info-circle me-2"></i> <strong>Form Field Guide:</strong></div>
+                    <ul class="mb-0 mt-1">
+                        <li>Fields marked with <span class="text-danger">*</span> are required.</li>
+                        <li>Fields marked as (Optional) can be left blank.</li>
+                    </ul>
+                </div>
+                
+                <form id="create-student-form">
+                    <!-- Account Information Section -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-user me-2"></i>Account Information</div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                                <div class="invalid-feedback">Please enter a username.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="toggle-password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback">Please enter a password.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Personal Information Section -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-id-card me-2"></i>Personal Information</div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="firstName" name="firstName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="lastName" name="lastName" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="dateOfBirth" class="form-label">Date of Birth <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="age" class="form-label">Age <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="age" name="age" min="5" max="25" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                                <select class="form-select" id="gender" name="gender" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="contactPhone" class="form-label">Contact Phone (Optional)</label>
+                                <input type="tel" class="form-control" id="contactPhone" name="contactPhone">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="address" class="form-label">Address (Optional)</label>
+                                <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Academic Information Section -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-graduation-cap me-2"></i>Academic Information</div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="rollNumber" class="form-label">Roll Number (Optional)</label>
+                                <input type="text" class="form-control" id="rollNumber" name="rollNumber">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="enrollmentDate" class="form-label">Enrollment Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="enrollmentDate" name="enrollmentDate" value="<%= new Date().toISOString().split('T')[0] %>" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="Active" selected>Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                    <option value="Graduated">Graduated</option>
+                                    <option value="Transferred">Transferred</option>
+                                    <option value="Suspended">Suspended</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="grade" class="form-label">Grade <span class="text-danger">*</span></label>
+                                <select class="form-select" id="grade" name="grade" required>
+                                    <option value="">Select Grade</option>
+                                    <% for (let i = 1; i <= 12; i++) { %>
+                                        <option value="<%= i %>">Grade <%= i %></option>
+                                    <% } %>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="section" class="form-label">Section <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="section" name="section" placeholder="A, B, C, etc." required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="classroom" class="form-label">Classroom (Optional)</label>
+                                <input type="text" class="form-control" id="classroom" name="classroom" placeholder="Room number">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="academicYear" class="form-label">Academic Year <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="academicYear" name="academicYear" placeholder="e.g., 2023-2024" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Medical Information Section -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-heartbeat me-2"></i>Medical Information (Optional)</div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="bloodGroup" class="form-label">Blood Group</label>
+                                <select class="form-select" id="bloodGroup" name="bloodGroup">
+                                    <option value="">Select Blood Group</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="medicalConditions" class="form-label">Medical Conditions</label>
+                                <input type="text" class="form-control" id="medicalConditions" name="medicalConditions" placeholder="Separated by commas">
+                                <div class="form-text">Enter any medical conditions separated by commas (e.g., Asthma, Allergy).</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="emergencyContactName" class="form-label">Emergency Contact Name</label>
+                                <input type="text" class="form-control" id="emergencyContactName" name="emergencyContactName">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="emergencyContactRelationship" class="form-label">Relationship</label>
+                                <input type="text" class="form-control" id="emergencyContactRelationship" name="emergencyContactRelationship">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="emergencyContactPhone" class="form-label">Emergency Contact Phone</label>
+                                <input type="tel" class="form-control" id="emergencyContactPhone" name="emergencyContactPhone">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Parent Information Section -->
+                    <div class="form-section">
+                        <div class="form-section-title"><i class="fas fa-users me-2"></i>Parent Information</div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="parent" class="form-label">Parent ID (Optional)</label>
+                                <input type="text" class="form-control" id="parent" name="parent" placeholder="Leave blank if not linking to parent now">
+                                <div class="form-text">If you know the parent's ID, you can link them now. Otherwise, you can use the Link Children feature later.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="reset" class="btn btn-outline-secondary me-md-2">
+                            <i class="fas fa-redo me-1"></i> Reset
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submit-btn">
+                            <i class="fas fa-save me-1"></i> Create Student Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <%- include('./partials/scripts') %>
+    
+    <script>
+        // Toggle password visibility
+        document.getElementById('toggle-password').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const icon = this.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+        
+        // Calculate age based on date of birth
+        document.getElementById('dateOfBirth').addEventListener('change', function() {
+            const dob = new Date(this.value);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const monthDiff = today.getMonth() - dob.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            
+            document.getElementById('age').value = age;
+        });
+        
+        // Form submission
+        document.getElementById('create-student-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Basic form validation
+            const form = this;
+            if (!form.checkValidity()) {
+                e.stopPropagation();
+                form.classList.add('was-validated');
+                return;
+            }
+            
+            // Get form data
+            const formData = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                dateOfBirth: document.getElementById('dateOfBirth').value,
+                age: parseInt(document.getElementById('age').value),
+                gender: document.getElementById('gender').value,
+                rollNumber: document.getElementById('rollNumber').value,
+                enrollmentDate: document.getElementById('enrollmentDate').value,
+                grade: parseInt(document.getElementById('grade').value),
+                section: document.getElementById('section').value,
+                academicYear: document.getElementById('academicYear').value,
+                classroom: document.getElementById('classroom').value,
+                contactPhone: document.getElementById('contactPhone').value,
+                address: document.getElementById('address').value,
+                status: document.getElementById('status').value,
+                bloodGroup: document.getElementById('bloodGroup').value,
+                medicalConditions: document.getElementById('medicalConditions').value.split(',').map(item => item.trim()).filter(item => item),
+                emergencyContact: {
+                    name: document.getElementById('emergencyContactName').value,
+                    relationship: document.getElementById('emergencyContactRelationship').value,
+                    phone: document.getElementById('emergencyContactPhone').value
+                }
+            };
+            
+            // Add parent ID if provided
+            const parentId = document.getElementById('parent').value.trim();
+            if (parentId) {
+                formData.parent = parentId;
+            }
+            
+            // Show loading state
+            const submitBtn = document.getElementById('submit-btn');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Creating...';
+            submitBtn.disabled = true;
+            
+            // Make API request
+            fetch('/admin/createStudentAccount', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reset button
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+                
+                if (data.message === 'Student account created successfully') {
+                    // Show success message and code
+                    document.getElementById('student-code').textContent = data.student.studentCode;
+                    document.getElementById('success-box').style.display = 'block';
+                    document.getElementById('form-card').style.display = 'none';
+                } else {
+                    // Show error
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'An error occurred while creating the student account.'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while creating the student account.'
+                });
+            });
+        });
+        
+        // Copy student code to clipboard
+        function copyCode() {
+            const codeElement = document.getElementById('student-code');
+            const code = codeElement.textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                // Show success message
+                const originalText = codeElement.innerHTML;
+                codeElement.innerHTML = '<i class="fas fa-check me-1"></i> Copied!';
+                
+                setTimeout(() => {
+                    codeElement.innerHTML = originalText;
+                }, 2000);
+            });
+        }
+        
+        // Reset form and show form card again
+        function resetForm() {
+            document.getElementById('create-student-form').reset();
+            document.getElementById('success-box').style.display = 'none';
+            document.getElementById('form-card').style.display = 'block';
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students Management | School Management System</title>
+    <%- include('./partials/styles') %>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <style>
+        .filter-card {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .filter-body {
+            padding: 15px;
+        }
+        
+        .action-column {
+            white-space: nowrap;
+            width: 130px;
+        }
+        
+        .action-btn {
+            padding: 4px 8px;
+            margin: 0 2px;
+            font-size: 0.875rem;
+        }
+        
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .student-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .student-name {
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .student-table th, .student-table td {
+            vertical-align: middle;
+        }
+        
+        .status-badge {
+            padding: 6px 10px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-active {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+        }
+        
+        .status-inactive {
+            background-color: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+        }
+        
+        .status-graduated {
+            background-color: rgba(52, 152, 219, 0.15);
+            color: #3498db;
+        }
+        
+        .status-transferred {
+            background-color: rgba(243, 156, 18, 0.15);
+            color: #f39c12;
+        }
+        
+        .status-suspended {
+            background-color: rgba(155, 89, 182, 0.15);
+            color: #9b59b6;
+        }
+        
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        
+        .upload-btn-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <%- include('./partials/sidebar', { activePage: 'students' }) %>
+    
+    <!-- Main Content -->
+    <div class="content">
+        <%- include('./partials/header', { pageTitle: 'Students Management' }) %>
+        
+        <!-- Filter Section -->
+        <div class="card filter-card">
+            <div class="filter-body">
+                <form id="filter-form" class="row g-3">
+                    <div class="col-md-2">
+                        <label for="grade" class="form-label">Grade</label>
+                        <select class="form-select" id="grade" name="grade">
+                            <option value="">All Grades</option>
+                            <% filters.grades.forEach(grade => { %>
+                                <option value="<%= grade %>" <%= currentFilters.grade == grade ? 'selected' : '' %>>Grade <%= grade %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="section" class="form-label">Section</label>
+                        <select class="form-select" id="section" name="section">
+                            <option value="">All Sections</option>
+                            <% filters.sections.forEach(section => { %>
+                                <option value="<%= section %>" <%= currentFilters.section === section ? 'selected' : '' %>><%= section %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="academicYear" class="form-label">Academic Year</label>
+                        <select class="form-select" id="academicYear" name="academicYear">
+                            <option value="">All Years</option>
+                            <% filters.academicYears.forEach(year => { %>
+                                <option value="<%= year %>" <%= currentFilters.academicYear === year ? 'selected' : '' %>><%= year %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">All Status</option>
+                            <% filters.statuses.forEach(status => { %>
+                                <option value="<%= status %>" <%= currentFilters.status === status ? 'selected' : '' %>><%= status %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">Search</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="search" name="search" placeholder="Name, Email, ID..." value="<%= currentFilters.search || '' %>">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="bi bi-search me-1"></i> Search
+                            </button>
+                            <button class="btn btn-outline-secondary" type="button" id="reset-filter">
+                                <i class="bi bi-x-circle me-1"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h5 class="m-0"><i class="fas fa-users me-2"></i> Student List (<%= students.length %> students)</h5>
+            </div>
+            <div>
+                <a href="/admin/create-student" class="btn btn-primary me-2">
+                    <i class="bi bi-plus-circle me-1"></i> Add Student
+                </a>
+                <div class="upload-btn-wrapper">
+                    <button class="btn btn-outline-primary me-2">
+                        <i class="bi bi-upload me-1"></i> Import Excel
+                    </button>
+                    <input type="file" id="excel-upload" accept=".xlsx, .xls" />
+                </div>
+                <button class="btn btn-outline-success" id="export-excel">
+                    <i class="bi bi-download me-1"></i> Export Excel
+                </button>
+            </div>
+        </div>
+        
+        <!-- Students Table -->
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-hover student-table" id="studentsTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Student</th>
+                            <th scope="col">Code</th>
+                            <th scope="col">Grade & Section</th>
+                            <th scope="col">Parent</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% students.forEach((student, index) => { %>
+                            <tr>
+                                <td><%= index + 1 %></td>
+                                <td>
+                                    <div class="student-info">
+                                        <img src="<%= student.profilePicture || `https://ui-avatars.com/api/?name=${student.firstName}+${student.lastName}&background=3498db&color=fff` %>" alt="<%= student.firstName %>" class="student-avatar">
+                                        <div class="student-name">
+                                            <div><%= student.firstName %> <%= student.lastName %></div>
+                                            <small class="text-muted"><%= student.email %></small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-light text-dark"><%= student.studentCode %></span></td>
+                                <td>Grade <%= student.grade %> - <%= student.section %></td>
+                                <td>
+                                    <% if (student.parent) { %>
+                                        <a href="/admin/parents/<%= student.parent._id %>" class="text-decoration-none">
+                                            <%= student.parent.firstName %> <%= student.parent.lastName %>
+                                        </a>
+                                    <% } else { %>
+                                        <span class="text-muted">No parent assigned</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-<%= student.status.toLowerCase() %>">
+                                        <%= student.status %>
+                                    </span>
+                                </td>
+                                <td class="action-column">
+                                    <a href="/admin/students/<%= student._id %>" class="btn btn-sm btn-outline-primary action-btn">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-secondary action-btn edit-btn" data-id="<%= student._id %>">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger action-btn delete-btn" data-id="<%= student._id %>">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div class="modal fade" id="editStudentModal" tabindex="-1" aria-labelledby="editStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editStudentModalLabel">Edit Student</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-student-form">
+                        <input type="hidden" id="edit-student-id">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="edit-firstName" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="edit-firstName" name="firstName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit-lastName" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="edit-lastName" name="lastName" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="edit-email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="edit-email" name="email" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit-contactPhone" class="form-label">Contact Phone</label>
+                                <input type="tel" class="form-control" id="edit-contactPhone" name="contactPhone">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="edit-grade" class="form-label">Grade</label>
+                                <select class="form-select" id="edit-grade" name="grade" required>
+                                    <% for (let i = 1; i <= 12; i++) { %>
+                                        <option value="<%= i %>">Grade <%= i %></option>
+                                    <% } %>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="edit-section" class="form-label">Section</label>
+                                <input type="text" class="form-control" id="edit-section" name="section" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="edit-status" class="form-label">Status</label>
+                                <select class="form-select" id="edit-status" name="status" required>
+                                    <% filters.statuses.forEach(status => { %>
+                                        <option value="<%= status %>"><%= status %></option>
+                                    <% }); %>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-student-btn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('./partials/scripts') %>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTable
+            const studentsTable = $('#studentsTable').DataTable({
+                paging: true,
+                ordering: true,
+                info: true,
+                lengthChange: true,
+                searching: false, // We have our own search
+                language: {
+                    emptyTable: "No students found with the current filters"
+                },
+                columnDefs: [
+                    { orderable: false, targets: [6] } // Disable sorting on action column
+                ]
+            });
+            
+            // Filter form submission
+            $('#filter-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form data and convert to query string
+                const formData = $(this).serialize();
+                
+                // Redirect with query parameters
+                window.location.href = '/admin/students?' + formData;
+            });
+            
+            // Reset filters
+            $('#reset-filter').on('click', function() {
+                window.location.href = '/admin/students';
+            });
+            
+            // Handle Excel upload
+            $('#excel-upload').on('change', function() {
+                const file = this.files[0];
+                if (!file) return;
+                
+                const formData = new FormData();
+                formData.append('excelFile', file);
+                
+                // Show loading
+                Swal.fire({
+                    title: 'Uploading...',
+                    text: 'Please wait while we process your file',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Upload file
+                fetch('/admin/upload-students', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Students imported successfully',
+                            confirmButtonColor: '#3498db'
+                        }).then(() => {
+                            // Reload page to show new students
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || 'Failed to import students',
+                            confirmButtonColor: '#3498db'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred while uploading the file',
+                        confirmButtonColor: '#3498db'
+                    });
+                });
+            });
+            
+            // Handle student deletion
+            $('.delete-btn').on('click', function() {
+                const studentId = $(this).data('id');
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "This action cannot be undone!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e74c3c',
+                    cancelButtonColor: '#7f8c8d',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Send delete request
+                        fetch(`/admin/students/${studentId}`, {
+                            method: 'DELETE'
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Deleted!',
+                                    text: 'Student has been deleted.',
+                                    confirmButtonColor: '#3498db'
+                                }).then(() => {
+                                    // Remove row from table
+                                    $(this).closest('tr').remove();
+                                    // Reload page to update the count
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: data.message || 'Failed to delete student',
+                                    confirmButtonColor: '#3498db'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'An error occurred while deleting the student',
+                                confirmButtonColor: '#3498db'
+                            });
+                        });
+                    }
+                });
+            });
+            
+            // Handle edit button click - populate modal with student data
+            $('.edit-btn').on('click', function() {
+                const studentId = $(this).data('id');
+                
+                // Show loading
+                Swal.fire({
+                    title: 'Loading...',
+                    text: 'Please wait while we fetch student data',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Fetch student data
+                fetch(`/admin/students/${studentId}`, {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    Swal.close();
+                    
+                    if (data.success) {
+                        const student = data.data;
+                        
+                        // Populate modal fields
+                        $('#edit-student-id').val(student._id);
+                        $('#edit-firstName').val(student.firstName);
+                        $('#edit-lastName').val(student.lastName);
+                        $('#edit-email').val(student.email);
+                        $('#edit-contactPhone').val(student.contactPhone);
+                        $('#edit-grade').val(student.grade);
+                        $('#edit-section').val(student.section);
+                        $('#edit-status').val(student.status);
+                        
+                        // Show modal
+                        $('#editStudentModal').modal('show');
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || 'Failed to fetch student data',
+                            confirmButtonColor: '#3498db'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred while fetching student data',
+                        confirmButtonColor: '#3498db'
+                    });
+                });
+            });
+            
+            // Handle save changes button
+            $('#save-student-btn').on('click', function() {
+                const studentId = $('#edit-student-id').val();
+                
+                // Get form data
+                const formData = {
+                    firstName: $('#edit-firstName').val(),
+                    lastName: $('#edit-lastName').val(),
+                    email: $('#edit-email').val(),
+                    contactPhone: $('#edit-contactPhone').val(),
+                    grade: $('#edit-grade').val(),
+                    section: $('#edit-section').val(),
+                    status: $('#edit-status').val()
+                };
+                
+                // Show loading
+                Swal.fire({
+                    title: 'Saving...',
+                    text: 'Please wait while we update student data',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Send update request
+                fetch(`/admin/students/${studentId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Student updated successfully',
+                            confirmButtonColor: '#3498db'
+                        }).then(() => {
+                            // Close modal and reload page
+                            $('#editStudentModal').modal('hide');
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || 'Failed to update student',
+                            confirmButtonColor: '#3498db'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred while updating the student',
+                        confirmButtonColor: '#3498db'
+                    });
+                });
+            });
+            
+            // Handle export to Excel
+            $('#export-excel').on('click', function() {
+                // This would typically send a request to an API endpoint that generates and returns an Excel file
+                // For now, just show a placeholder message
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Export Feature',
+                    text: 'The Excel export functionality will be implemented here',
+                    confirmButtonColor: '#3498db'
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

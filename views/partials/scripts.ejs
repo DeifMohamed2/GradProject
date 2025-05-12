@@ -1,0 +1,30 @@
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Toggle sidebar on mobile
+    document.querySelector('.toggle-sidebar').addEventListener('click', function() {
+        document.querySelector('.sidebar').classList.toggle('active');
+    });
+    
+    // Logout functionality
+    document.getElementById('logout-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        Swal.fire({
+            title: 'Logout',
+            text: 'Are you sure you want to logout?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3498db',
+            cancelButtonColor: '#7f8c8d',
+            confirmButtonText: 'Yes, logout'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Clear cookies and redirect to login page
+                document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                window.location.href = '/admin/login';
+            }
+        });
+    });
+</script> 
