@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Quiz | Teacher Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Create quiz specific styles */
+        .quiz-form {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            margin-top: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .form-control:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.25);
+        }
+        
+        .form-submit {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+        
+        .btn-submit {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-submit:hover {
+            background-color: #45a049;
+        }
+        
+        .btn-cancel {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-cancel:hover {
+            background-color: #d32f2f;
+        }
+        
+        .questions-container {
+            margin-top: 30px;
+        }
+        
+        .question-item {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .question-number {
+            font-weight: 500;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .question-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .question-action-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: #777;
+            transition: color 0.3s;
+        }
+        
+        .question-action-btn:hover {
+            color: #333;
+        }
+        
+        .question-field {
+            margin-bottom: 15px;
+        }
+        
+        .question-field label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .question-field input, .question-field textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .add-question-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background-color: #e3f2fd;
+            color: #1565c0;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        
+        .add-question-btn:hover {
+            background-color: #bbdefb;
+        }
+        
+        .question-options {
+            margin-top: 10px;
+        }
+        
+        .option-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .option-item input[type="radio"] {
+            margin-right: 10px;
+        }
+        
+        .option-item input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .remove-option-btn {
+            background: none;
+            border: none;
+            color: #f44336;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 14px;
+        }
+        
+        .add-option-btn {
+            background: none;
+            border: none;
+            color: #2196F3;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .form-column {
+            flex: 1;
+        }
+        
+        .hint-text {
+            font-size: 12px;
+            color: #777;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <h2><i class="fas fa-chalkboard-teacher"></i> Teacher Portal</h2>
+        <ul>
+            <li><a href="/teacher/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="/teacher/classes"><i class="fas fa-users"></i> My Classes</a></li>
+            <li><a href="/teacher/attendance"><i class="fas fa-clipboard-check"></i> Attendance</a></li>
+            <li><a href="/teacher/quizzes" class="active"><i class="fas fa-question-circle"></i> Quizzes & Grades</a></li>
+            <li><a href="/teacher/profile"><i class="fas fa-user"></i> My Profile</a></li>
+            <li><a href="#" id="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div class="title">
+                <h1><i class="fas fa-plus-circle"></i> Create New Quiz</h1>
+                <p>Create a new quiz for your students</p>
+            </div>
+            <div class="user-info">
+                <span><%= teacher.firstName %> <%= teacher.lastName %></span>
+                <img src="<%= teacher.profilePicture || '/img/default-avatar.png' %>" alt="Profile Picture">
+            </div>
+        </div>
+
+        <div class="content">
+            <form id="quiz-form" class="quiz-form">
+                <div class="form-row">
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label for="class-select">Select Class</label>
+                            <select id="class-select" class="form-control" required>
+                                <option value="">-- Select a Class --</option>
+                                <% classes.forEach(cls => { %>
+                                    <option value="<%= cls.id %>"><%= cls.name %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label for="quiz-title">Quiz Title</label>
+                            <input type="text" id="quiz-title" class="form-control" placeholder="Enter quiz title" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="quiz-description">Description (Optional)</label>
+                    <textarea id="quiz-description" class="form-control" rows="3" placeholder="Add a description for this quiz..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label for="quiz-max-score">Maximum Score</label>
+                            <input type="number" id="quiz-max-score" class="form-control" min="1" value="100" required>
+                            <div class="hint-text">Set the maximum possible score for this quiz</div>
+                        </div>
+                    </div>
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label for="quiz-due-date">Due Date (Optional)</label>
+                            <input type="date" id="quiz-due-date" class="form-control">
+                            <div class="hint-text">Set a deadline for students to complete this quiz</div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+
+                <h3>Questions</h3>
+                <div id="questions-container" class="questions-container">
+                    <!-- Questions will be added dynamically -->
+                </div>
+
+                <button type="button" id="add-question-btn" class="add-question-btn">
+                    <i class="fas fa-plus"></i> Add Question
+                </button>
+
+                <div class="form-submit">
+                    <button type="button" class="btn-cancel" id="cancel-btn">Cancel</button>
+                    <button type="submit" class="btn-submit" id="submit-btn">Create Quiz</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Question Template (hidden) -->
+    <template id="question-template">
+        <div class="question-item" data-question-index="{index}">
+            <div class="question-header">
+                <div class="question-number">Question {number}</div>
+                <div class="question-actions">
+                    <button type="button" class="question-action-btn remove-question-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="question-field">
+                <label for="question-text-{index}">Question Text</label>
+                <textarea id="question-text-{index}" name="questions[{index}][text]" class="form-control" rows="2" required></textarea>
+            </div>
+            <div class="question-field">
+                <label>Type</label>
+                <div>
+                    <label style="display: inline-flex; align-items: center; margin-right: 15px;">
+                        <input type="radio" name="questions[{index}][type]" value="multiple_choice" checked>
+                        <span style="margin-left: 5px;">Multiple Choice</span>
+                    </label>
+                    <label style="display: inline-flex; align-items: center;">
+                        <input type="radio" name="questions[{index}][type]" value="text">
+                        <span style="margin-left: 5px;">Short Answer</span>
+                    </label>
+                </div>
+            </div>
+            <div class="question-options" id="question-options-{index}">
+                <label>Options (select the correct answer)</label>
+                <div class="option-items">
+                    <div class="option-item">
+                        <input type="radio" name="questions[{index}][correctOption]" value="0" checked>
+                        <input type="text" name="questions[{index}][options][0]" placeholder="Option 1" required>
+                        <button type="button" class="remove-option-btn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="option-item">
+                        <input type="radio" name="questions[{index}][correctOption]" value="1">
+                        <input type="text" name="questions[{index}][options][1]" placeholder="Option 2" required>
+                        <button type="button" class="remove-option-btn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="button" class="add-option-btn">
+                    <i class="fas fa-plus"></i> Add Option
+                </button>
+            </div>
+            <div class="question-field" style="display: none;" id="short-answer-{index}">
+                <label for="answer-{index}">Correct Answer</label>
+                <input type="text" id="answer-{index}" name="questions[{index}][correctAnswer]" class="form-control" placeholder="Enter the correct answer">
+            </div>
+            <div class="question-field">
+                <label for="points-{index}">Points</label>
+                <input type="number" id="points-{index}" name="questions[{index}][points]" class="form-control" min="1" value="10" required>
+            </div>
+        </div>
+    </template>
+
+    <!-- Scripts -->
+    <script>
+        // Logout functionality
+        document.getElementById('logout-link').addEventListener('click', async function(e) {
+            e.preventDefault();
+            try {
+                const response = await fetch('/teacher/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/teacher/login';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+
+        // Cancel button
+        document.getElementById('cancel-btn').addEventListener('click', function() {
+            window.location.href = '/teacher/quizzes';
+        });
+
+        // Question counter
+        let questionCount = 0;
+
+        // Add question
+        document.getElementById('add-question-btn').addEventListener('click', function() {
+            addNewQuestion();
+        });
+
+        // Add initial question
+        addNewQuestion();
+
+        // Add new question function
+        function addNewQuestion() {
+            const questionsContainer = document.getElementById('questions-container');
+            const template = document.getElementById('question-template').innerHTML;
+            
+            // Replace placeholders with actual values
+            const questionHtml = template
+                .replace(/{index}/g, questionCount)
+                .replace(/{number}/g, questionCount + 1);
+            
+            // Create element and append to container
+            const questionElement = document.createElement('div');
+            questionElement.innerHTML = questionHtml;
+            questionsContainer.appendChild(questionElement.firstElementChild);
+            
+            // Set up event listeners for the new question
+            setupQuestionEventListeners(questionCount);
+            
+            // Increment question counter
+            questionCount++;
+        }
+
+        // Setup event listeners for a question
+        function setupQuestionEventListeners(index) {
+            const questionItem = document.querySelector(`.question-item[data-question-index="${index}"]`);
+            
+            // Remove question button
+            questionItem.querySelector('.remove-question-btn').addEventListener('click', function() {
+                if (document.querySelectorAll('.question-item').length > 1) {
+                    questionItem.remove();
+                    // Renumber questions
+                    document.querySelectorAll('.question-item').forEach((item, idx) => {
+                        item.querySelector('.question-number').textContent = `Question ${idx + 1}`;
+                    });
+                } else {
+                    alert('You must have at least one question.');
+                }
+            });
+            
+            // Question type change
+            const typeRadios = questionItem.querySelectorAll('input[name^="questions"][name$="[type]"]');
+            typeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const optionsContainer = questionItem.querySelector(`#question-options-${index}`);
+                    const shortAnswerContainer = questionItem.querySelector(`#short-answer-${index}`);
+                    
+                    if (this.value === 'multiple_choice') {
+                        optionsContainer.style.display = 'block';
+                        shortAnswerContainer.style.display = 'none';
+                    } else {
+                        optionsContainer.style.display = 'none';
+                        shortAnswerContainer.style.display = 'block';
+                    }
+                });
+            });
+            
+            // Add option button
+            const addOptionBtn = questionItem.querySelector('.add-option-btn');
+            addOptionBtn.addEventListener('click', function() {
+                const optionItems = questionItem.querySelector('.option-items');
+                const optionCount = optionItems.children.length;
+                
+                // Create new option
+                const optionItem = document.createElement('div');
+                optionItem.className = 'option-item';
+                optionItem.innerHTML = `
+                    <input type="radio" name="questions[${index}][correctOption]" value="${optionCount}">
+                    <input type="text" name="questions[${index}][options][${optionCount}]" placeholder="Option ${optionCount + 1}" required>
+                    <button type="button" class="remove-option-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                // Add to container
+                optionItems.appendChild(optionItem);
+                
+                // Setup remove button for the new option
+                optionItem.querySelector('.remove-option-btn').addEventListener('click', function() {
+                    if (optionItems.children.length > 2) {
+                        optionItem.remove();
+                        // Renumber options
+                        const options = optionItems.querySelectorAll('.option-item');
+                        options.forEach((opt, idx) => {
+                            opt.querySelector('input[type="radio"]').value = idx;
+                            opt.querySelector('input[type="text"]').name = `questions[${index}][options][${idx}]`;
+                            opt.querySelector('input[type="text"]').placeholder = `Option ${idx + 1}`;
+                        });
+                    } else {
+                        alert('You must have at least two options.');
+                    }
+                });
+            });
+            
+            // Setup existing remove option buttons
+            const removeOptionBtns = questionItem.querySelectorAll('.remove-option-btn');
+            removeOptionBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const optionItems = questionItem.querySelector('.option-items');
+                    if (optionItems.children.length > 2) {
+                        this.closest('.option-item').remove();
+                        // Renumber options
+                        const options = optionItems.querySelectorAll('.option-item');
+                        options.forEach((opt, idx) => {
+                            opt.querySelector('input[type="radio"]').value = idx;
+                            opt.querySelector('input[type="text"]').name = `questions[${index}][options][${idx}]`;
+                            opt.querySelector('input[type="text"]').placeholder = `Option ${idx + 1}`;
+                        });
+                    } else {
+                        alert('You must have at least two options.');
+                    }
+                });
+            });
+        }
+
+        // Form submission
+        document.getElementById('quiz-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const classId = document.getElementById('class-select').value;
+            if (!classId) {
+                alert('Please select a class');
+                return;
+            }
+            
+            // Gather form data
+            const formData = {
+                title: document.getElementById('quiz-title').value,
+                description: document.getElementById('quiz-description').value,
+                maxScore: parseInt(document.getElementById('quiz-max-score').value),
+                dueDate: document.getElementById('quiz-due-date').value || null,
+                questions: []
+            };
+            
+            // Get all questions
+            const questionItems = document.querySelectorAll('.question-item');
+            questionItems.forEach(questionItem => {
+                const index = questionItem.getAttribute('data-question-index');
+                const questionType = questionItem.querySelector(`input[name="questions[${index}][type]"]:checked`).value;
+                
+                const question = {
+                    text: questionItem.querySelector(`#question-text-${index}`).value,
+                    type: questionType,
+                    points: parseInt(questionItem.querySelector(`#points-${index}`).value)
+                };
+                
+                if (questionType === 'multiple_choice') {
+                    const options = [];
+                    const optionInputs = questionItem.querySelectorAll(`input[name^="questions[${index}][options]"]`);
+                    optionInputs.forEach(input => {
+                        options.push(input.value);
+                    });
+                    
+                    const correctOption = parseInt(questionItem.querySelector(`input[name="questions[${index}][correctOption]"]:checked`).value);
+                    
+                    question.options = options;
+                    question.correctOption = correctOption;
+                } else {
+                    question.correctAnswer = questionItem.querySelector(`#answer-${index}`).value;
+                }
+                
+                formData.questions.push(question);
+            });
+            
+            try {
+                const response = await fetch(`/api/teacher/classes/${classId}/quizzes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Quiz created successfully!');
+                    window.location.href = '/teacher/quizzes';
+                } else {
+                    alert(`Error creating quiz: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error creating quiz:', error);
+                alert('Failed to create quiz. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html> 

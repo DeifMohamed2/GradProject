@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Attendance Session | Teacher Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Create attendance specific styles */
+        .attendance-form {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            margin-top: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .form-control:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.25);
+        }
+        
+        .form-submit {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+        
+        .btn-submit {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-submit:hover {
+            background-color: #45a049;
+        }
+        
+        .btn-cancel {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-cancel:hover {
+            background-color: #d32f2f;
+        }
+        
+        .student-list {
+            margin-top: 30px;
+        }
+        
+        .student-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .student-item:last-child {
+            border-bottom: none;
+        }
+        
+        .student-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+        
+        .student-name {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .student-id {
+            font-size: 12px;
+            color: #777;
+            margin-left: 10px;
+        }
+        
+        .attendance-options {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .attendance-option {
+            display: flex;
+            align-items: center;
+        }
+        
+        .attendance-option input[type="radio"] {
+            margin-right: 5px;
+        }
+        
+        .status-present {
+            color: #4CAF50;
+        }
+        
+        .status-absent {
+            color: #f44336;
+        }
+        
+        .status-late {
+            color: #ff9800;
+        }
+        
+        .select-all-container {
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .select-all-options {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .note-input {
+            margin-top: 5px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <h2><i class="fas fa-chalkboard-teacher"></i> Teacher Portal</h2>
+        <ul>
+            <li><a href="/teacher/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="/teacher/classes"><i class="fas fa-users"></i> My Classes</a></li>
+            <li><a href="/teacher/attendance" class="active"><i class="fas fa-clipboard-check"></i> Attendance</a></li>
+            <li><a href="/teacher/quizzes"><i class="fas fa-question-circle"></i> Quizzes & Grades</a></li>
+            <li><a href="/teacher/profile"><i class="fas fa-user"></i> My Profile</a></li>
+            <li><a href="#" id="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div class="title">
+                <h1><i class="fas fa-plus-circle"></i> Create Attendance Session</h1>
+                <p>Record attendance for your class</p>
+            </div>
+            <div class="user-info">
+                <span><%= teacher.firstName %> <%= teacher.lastName %></span>
+                <img src="<%= teacher.profilePicture || '/img/default-avatar.png' %>" alt="Profile Picture">
+            </div>
+        </div>
+
+        <div class="content">
+            <form id="attendance-form" class="attendance-form">
+                <div class="form-group">
+                    <label for="class-select">Select Class</label>
+                    <select id="class-select" class="form-control" required>
+                        <option value="">-- Select a Class --</option>
+                        <% classes.forEach(cls => { %>
+                            <option value="<%= cls.id %>"><%= cls.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" class="form-control" value="<%= new Date().toISOString().split('T')[0] %>" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Session Notes (Optional)</label>
+                    <textarea id="notes" class="form-control" rows="3" placeholder="Add any notes about this attendance session..."></textarea>
+                </div>
+
+                <div id="student-list-container" style="display: none;">
+                    <h3>Student Attendance</h3>
+                    
+                    <div class="select-all-container">
+                        <div>
+                            <span>Quick select:</span>
+                        </div>
+                        <div class="select-all-options">
+                            <button type="button" id="mark-all-present" class="status-present">Mark All Present</button>
+                            <button type="button" id="mark-all-absent" class="status-absent">Mark All Absent</button>
+                        </div>
+                    </div>
+                    
+                    <div id="student-list" class="student-list">
+                        <!-- Student list will be populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="form-submit">
+                    <button type="button" class="btn-cancel" id="cancel-btn">Cancel</button>
+                    <button type="submit" class="btn-submit" id="submit-btn">Save Attendance</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Logout functionality
+        document.getElementById('logout-link').addEventListener('click', async function(e) {
+            e.preventDefault();
+            try {
+                const response = await fetch('/teacher/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/teacher/login';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+
+        // Cancel button
+        document.getElementById('cancel-btn').addEventListener('click', function() {
+            window.location.href = '/teacher/attendance';
+        });
+
+        // Class selection change
+        document.getElementById('class-select').addEventListener('change', async function() {
+            const classId = this.value;
+            if (classId) {
+                try {
+                    const response = await fetch(`/api/teacher/classes/${classId}/students`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        populateStudentList(data.data);
+                        document.getElementById('student-list-container').style.display = 'block';
+                    } else {
+                        alert('Error loading students: ' + data.message);
+                    }
+                } catch (error) {
+                    console.error('Error fetching students:', error);
+                    alert('Failed to load students for this class.');
+                }
+            } else {
+                document.getElementById('student-list-container').style.display = 'none';
+            }
+        });
+
+        // Populate student list
+        function populateStudentList(students) {
+            const studentList = document.getElementById('student-list');
+            studentList.innerHTML = '';
+            
+            students.forEach(student => {
+                const studentItem = document.createElement('div');
+                studentItem.className = 'student-item';
+                
+                studentItem.innerHTML = `
+                    <div class="student-info">
+                        <img src="${student.profilePicture || '/img/default-avatar.png'}" alt="${student.firstName}" class="student-avatar">
+                        <span class="student-name">${student.firstName} ${student.lastName}</span>
+                        <span class="student-id">(ID: ${student._id})</span>
+                    </div>
+                    <div class="attendance-options">
+                        <label class="attendance-option">
+                            <input type="radio" name="attendance-${student._id}" value="present" checked>
+                            <span class="status-present">Present</span>
+                        </label>
+                        <label class="attendance-option">
+                            <input type="radio" name="attendance-${student._id}" value="absent">
+                            <span class="status-absent">Absent</span>
+                        </label>
+                        <label class="attendance-option">
+                            <input type="radio" name="attendance-${student._id}" value="late">
+                            <span class="status-late">Late</span>
+                        </label>
+                    </div>
+                    <input type="text" placeholder="Notes (optional)" class="note-input" id="note-${student._id}">
+                `;
+                
+                studentList.appendChild(studentItem);
+            });
+        }
+
+        // Mark all present
+        document.getElementById('mark-all-present').addEventListener('click', function() {
+            const presentRadios = document.querySelectorAll('input[value="present"]');
+            presentRadios.forEach(radio => {
+                radio.checked = true;
+            });
+        });
+
+        // Mark all absent
+        document.getElementById('mark-all-absent').addEventListener('click', function() {
+            const absentRadios = document.querySelectorAll('input[value="absent"]');
+            absentRadios.forEach(radio => {
+                radio.checked = true;
+            });
+        });
+
+        // Form submission
+        document.getElementById('attendance-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const classId = document.getElementById('class-select').value;
+            if (!classId) {
+                alert('Please select a class');
+                return;
+            }
+            
+            const date = document.getElementById('date').value;
+            const notes = document.getElementById('notes').value;
+            
+            // Get all student attendance records
+            const studentItems = document.querySelectorAll('.student-item');
+            const attendanceRecords = [];
+            
+            studentItems.forEach(item => {
+                const studentId = item.querySelector('.student-id').textContent.match(/ID: (.*)\)/)[1];
+                const status = item.querySelector('input:checked').value;
+                const note = item.querySelector(`.note-input`).value;
+                
+                attendanceRecords.push({
+                    studentId,
+                    status,
+                    note
+                });
+            });
+            
+            try {
+                const response = await fetch(`/api/teacher/classes/${classId}/attendance`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        date,
+                        notes,
+                        attendanceRecords
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Attendance saved successfully!');
+                    window.location.href = '/teacher/attendance';
+                } else {
+                    alert('Error saving attendance: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error saving attendance:', error);
+                alert('Failed to save attendance. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html> 

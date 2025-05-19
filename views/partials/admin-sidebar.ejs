@@ -201,5 +201,26 @@
                 parent.previousElementSibling.classList.add('active');
             }
         }
+        
+        // Handle logout
+        document.getElementById('logout-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            if (confirm('Are you sure you want to logout?')) {
+                // Perform logout action (you can customize this as needed)
+                fetch('/admin/logout', {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = '/admin/login';
+                    }
+                })
+                .catch(error => {
+                    console.error('Logout error:', error);
+                });
+            }
+        });
     });
 </script> 

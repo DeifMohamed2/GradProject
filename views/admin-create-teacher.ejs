@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Teacher | School Management System</title>
+    <%- include('./partials/styles') %>
+</head>
+<body>
+    <%- include('./partials/sidebar', { activePage: 'create-teacher' }) %>
+    
+    <!-- Main Content -->
+    <div class="content">
+        <%- include('./partials/header', { pageTitle: 'Create New Teacher' }) %>
+        
+        <!-- Create Teacher Form -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold">Teacher Information</h6>
+                        <a href="/admin/teachers" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left me-2"></i> Back to Teachers
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <form id="createTeacherForm">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="firstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="firstName" name="firstName" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="lastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="lastName" name="lastName" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="username" name="username" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="confirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="phoneNumber" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="profilePicture" class="form-label">Profile Picture URL</label>
+                                    <input type="url" class="form-control" id="profilePicture" name="profilePicture" 
+                                        placeholder="https://example.com/image.jpg">
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="reset" class="btn btn-outline-secondary me-md-2">Reset</button>
+                                <button type="submit" class="btn btn-primary">Create Teacher</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <%- include('./partials/scripts') %>
+    <script src="/js/teacher-api-test.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form validation and submission
+            const createTeacherForm = document.getElementById('createTeacherForm');
+            
+            createTeacherForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form data
+                const firstName = document.getElementById('firstName').value;
+                const lastName = document.getElementById('lastName').value;
+                const email = document.getElementById('email').value;
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const phoneNumber = document.getElementById('phoneNumber').value;
+                const profilePicture = document.getElementById('profilePicture').value;
+                
+                // Basic validation
+                if (password !== confirmPassword) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Password Mismatch',
+                        text: 'Password and Confirm Password must match'
+                    });
+                    return;
+                }
+                
+                // Debug form data
+                console.log('Submitting teacher data:', {
+                    firstName, lastName, email, username, phoneNumber, profilePicture
+                });
+                
+                // Create the request
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/admin/create-teacher');
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                
+                xhr.onload = function() {
+                    console.log('Response status:', xhr.status);
+                    console.log('Response text:', xhr.responseText);
+                    
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        // Success
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Teacher created successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // Redirect to teachers page
+                            window.location.href = '/admin/teachers';
+                        });
+                    } else {
+                        // Error
+                        let errorMessage = 'An error occurred';
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            console.error('Error response:', response);
+                            if (response.message) {
+                                errorMessage = response.message;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing response:', e);
+                            // Keep default error message
+                        }
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: errorMessage
+                        });
+                    }
+                };
+                
+                xhr.onerror = function(error) {
+                    console.error('Network error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Network error occurred'
+                    });
+                };
+                
+                // Create payload
+                const payload = JSON.stringify({ 
+                    firstName, 
+                    lastName, 
+                    email, 
+                    username, 
+                    password,
+                    phoneNumber,
+                    profilePicture
+                });
+                
+                console.log('Sending payload:', payload);
+                
+                // Send the data
+                xhr.send(payload);
+            });
+        });
+    </script>
+</body>
+</html> 

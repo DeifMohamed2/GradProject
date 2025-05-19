@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quizzes & Grades | Teacher Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Quizzes specific styles */
+        .quizzes-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .filter-container {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+        
+        .filter-item label {
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        
+        .filter-item select, .filter-item input {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .create-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .create-btn:hover {
+            background-color: #45a049;
+        }
+        
+        .quiz-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .quiz-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .quiz-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .quiz-header {
+            padding: 20px;
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .quiz-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 5px;
+        }
+        
+        .quiz-class {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .quiz-body {
+            padding: 20px;
+        }
+        
+        .quiz-info {
+            margin-bottom: 15px;
+        }
+        
+        .quiz-description {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .quiz-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #777;
+            margin-bottom: 15px;
+        }
+        
+        .quiz-date, .quiz-score {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .quiz-progress {
+            margin-top: 10px;
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-value {
+            height: 100%;
+            background-color: #2196F3;
+        }
+        
+        .quiz-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        
+        .quiz-btn {
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .btn-view {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            flex: 1;
+            margin-right: 8px;
+        }
+        
+        .btn-view:hover {
+            background-color: #bbdefb;
+        }
+        
+        .btn-grade {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            flex: 1;
+        }
+        
+        .btn-grade:hover {
+            background-color: #c8e6c9;
+        }
+        
+        .no-quizzes {
+            text-align: center;
+            padding: 40px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            color: #777;
+            grid-column: 1 / -1;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid #4CAF50;
+            color: #4CAF50;
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: #f5f5f5;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .grades-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        }
+        
+        .grades-table th {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .grades-table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .grades-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .grades-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .grade-value {
+            font-weight: bold;
+        }
+        
+        .grade-excellent {
+            color: #4CAF50;
+        }
+        
+        .grade-good {
+            color: #2196F3;
+        }
+        
+        .grade-average {
+            color: #FF9800;
+        }
+        
+        .grade-poor {
+            color: #F44336;
+        }
+        
+        .edit-grade {
+            color: #2196F3;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        
+        .edit-grade:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <h2><i class="fas fa-chalkboard-teacher"></i> Teacher Portal</h2>
+        <ul>
+            <li><a href="/teacher/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="/teacher/classes"><i class="fas fa-users"></i> My Classes</a></li>
+            <li><a href="/teacher/attendance"><i class="fas fa-clipboard-check"></i> Attendance</a></li>
+            <li><a href="/teacher/quizzes" class="active"><i class="fas fa-question-circle"></i> Quizzes & Grades</a></li>
+            <li><a href="/teacher/profile"><i class="fas fa-user"></i> My Profile</a></li>
+            <li><a href="#" id="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div class="title">
+                <h1><i class="fas fa-question-circle"></i> Quizzes & Grades</h1>
+                <p>Create and manage quizzes, view and update student grades</p>
+            </div>
+            <div class="user-info">
+                <span><%= teacher.firstName %> <%= teacher.lastName %></span>
+                <img src="<%= teacher.profilePicture || '/img/default-avatar.png' %>" alt="Profile Picture">
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="tabs">
+                <div class="tab active" data-target="quizzes">Quizzes</div>
+                <div class="tab" data-target="grades">Grades Overview</div>
+            </div>
+
+            <div id="quizzes-tab" class="tab-content active">
+                <div class="quizzes-container">
+                    <div class="actions">
+                        <a href="/teacher/quizzes/create" class="create-btn">
+                            <i class="fas fa-plus"></i> Create New Quiz
+                        </a>
+                    </div>
+
+                    <div class="filter-container">
+                        <div class="filter-item">
+                            <label for="class-filter">Class</label>
+                            <select id="class-filter">
+                                <option value="">All Classes</option>
+                                <% classes.forEach(cls => { %>
+                                    <option value="<%= cls.id %>"><%= cls.name %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label for="date-filter">Created After</label>
+                            <input type="date" id="date-filter">
+                        </div>
+                        <div class="filter-item">
+                            <label for="status-filter">Status</label>
+                            <select id="status-filter">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="draft">Draft</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="filter-item" style="align-self: flex-end;">
+                            <button id="apply-filter" class="quiz-btn btn-view">Apply Filters</button>
+                        </div>
+                    </div>
+
+                    <% if (quizzes && quizzes.length > 0) { %>
+                        <div class="quiz-cards">
+                            <% quizzes.forEach(quiz => { 
+                                const completionRate = quiz.submissionsCount / quiz.totalStudents * 100 || 0;
+                            %>
+                                <div class="quiz-card">
+                                    <div class="quiz-header">
+                                        <h3 class="quiz-title"><%= quiz.title %></h3>
+                                        <div class="quiz-class"><%= quiz.className %></div>
+                                    </div>
+                                    <div class="quiz-body">
+                                        <div class="quiz-info">
+                                            <div class="quiz-description"><%= quiz.description || 'No description provided' %></div>
+                                            <div class="quiz-meta">
+                                                <div class="quiz-date">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                    <%= new Date(quiz.createdAt).toLocaleDateString() %>
+                                                </div>
+                                                <div class="quiz-score">
+                                                    <i class="fas fa-star"></i>
+                                                    <%= quiz.maxScore %> points
+                                                </div>
+                                            </div>
+                                            <div class="quiz-progress">
+                                                <div class="progress-label">
+                                                    <span>Completion</span>
+                                                    <span><%= Math.round(completionRate) %>%</span>
+                                                </div>
+                                                <div class="progress-bar">
+                                                    <div class="progress-value" style="width: <%= completionRate %>%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="quiz-actions">
+                                            <a href="/teacher/classes/<%= quiz.classId %>/quizzes/<%= quiz._id %>" class="quiz-btn btn-view">
+                                                View Details
+                                            </a>
+                                            <a href="/teacher/classes/<%= quiz.classId %>/quizzes/<%= quiz._id %>/grades" class="quiz-btn btn-grade">
+                                                Update Grades
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } else { %>
+                        <div class="no-quizzes">
+                            <i class="fas fa-question-circle fa-3x" style="color: #ddd; margin-bottom: 15px;"></i>
+                            <h3>No quizzes found</h3>
+                            <p>Start by creating a new quiz for one of your classes</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <div id="grades-tab" class="tab-content">
+                <% if (classes && classes.length > 0) { %>
+                    <div class="filter-container">
+                        <div class="filter-item">
+                            <label for="grade-class-filter">Class</label>
+                            <select id="grade-class-filter">
+                                <option value="">Select a Class</option>
+                                <% classes.forEach(cls => { %>
+                                    <option value="<%= cls.id %>"><%= cls.name %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+                        <div class="filter-item" style="align-self: flex-end;">
+                            <button id="load-grades" class="quiz-btn btn-view">Load Grades</button>
+                        </div>
+                    </div>
+
+                    <div id="grades-container">
+                        <p>Select a class to view grades</p>
+                    </div>
+                <% } else { %>
+                    <div class="no-quizzes">
+                        <p>You don't have any classes assigned yet</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Logout functionality
+        document.getElementById('logout-link').addEventListener('click', async function(e) {
+            e.preventDefault();
+            try {
+                const response = await fetch('/teacher/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/teacher/login';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Hide all tab contents
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                // Show the selected tab content
+                const target = this.getAttribute('data-target');
+                document.getElementById(`${target}-tab`).classList.add('active');
+            });
+        });
+
+        // Filter quizzes
+        document.getElementById('apply-filter').addEventListener('click', function() {
+            const classId = document.getElementById('class-filter').value;
+            const date = document.getElementById('date-filter').value;
+            const status = document.getElementById('status-filter').value;
+            
+            let url = '/teacher/quizzes?';
+            if (classId) url += `classId=${classId}&`;
+            if (date) url += `date=${date}&`;
+            if (status) url += `status=${status}&`;
+            
+            // Remove trailing & if exists
+            url = url.endsWith('&') ? url.slice(0, -1) : url;
+            
+            window.location.href = url;
+        });
+
+        // Load grades for selected class
+        document.getElementById('load-grades').addEventListener('click', async function() {
+            const classId = document.getElementById('grade-class-filter').value;
+            if (!classId) {
+                alert('Please select a class');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/teacher/classes/${classId}/grades`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderGradesTable(data.data, classId);
+                } else {
+                    document.getElementById('grades-container').innerHTML = `
+                        <div class="no-quizzes">
+                            <p>Error loading grades: ${data.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fetching grades:', error);
+                document.getElementById('grades-container').innerHTML = `
+                    <div class="no-quizzes">
+                        <p>Failed to load grades. Please try again.</p>
+                    </div>
+                `;
+            }
+        });
+
+        function renderGradesTable(gradesData, classId) {
+            if (!gradesData.students || gradesData.students.length === 0) {
+                document.getElementById('grades-container').innerHTML = `
+                    <div class="no-quizzes">
+                        <p>No students found in this class</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            if (!gradesData.quizzes || gradesData.quizzes.length === 0) {
+                document.getElementById('grades-container').innerHTML = `
+                    <div class="no-quizzes">
+                        <p>No quizzes found for this class</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let tableHTML = `
+                <h3>${gradesData.className} - Grades Overview</h3>
+                <table class="grades-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+            `;
+            
+            // Add column for each quiz
+            gradesData.quizzes.forEach(quiz => {
+                tableHTML += `<th>${quiz.title} (max: ${quiz.maxScore})</th>`;
+            });
+            
+            tableHTML += `
+                            <th>Average</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            // Add row for each student
+            gradesData.students.forEach(student => {
+                tableHTML += `
+                    <tr>
+                        <td>${student.firstName} ${student.lastName}</td>
+                `;
+                
+                let totalScore = 0;
+                let quizCount = 0;
+                
+                // Add grade for each quiz
+                gradesData.quizzes.forEach(quiz => {
+                    const grade = student.grades.find(g => g.quizId === quiz._id);
+                    
+                    if (grade) {
+                        const percentage = (grade.score / quiz.maxScore) * 100;
+                        let gradeClass = '';
+                        
+                        if (percentage >= 90) gradeClass = 'grade-excellent';
+                        else if (percentage >= 75) gradeClass = 'grade-good';
+                        else if (percentage >= 60) gradeClass = 'grade-average';
+                        else gradeClass = 'grade-poor';
+                        
+                        totalScore += (grade.score / quiz.maxScore);
+                        quizCount++;
+                        
+                        tableHTML += `
+                            <td>
+                                <span class="grade-value ${gradeClass}">${grade.score}</span>
+                                <span class="edit-grade" data-student="${student._id}" data-quiz="${quiz._id}" data-class="${classId}">
+                                    <i class="fas fa-edit"></i>
+                                </span>
+                            </td>
+                        `;
+                    } else {
+                        tableHTML += `
+                            <td>
+                                <span>Not graded</span>
+                                <span class="edit-grade" data-student="${student._id}" data-quiz="${quiz._id}" data-class="${classId}">
+                                    <i class="fas fa-edit"></i>
+                                </span>
+                            </td>
+                        `;
+                    }
+                });
+                
+                // Calculate average
+                const average = quizCount > 0 ? (totalScore / quizCount) * 100 : 0;
+                let averageClass = '';
+                
+                if (average >= 90) averageClass = 'grade-excellent';
+                else if (average >= 75) averageClass = 'grade-good';
+                else if (average >= 60) averageClass = 'grade-average';
+                else averageClass = 'grade-poor';
+                
+                tableHTML += `
+                        <td><span class="grade-value ${averageClass}">${average.toFixed(1)}%</span></td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('grades-container').innerHTML = tableHTML;
+            
+            // Add event listeners for edit grade buttons
+            document.querySelectorAll('.edit-grade').forEach(button => {
+                button.addEventListener('click', function() {
+                    const studentId = this.getAttribute('data-student');
+                    const quizId = this.getAttribute('data-quiz');
+                    const classId = this.getAttribute('data-class');
+                    
+                    window.location.href = `/teacher/classes/${classId}/quizzes/${quizId}/grades?student=${studentId}`;
+                });
+            });
+        }
+    </script>
+</body>
+</html> 

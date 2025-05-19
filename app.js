@@ -11,11 +11,21 @@ const http = require('http');
 
 const adminRoute = require('./routes/adminRoute');
 const parentRoute = require('./routes/parentRoute');
+const teacherRoute = require('./routes/teacherRoute');
+const teacherApi = require('./routes/teacherApi');
 // console.log(adminRoute);
 // express app
 const app = express();
 app.use(express.json());
 
+// Request logging middleware for debugging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  if (req.method === 'POST' || req.method === 'PUT') {
+    console.log('Request body:', req.body);
+  }
+  next();
+});
 
 // connect to mongodb & listen for requests
 const dbURI = process.env.MONGO_URI;
@@ -71,6 +81,8 @@ app.get('/', (req, res) => {
 
 app.use('/admin' , adminRoute);
 app.use('/parent' , parentRoute);
+app.use('/teacher', teacherRoute);
+app.use('/api/teacher', teacherApi);
 
 
 // 404 page

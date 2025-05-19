@@ -62,6 +62,22 @@ const authMiddleware = async (req, res, next) => {
 // ===== Authentication Routes =====
 // Render the admin login page
 router.get('/login', (req, res) => {
+  // Check if token exists, which means the user is already logged in
+  const token = req.cookies.token;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, jwtSecret);
+      if (decoded.adminId) {
+        // If valid admin token, redirect to dashboard
+        return res.redirect('/admin/dashboard');
+      }
+    } catch (error) {
+      // Token is invalid or expired, clear it
+      res.clearCookie('token');
+    }
+  }
+  
+  // Render login page
   res.render('admin-login');
 });
 
@@ -130,6 +146,50 @@ router.get('/link-children', authMiddleware, (req, res) => {
 
 // Link children with parent API
 router.post('/link-childswithparent', authMiddleware, adminController.linkChildsWithParent);
+
+// ===== Teachers Routes =====
+// View all teachers
+router.get('/teachers', authMiddleware, adminController.getTeachers);
+
+// Create teacher page
+router.get('/create-teacher', authMiddleware, adminController.getCreateTeacherPage);
+
+// Create teacher POST request
+router.post('/create-teacher', authMiddleware, adminController.createTeacher);
+
+// Teacher details page
+router.get('/teachers/:teacherId', authMiddleware, adminController.getTeacherDetails);
+
+// Update teacher
+router.put('/teachers/:teacherId', authMiddleware, adminController.updateTeacher);
+
+// Delete teacher
+router.delete('/teachers/:teacherId', authMiddleware, adminController.deleteTeacher);
+
+// ===== Classes Routes =====
+// View all classes
+router.get('/classes', authMiddleware, adminController.getClasses);
+
+// Create class page
+router.get('/create-class', authMiddleware, adminController.getCreateClassPage);
+
+// Create class POST request
+router.post('/create-class', authMiddleware, adminController.createClass);
+
+// Class details page
+router.get('/classes/:classId', authMiddleware, adminController.getClassDetails);
+
+// Update class
+router.put('/classes/:classId', authMiddleware, adminController.updateClass);
+
+// Delete class
+router.delete('/classes/:classId', authMiddleware, adminController.deleteClass);
+
+// Assign students to class
+router.post('/classes/:classId/students', authMiddleware, adminController.assignStudentsToClass);
+
+// Remove student from class
+router.delete('/classes/:classId/students/:studentId', authMiddleware, adminController.removeStudentFromClass);
 
 // ===== Expense Management Routes =====
 // Get expense by ID

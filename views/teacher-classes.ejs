@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Classes | Teacher Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Classes specific styles */
+        .classes-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+        
+        .class-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        
+        .class-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .class-header {
+            color: white;
+            padding: 20px;
+            position: relative;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        
+        .class-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.7));
+            z-index: 1;
+        }
+        
+        .class-header * {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .class-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .class-description {
+            font-size: 14px;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+        
+        .class-body {
+            padding: 20px;
+        }
+        
+        .class-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .class-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #777;
+            margin-top: 5px;
+        }
+        
+        .class-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .class-action {
+            padding: 10px 0;
+            text-align: center;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .class-action:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .class-action i {
+            display: block;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .action-attendance i {
+            color: #4CAF50;
+        }
+        
+        .action-grades i {
+            color: #F44336;
+        }
+        
+        .action-quizzes i {
+            color: #2196F3;
+        }
+        
+        .action-students i {
+            color: #FF9800;
+        }
+        
+        .no-classes {
+            text-align: center;
+            padding: 40px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            grid-column: 1 / -1;
+        }
+        
+        .header-bg-1 { background-color: #4CAF50; }
+        .header-bg-2 { background-color: #2196F3; }
+        .header-bg-3 { background-color: #FF9800; }
+        .header-bg-4 { background-color: #9C27B0; }
+        .header-bg-5 { background-color: #F44336; }
+        .header-bg-6 { background-color: #009688; }
+    </style>
+</head>
+<body>
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <h2><i class="fas fa-chalkboard-teacher"></i> Teacher Portal</h2>
+        <ul>
+            <li><a href="/teacher/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="/teacher/classes" class="active"><i class="fas fa-users"></i> My Classes</a></li>
+            <li><a href="/teacher/attendance"><i class="fas fa-clipboard-check"></i> Attendance</a></li>
+            <li><a href="/teacher/quizzes"><i class="fas fa-question-circle"></i> Quizzes & Grades</a></li>
+            <li><a href="/teacher/profile"><i class="fas fa-user"></i> My Profile</a></li>
+            <li><a href="#" id="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div class="title">
+                <h1><i class="fas fa-users"></i> My Classes</h1>
+                <p>Manage your classes and students</p>
+            </div>
+            <div class="user-info">
+                <span><%= teacher.firstName %> <%= teacher.lastName %></span>
+                <img src="<%= teacher.profilePicture || '/img/default-avatar.png' %>" alt="Profile Picture">
+            </div>
+        </div>
+
+        <div class="content">
+            <% if (classes && classes.length > 0) { %>
+                <div class="classes-container">
+                    <% classes.forEach((cls, index) => { 
+                        const headerClass = `header-bg-${(index % 6) + 1}`;
+                    %>
+                        <div class="class-card">
+                            <div class="class-header <%= headerClass %>">
+                                <h2 class="class-name"><%= cls.name %></h2>
+                                <p class="class-description"><%= cls.description %></p>
+                            </div>
+                            <div class="class-body">
+                                <div class="class-stats">
+                                    <div class="class-stat">
+                                        <div class="stat-value"><%= cls.studentCount %></div>
+                                        <div class="stat-label">Students</div>
+                                    </div>
+                                    <div class="class-stat">
+                                        <div class="stat-value"><%= cls.attendanceCount || 0 %></div>
+                                        <div class="stat-label">Attendance</div>
+                                    </div>
+                                    <div class="class-stat">
+                                        <div class="stat-value"><%= cls.quizCount || 0 %></div>
+                                        <div class="stat-label">Quizzes</div>
+                                    </div>
+                                </div>
+                                <div class="class-actions">
+                                    <a href="/teacher/classes/<%= cls.id %>" class="class-action action-students">
+                                        <i class="fas fa-eye"></i>
+                                        View Details
+                                    </a>
+                                    <a href="/teacher/classes/<%= cls.id %>/attendance" class="class-action action-attendance">
+                                        <i class="fas fa-clipboard-check"></i>
+                                        Attendance
+                                    </a>
+                                    <a href="/teacher/classes/<%= cls.id %>/quizzes" class="class-action action-quizzes">
+                                        <i class="fas fa-question-circle"></i>
+                                        Quizzes
+                                    </a>
+                                    <a href="/teacher/classes/<%= cls.id %>/grades" class="class-action action-grades">
+                                        <i class="fas fa-graduation-cap"></i>
+                                        Grades
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } else { %>
+                <div class="no-classes">
+                    <i class="fas fa-school fa-4x" style="color: #ddd; margin-bottom: 20px;"></i>
+                    <h2>No Classes Assigned</h2>
+                    <p>You don't have any classes assigned to you yet. Please contact the administrator.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Logout functionality
+        document.getElementById('logout-link').addEventListener('click', async function(e) {
+            e.preventDefault();
+            try {
+                const response = await fetch('/teacher/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/teacher/login';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+    </script>
+</body>
+</html> 

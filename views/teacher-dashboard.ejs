@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard | School Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #27ae60;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #3498db;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fc;
+            color: #333;
+        }
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 250px;
+            background: linear-gradient(135deg, var(--secondary-color), #1a252f);
+            color: white;
+            z-index: 100;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-header h3 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .sidebar-brand {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sidebar-brand i {
+            font-size: 1.75rem;
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+            list-style: none;
+            margin: 0;
+        }
+        
+        .sidebar-menu li {
+            position: relative;
+        }
+        
+        .sidebar-menu a {
+            display: block;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+        
+        .sidebar-menu a i {
+            margin-right: 10px;
+            width: 25px;
+            text-align: center;
+        }
+        
+        .sidebar-menu a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .sidebar-menu a.active {
+            background: var(--accent-color);
+            color: white;
+            border-radius: 0 30px 30px 0;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+        
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+        
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+        
+        .navbar .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+        }
+        
+        .navbar .navbar-brand i {
+            color: var(--accent-color);
+            margin-right: 10px;
+        }
+        
+        .navbar .nav-link {
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+        
+        .navbar .profile-dropdown .dropdown-toggle::after {
+            display: none;
+        }
+        
+        .navbar .profile-dropdown .dropdown-menu {
+            min-width: 200px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .navbar .profile-dropdown .dropdown-item {
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+        
+        .navbar .profile-dropdown .dropdown-item:hover {
+            background-color: var(--light-color);
+        }
+        
+        .navbar .profile-dropdown .dropdown-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            background-color: rgba(52, 152, 219, 0.05);
+            border-bottom: 1px solid rgba(52, 152, 219, 0.1);
+            padding: 15px 20px;
+            border-radius: 15px 15px 0 0 !important;
+        }
+        
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 0;
+            color: var(--secondary-color);
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .stat-card {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card .icon {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+        
+        .stat-card .content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--secondary-color);
+        }
+        
+        .stat-card .content p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .stat-card.primary .icon {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .stat-card.success .icon {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+        }
+        
+        .stat-card.warning .icon {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .stat-card.info .icon {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--info-color);
+        }
+        
+        .table-container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+        
+        .badge-status {
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 0.75rem;
+        }
+        
+        .badge-status.active {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+        }
+        
+        .badge-status.inactive {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+        }
+        
+        .action-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary-color);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            transition: all 0.3s;
+            margin-right: 5px;
+        }
+        
+        .action-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .action-btn.edit:hover {
+            background-color: var(--warning-color);
+        }
+        
+        .action-btn.delete:hover {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-custom {
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary-custom {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+        
+        .btn-primary-custom:hover {
+            background-color: #219653;
+            border-color: #219653;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+        
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 0;
+                padding: 0;
+            }
+            
+            .content {
+                margin-left: 0;
+            }
+            
+            .sidebar.active {
+                width: 250px;
+                padding: 0;
+            }
+            
+            .content.active {
+                margin-left: 250px;
+            }
+            
+            .navbar .navbar-toggler {
+                display: block;
+            }
+        }
+        
+        #sidebar-toggle {
+            background: transparent;
+            border: none;
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            margin-right: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <a href="/teacher/dashboard" class="sidebar-brand">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <h3>Teacher Portal</h3>
+            </a>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li>
+                <a href="/teacher/dashboard" class="active">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/teacher/classes">
+                    <i class="fas fa-chalkboard"></i> My Classes
+                </a>
+            </li>
+            <li>
+                <a href="/teacher/attendance">
+                    <i class="fas fa-clipboard-check"></i> Attendance
+                </a>
+            </li>
+            <li>
+                <a href="/teacher/quizzes">
+                    <i class="fas fa-file-alt"></i> Quizzes & Grades
+                </a>
+            </li>
+            <li>
+                <a href="/teacher/profile">
+                    <i class="fas fa-user"></i> My Profile
+                </a>
+            </li>
+            <li>
+                <a href="#" id="logout-link">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="content">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid">
+                <button id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <a class="navbar-brand" href="/teacher/dashboard">
+                    <i class="fas fa-chalkboard-teacher"></i> Teacher Dashboard
+                </a>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item dropdown profile-dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <img src="<%= teacher.profilePicture %>" class="avatar" alt="Avatar">
+                                <span class="ms-2"><%= teacher.firstName %> <%= teacher.lastName %></span>
+                                <i class="fas fa-chevron-down ms-2 small"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="/teacher/profile">
+                                        <i class="fas fa-user"></i> My Profile
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/teacher/password">
+                                        <i class="fas fa-lock"></i> Change Password
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="#" id="nav-logout-link">
+                                        <i class="fas fa-sign-out-alt"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="container-fluid">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Welcome, <%= teacher.firstName %> <%= teacher.lastName %>!</h1>
+                <a href="/teacher/classes" class="d-none d-sm-inline-block btn btn-primary-custom shadow-sm">
+                    <i class="fas fa-chalkboard fa-sm text-white-50 me-1"></i> Manage Classes
+                </a>
+            </div>
+            
+            <div class="row">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stat-card primary">
+                        <div class="icon">
+                            <i class="fas fa-chalkboard"></i>
+                        </div>
+                        <div class="content">
+                            <h3><%= stats.classesCount %></h3>
+                            <p>Classes</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stat-card success">
+                        <div class="icon">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div class="content">
+                            <h3><%= stats.studentsCount %></h3>
+                            <p>Students</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stat-card warning">
+                        <div class="icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="content">
+                            <h3><%= stats.quizzesCount %></h3>
+                            <p>Quizzes</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stat-card info">
+                        <div class="icon">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <div class="content">
+                            <h3><%= stats.attendanceCount %></h3>
+                            <p>Attendance Records</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 card-title">Recent Class Activity</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="recentActivities">
+                                <% if (recentActivities && recentActivities.length > 0) { %>
+                                    <% recentActivities.forEach(activity => { %>
+                                        <div class="recent-activity">
+                                            <div class="activity-content">
+                                                <h6 class="activity-title"><%= activity.className %></h6>
+                                                <p class="activity-description"><%= activity.description %></p>
+                                                <p class="activity-date"><%= new Date(activity.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></p>
+                                            </div>
+                                            <div class="activity-status <%= activity.status.toLowerCase() === 'completed' ? 'status-completed' : activity.status.toLowerCase() === 'pending' ? 'status-pending' : 'status-failed' %>">
+                                                <%= activity.status %>
+                                            </div>
+                                        </div>
+                                    <% }); %>
+                                <% } else { %>
+                                    <div class="alert alert-info">No recent activities found.</div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 card-title">My Classes</h6>
+                            <a href="/teacher/classes" class="btn btn-sm btn-primary-custom">View All</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group" id="classesList">
+                                <% if (classes && classes.length > 0) { %>
+                                    <% classes.forEach(cls => { %>
+                                    <a href="/teacher/classes/<%= cls.id %>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1"><%= cls.name %></h6>
+                                            <small><%= cls.description || 'No description' %></small>
+                                        </div>
+                                        <span class="badge bg-primary rounded-pill"><%= cls.studentCount %> students</span>
+                                    </a>
+                                    <% }); %>
+                                <% } else { %>
+                                    <div class="alert alert-info">No classes found.</div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 card-title">Quick Actions</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="/teacher/attendance/create" class="btn btn-outline-primary">
+                                    <i class="fas fa-clipboard-check me-2"></i> Take Attendance
+                                </a>
+                                <a href="/teacher/quizzes/create" class="btn btn-outline-success">
+                                    <i class="fas fa-file-alt me-2"></i> Create Quiz
+                                </a>
+                                <a href="/teacher/grades/update" class="btn btn-outline-warning">
+                                    <i class="fas fa-edit me-2"></i> Update Grades
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            const content = document.querySelector('.content');
+            
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+                content.classList.toggle('active');
+            });
+            
+            // Logout handling
+            const logoutLinks = document.querySelectorAll('#logout-link, #nav-logout-link');
+            logoutLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    Swal.fire({
+                        title: 'Logout Confirmation',
+                        text: 'Are you sure you want to logout?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, logout!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Clear cookies and redirect to login
+                            fetch('/teacher/logout', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                Swal.fire({
+                                    title: 'Logged Out!',
+                                    text: 'You have been successfully logged out.',
+                                    icon: 'success',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    window.location.href = '/';
+                                });
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                window.location.href = '/';
+                            });
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+    <script src="/js/teacher-dashboard.js"></script>
+</body>
+</html> 

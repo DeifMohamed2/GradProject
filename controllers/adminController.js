@@ -1,6 +1,8 @@
 const Admin = require('../models/admin');
 const Parent = require('../models/parent');
 const Student = require('../models/student');
+const Teacher = require('../models/teacher');
+const Class = require('../models/class');
 const Grade = require('../models/Grade');
 const Attendance = require('../models/attendance');
 const Expense = require('../models/expenses');
@@ -2219,7 +2221,10 @@ const getGradeById = async (req, res) => {
             return res.status(404).json({ message: 'Grade not found' });
         }
         
-        res.status(200).json(grade);
+        res.status(200).json({
+            admin: req.admin,
+            grade
+        });
     } catch (error) {
         console.error('Error getting grade:', error);
         res.status(500).json({ message: 'Error getting grade' });
@@ -2229,12 +2234,14 @@ const getGradeById = async (req, res) => {
 // Create grade
 const createGrade = async (req, res) => {
     try {
-        const { student, subject, grade } = req.body;
+        const { student, subject, grade, term, academicYear } = req.body;
         
         const newGrade = new Grade({
             student,
             subject,
-            grade
+            grade,
+            term,
+            academicYear
         });
         
         await newGrade.save();
@@ -2252,11 +2259,11 @@ const createGrade = async (req, res) => {
 // Update grade
 const updateGrade = async (req, res) => {
     try {
-        const { subject, grade } = req.body;
+        const { subject, grade, term, academicYear } = req.body;
         
         const updatedGrade = await Grade.findByIdAndUpdate(
             req.params.id,
-            { subject, grade },
+            { subject, grade, term, academicYear },
             { new: true }
         );
         
@@ -2497,7 +2504,10 @@ const getAttendanceById = async (req, res) => {
             return res.status(404).json({ message: 'Attendance record not found' });
         }
         
-        res.status(200).json(attendance);
+        res.status(200).json({
+            admin: req.admin,
+            attendance
+        });
     } catch (error) {
         console.error('Error getting attendance record:', error);
         res.status(500).json({ message: 'Error getting attendance record' });
@@ -2568,37 +2578,533 @@ const deleteAttendance = async (req, res) => {
     }
 };
 
+// ===== Teacher Management Functions =====
+
+// Get all teachers
+const getTeachers = async (req, res) => {
+    try {
+        const teachers = await Teacher.find().select('-password');
+        
+        res.render('admin-teachers', { 
+            title: 'Teachers Management',
+            teachers,
+            admin: req.admin,
+            activePage: 'teachers'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Get create teacher page
+const getCreateTeacherPage = async (req, res) => {
+    try {
+        res.render('admin-create-teacher', { 
+            title: 'Create Teacher',
+            admin: req.admin,
+            activePage: 'create-teacher'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Create a new teacher
+const createTeacher = async (req, res) => {
+    try {
+        console.log('Create teacher request body:', req.body);
+        const { username, email, firstName, lastName, password, phoneNumber, profilePicture } = req.body;
+        
+        // Enhanced validation
+        if (!username || !email || !firstName || !lastName || !password) {
+            return res.status(400).json({ 
+                message: 'Missing required fields: username, email, firstName, lastName, and password are required' 
+            });
+        }
+        
+        // Check if username or email already exists
+        const existingTeacher = await Teacher.findOne({ $or: [{ username }, { email }] });
+        if (existingTeacher) {
+            return res.status(400).json({ 
+                message: existingTeacher.username === username ? 'Username already exists' : 'Email already exists' 
+            });
+        }
+        
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // Create teacher
+        const teacher = new Teacher({
+            username,
+            email,
+            firstName,
+            lastName,
+            password: hashedPassword,
+            phoneNumber,
+            profilePicture: profilePicture || 'https://via.placeholder.com/150',
+            classes: [] // Initialize with empty classes array
+        });
+        
+        await teacher.save();
+        console.log('Teacher created successfully:', teacher._id);
+        
+        res.status(201).json({ 
+            success: true,
+            message: 'Teacher created successfully', 
+            teacher: {
+                id: teacher._id,
+                username: teacher.username,
+                email: teacher.email,
+                firstName: teacher.firstName,
+                lastName: teacher.lastName
+            } 
+        });
+    } catch (error) {
+        console.error('Error creating teacher:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Server error: ' + (error.message || 'Unknown error')
+        });
+    }
+};
+
+// Get teacher details
+const getTeacherDetails = async (req, res) => {
+    try {
+        const { teacherId } = req.params;
+        
+        const teacher = await Teacher.findById(teacherId).select('-password');
+        if (!teacher) {
+            return res.status(404).json({ message: 'Teacher not found' });
+        }
+        
+        // Get classes taught by this teacher
+        const classes = await Class.find({ teacher: teacherId }).populate('students', 'firstName lastName');
+        
+        res.render('admin-teacher-details', {
+            title: 'Teacher Details',
+            teacher,
+            classes,
+            admin: req.admin,
+            activePage: 'teachers'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Update teacher
+const updateTeacher = async (req, res) => {
+    try {
+        const { teacherId } = req.params;
+        const { username, email, firstName, lastName, phoneNumber, profilePicture } = req.body;
+        
+        // Check if username or email already exists
+        const existingTeacher = await Teacher.findOne({
+            $and: [
+                { _id: { $ne: teacherId } },
+                { $or: [{ username }, { email }] }
+            ]
+        });
+        
+        if (existingTeacher) {
+            return res.status(400).json({ 
+                message: existingTeacher.username === username ? 'Username already exists' : 'Email already exists' 
+            });
+        }
+        
+        const updatedTeacher = await Teacher.findByIdAndUpdate(
+            teacherId,
+            {
+                username,
+                email,
+                firstName,
+                lastName,
+                phoneNumber,
+                profilePicture
+            },
+            { new: true }
+        ).select('-password');
+        
+        if (!updatedTeacher) {
+            return res.status(404).json({ message: 'Teacher not found' });
+        }
+        
+        res.status(200).json({ message: 'Teacher updated successfully', teacher: updatedTeacher });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Delete teacher
+const deleteTeacher = async (req, res) => {
+    try {
+        const { teacherId } = req.params;
+        
+        // Find classes taught by this teacher
+        const classes = await Class.find({ teacher: teacherId });
+        
+        // If teacher has classes, don't allow deletion
+        if (classes.length > 0) {
+            return res.status(400).json({ 
+                message: 'Cannot delete teacher with assigned classes. Please reassign classes first.' 
+            });
+        }
+        
+        const deletedTeacher = await Teacher.findByIdAndDelete(teacherId);
+        if (!deletedTeacher) {
+            return res.status(404).json({ message: 'Teacher not found' });
+        }
+        
+        res.status(200).json({ message: 'Teacher deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// ===== Class Management Functions =====
+
+// Get all classes
+const getClasses = async (req, res) => {
+    try {
+        const classes = await Class.find()
+            .populate('teacher', 'firstName lastName')
+            .populate('students', 'firstName lastName');
+        
+        // Calculate stats for each class
+        const classesWithStats = classes.map(cls => ({
+            ...cls.toObject(),
+            studentCount: cls.students.length
+        }));
+        
+        // Get all teachers for class creation
+        const teachers = await Teacher.find().select('firstName lastName');
+        
+        res.render('admin-classes', {
+            title: 'Classes Management',
+            classes: classesWithStats,
+            teachers,
+            admin: req.admin,
+            activePage: 'classes'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Get create class page
+const getCreateClassPage = async (req, res) => {
+    try {
+        // Get all teachers for the dropdown
+        const teachers = await Teacher.find().select('firstName lastName');
+        
+        res.render('admin-create-class', {
+            title: 'Create Class',
+            teachers,
+            admin: req.admin,
+            activePage: 'create-class'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Create a new class
+const createClass = async (req, res) => {
+    try {
+        console.log('Create class request body:', req.body);
+        const { name, description, teacherId, isActive } = req.body;
+        
+        // Enhanced validation
+        if (!name || !teacherId) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Missing required fields: name and teacherId are required' 
+            });
+        }
+        
+        // Validate teacher exists
+        const teacher = await Teacher.findById(teacherId);
+        if (!teacher) {
+            return res.status(404).json({
+                success: false, 
+                message: 'Teacher not found' 
+            });
+        }
+        
+        // Create class
+        const newClass = new Class({
+            name,
+            description,
+            teacher: teacherId,
+            students: [],
+            attendanceSessions: [],
+            quizzes: [],
+            isActive: isActive !== undefined ? isActive : true
+        });
+        
+        await newClass.save();
+        console.log('Class created successfully:', newClass._id);
+        
+        // Add class to teacher's classes
+        teacher.classes.push(newClass._id);
+        await teacher.save();
+        
+        res.status(201).json({ 
+            success: true,
+            message: 'Class created successfully', 
+            class: {
+                id: newClass._id,
+                name: newClass.name,
+                description: newClass.description,
+                teacherId: teacher._id,
+                teacherName: `${teacher.firstName} ${teacher.lastName}`
+            } 
+        });
+    } catch (error) {
+        console.error('Error creating class:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Server error: ' + (error.message || 'Unknown error')
+        });
+    }
+};
+
+// Get class details
+const getClassDetails = async (req, res) => {
+    try {
+        const { classId } = req.params;
+        
+        const classDetails = await Class.findById(classId)
+            .populate('teacher', 'firstName lastName email')
+            .populate('students', 'firstName lastName email profilePicture');
+        
+        if (!classDetails) {
+            return res.status(404).json({ message: 'Class not found' });
+        }
+        
+        // Get all teachers for teacher reassignment
+        const teachers = await Teacher.find().select('firstName lastName');
+        
+        // Get all students not in the class for adding
+        const studentsNotInClass = await Student.find({
+            _id: { $nin: classDetails.students.map(student => student._id) }
+        }).select('firstName lastName');
+        
+        res.render('admin-class-details', {
+            title: 'Class Details',
+            class: classDetails,
+            teachers,
+            admin: req.admin,
+            availableStudents: studentsNotInClass,
+            activePage: 'classes'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Update class
+const updateClass = async (req, res) => {
+    try {
+        const { classId } = req.params;
+        const { name, description, teacherId, isActive } = req.body;
+        
+        const classToUpdate = await Class.findById(classId);
+        if (!classToUpdate) {
+            return res.status(404).json({ message: 'Class not found' });
+        }
+        
+        // If teacher is being changed
+        if (teacherId && teacherId !== classToUpdate.teacher.toString()) {
+            // Remove class from old teacher's classes
+            await Teacher.findByIdAndUpdate(
+                classToUpdate.teacher,
+                { $pull: { classes: classId } }
+            );
+            
+            // Add class to new teacher's classes
+            await Teacher.findByIdAndUpdate(
+                teacherId,
+                { $push: { classes: classId } }
+            );
+        }
+        
+        // Update class
+        const updatedClass = await Class.findByIdAndUpdate(
+            classId,
+            {
+                name,
+                description,
+                teacher: teacherId || classToUpdate.teacher,
+                isActive: isActive !== undefined ? isActive : classToUpdate.isActive
+            },
+            { new: true }
+        );
+        
+        res.status(200).json({ message: 'Class updated successfully', class: updatedClass });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Delete class
+const deleteClass = async (req, res) => {
+    try {
+        const { classId } = req.params;
+        
+        const classToDelete = await Class.findById(classId);
+        if (!classToDelete) {
+            return res.status(404).json({ message: 'Class not found' });
+        }
+        
+        // Remove class from teacher's classes
+        await Teacher.findByIdAndUpdate(
+            classToDelete.teacher,
+            { $pull: { classes: classId } }
+        );
+        
+        // Delete class
+        await Class.findByIdAndDelete(classId);
+        
+        res.status(200).json({ message: 'Class deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Assign students to class
+const assignStudentsToClass = async (req, res) => {
+    try {
+        const { classId } = req.params;
+        const { studentIds } = req.body;
+        
+        if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
+            return res.status(400).json({ message: 'Student IDs array is required' });
+        }
+        
+        // Find the class
+        const classToUpdate = await Class.findById(classId);
+        if (!classToUpdate) {
+            return res.status(404).json({ message: 'Class not found' });
+        }
+        
+        // Validate all students exist
+        const students = await Student.find({ _id: { $in: studentIds } });
+        if (students.length !== studentIds.length) {
+            return res.status(400).json({ message: 'One or more students not found' });
+        }
+        
+        // Add students to class
+        await Class.findByIdAndUpdate(
+            classId,
+            { $addToSet: { students: { $each: studentIds } } }
+        );
+        
+        res.status(200).json({ message: 'Students assigned to class successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Remove student from class
+const removeStudentFromClass = async (req, res) => {
+    try {
+        const { classId, studentId } = req.params;
+        
+        // Find the class
+        const classToUpdate = await Class.findById(classId);
+        if (!classToUpdate) {
+            return res.status(404).json({ message: 'Class not found' });
+        }
+        
+        // Check if student is in the class
+        if (!classToUpdate.students.includes(studentId)) {
+            return res.status(400).json({ message: 'Student not in this class' });
+        }
+        
+        // Remove student from class
+        await Class.findByIdAndUpdate(
+            classId,
+            { $pull: { students: studentId } }
+        );
+        
+        res.status(200).json({ message: 'Student removed from class successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 module.exports = {
-  creatAdminAccount,
-  loginAdmin,
-  createParentAccount,
-  createStudentAccount,
-  linkChildsWithParent,
-  getDashboardData,
-  getAllStudents,
-  getStudentDetails,
-  updateStudent,
-  deleteStudent,
-  getAllParents,
-  getParentDetails,
-  updateParent,
-  deleteParent,
-  updateParentBalance,
-  uploadStudentsFromExcel,
-  getExpenseById,
-  createExpense,
-  updateExpense,
-  markExpenseAsPaid,
-  deleteExpense,
-  getExpensesDashboard,
-  getGradesDashboard,
-  getGradeById,
-  createGrade,
-  updateGrade,
-  deleteGrade,
-  getAttendanceDashboard,
-  getAttendanceById,
-  createAttendance,
-  updateAttendance,
-  deleteAttendance
+    loginAdmin,
+    creatAdminAccount,
+    getDashboardData,
+    // getMyProfile,
+    // addGrade,
+    // addAttendance,
+    // createStudent,
+    // getCreateStudent,
+    // getStudents,
+    // getStudentDetailss,
+    updateStudent,
+    deleteStudent,
+    // createParent,
+    // getCreateParent,
+    // getParents,
+    // getParentDetailss,
+    updateParent,
+    deleteParent,
+    // getLinkChildsPage,
+    // getLinkChildren,
+    linkChildsWithParent,
+    createStudentAccount,
+    createParentAccount,
+    getAllStudents,
+    getStudentDetails,
+    getAllParents,
+    getParentDetails,
+    updateParentBalance,
+    uploadStudentsFromExcel,
+    getExpenseById,
+    createExpense,
+    updateExpense,
+    markExpenseAsPaid,
+    deleteExpense,
+    getExpensesDashboard,
+    getGradesDashboard,
+    getGradeById,
+    createGrade,
+    updateGrade,
+    deleteGrade,
+    getAttendanceDashboard,
+    getAttendanceById,
+    createAttendance,
+    updateAttendance,
+    deleteAttendance,
+    getTeachers,
+    getCreateTeacherPage,
+    createTeacher,
+    getTeacherDetails,
+    updateTeacher,
+    deleteTeacher,
+    getClasses,
+    getCreateClassPage,
+    createClass,
+    getClassDetails,
+    updateClass,
+    deleteClass,
+    assignStudentsToClass,
+    removeStudentFromClass
 };
