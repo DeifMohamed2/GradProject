@@ -202,14 +202,20 @@ const sendMoney = async (req,res) =>{
         transaction.status = 'Completed';
         await transaction.save();
 
-        parent.balance -= amount;
-        student.balance += amount;
-        
+        // Update parent using findByIdAndUpdate to avoid validation issues
+        await Parent.findByIdAndUpdate(
+          parent._id,
+          { 
+            $inc: { balance: -amount },
+            $push: { transactionHistory: transaction._id }
+          }
+        );
 
-        parent.transactionHistory.push(transaction._id);
-        
-        await parent.save();
-        await student.save();
+        // Update student balance
+        await Student.findByIdAndUpdate(
+          studentId,
+          { $inc: { balance: amount } }
+        );
 
         return res.status(200).json({message: 'Money sent successfully', transaction});
 
