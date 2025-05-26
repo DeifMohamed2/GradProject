@@ -2,10 +2,15 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const transactionSchema = new Schema({
-    
+    parent: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Parent',
+        required: false
+    },
     student: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Student'
+        ref: 'Student',
+        required: false
     },
     amount: {
         type: Number,
@@ -13,11 +18,27 @@ const transactionSchema = new Schema({
     },
     type: {
         type: String,
-        required: true
+        required: true,
+        enum: ['payment', 'withdrawal', 'deposit', 'credit', 'refund', 'fee']
     },
     status: {
         type: String,
-        required: true
+        required: true,
+        enum: ['pending', 'approved', 'rejected', 'completed', 'failed'],
+        default: 'pending'
+    },
+    description: {
+        type: String,
+        default: 'Transaction'
+    },
+    initiatedBy: {
+        type: String,
+        enum: ['admin', 'parent', 'system'],
+        default: 'system'
+    },
+    reason: {
+        type: String,
+        default: ''
     }
 }, { timestamps: true });
 

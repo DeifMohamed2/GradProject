@@ -6,229 +6,233 @@
     <title><%= title %> | Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-
     <div class="wrapper">
         <!-- Sidebar -->
         <%- include('./partials/admin-sidebar') %>
 
         <div class="main-panel">
-            <!-- Navbar -->
-            <%- include('./partials/admin-navbar') %>
+            <!-- Custom Header (replaces navbar) -->
+            <div class="navbar navbar-light" style="background-color: #ffffff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <div class="container-fluid d-flex align-items-center">
+                    <div class="d-flex align-items-center">
+                        <button type="button" id="sidebarToggle" class="btn btn-toggle me-3">
+                            <i class="fas fa-bars text-dark"></i>
+                        </button>
+                        <div>
+                            <h4 class="text-dark mb-0">Teacher Profile</h4>
+                            <p class="text-secondary small mb-0"><%= teacher.firstName %> <%= teacher.lastName %></p>
+                        </div>
+                    </div>
+                    <a href="/admin/teachers" class="btn btn-outline-secondary btn-sm ms-auto">
+                        <i class="fas fa-arrow-left"></i> Back to Teachers
+                    </a>
+                </div>
+            </div>
 
             <!-- Main Content -->
-            <div class="content">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="card">
-                                <div class="card-header card-header-primary">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h4 class="card-title">Teacher Profile</h4>
-                                        <a href="/admin/teachers" class="btn btn-outline-light btn-sm">
-                                            <i class="fas fa-arrow-left"></i> Back to Teachers
-                                        </a>
-                                    </div>
-                                    <p class="card-category"><%= teacher.firstName %> <%= teacher.lastName %></p>
-                                </div>
+            <div class="content admin-teacher-details">
 
+                <div class="profile-content-wrapper">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body pt-4">
+                                    <img src="<%= teacher.profilePicture || '/img/default-avatar.png' %>" 
+                                        alt="<%= teacher.firstName %>" 
+                                        class="profile-image-lg mb-3">
+                                    <h5 class="mb-1"><%= teacher.firstName %> <%= teacher.lastName %></h5>
+                                    <p class="text-muted"><%= teacher.email %></p>
+                                    <p class="text-muted mb-3"><%= teacher.phoneNumber || 'No phone number' %></p>
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editTeacherModal">
+                                            <i class="fas fa-edit"></i> Edit Profile
+                                        </button>
+                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteTeacherModal">
+                                            <i class="fas fa-trash"></i> Delete Teacher
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Teaching Summary</h5>
+                                </div>
                                 <div class="card-body">
-                                    <div class="row mb-4">
-                                        <!-- Teacher Profile -->
-                                        <div class="col-md-4">
-                                            <div class="card shadow-sm text-center">
-                                                <div class="card-body pt-4">
-                                                    <img src="<%= teacher.profilePicture || '/img/default-avatar.png' %>" 
-                                                        alt="<%= teacher.firstName %>" 
-                                                        class="rounded-circle mb-3" width="150" height="150">
-                                                    <h5 class="mb-1"><%= teacher.firstName %> <%= teacher.lastName %></h5>
-                                                    <p class="text-muted"><%= teacher.email %></p>
-                                                    <p class="text-muted mb-3"><%= teacher.phoneNumber || 'No phone number' %></p>
-                                                    <div class="d-grid gap-2">
-                                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editTeacherModal">
-                                                            <i class="fas fa-edit"></i> Edit Profile
-                                                        </button>
-                                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteTeacherModal">
-                                                            <i class="fas fa-trash"></i> Delete Teacher
-                                                        </button>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card border-left-primary shadow h-100 py-2">
+                                                <div class="card-body">
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col mr-2">
+                                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                                Classes
+                                                            </div>
+                                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                                <%= classes.length %>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <i class="fas fa-chalkboard fa-2x text-gray-300"></i>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                         
-                                        <!-- Teacher Stats -->
-                                        <div class="col-md-8">
-                                            <div class="card shadow-sm mb-4">
-                                                <div class="card-header bg-light">
-                                                    <h5 class="mb-0">Teaching Summary</h5>
-                                                </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card border-left-success shadow h-100 py-2">
                                                 <div class="card-body">
-                                                    <div class="row">
-                                                        <div class="col-md-6 mb-3">
-                                                            <div class="card border-left-primary shadow h-100 py-2">
-                                                                <div class="card-body">
-                                                                    <div class="row no-gutters align-items-center">
-                                                                        <div class="col mr-2">
-                                                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                                                Classes
-                                                                            </div>
-                                                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                                                <%= classes.length %>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-auto">
-                                                                            <i class="fas fa-chalkboard fa-2x text-gray-300"></i>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col mr-2">
+                                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                                Students
+                                                            </div>
+                                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                                <%= classes.reduce((total, cls) => total + cls.students.length, 0) %>
                                                             </div>
                                                         </div>
-                                                        
-                                                        <div class="col-md-6 mb-3">
-                                                            <div class="card border-left-success shadow h-100 py-2">
-                                                                <div class="card-body">
-                                                                    <div class="row no-gutters align-items-center">
-                                                                        <div class="col mr-2">
-                                                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                                                                Students
-                                                                            </div>
-                                                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                                                <%= classes.reduce((total, cls) => total + cls.students.length, 0) %>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-auto">
-                                                                            <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div class="row">
-                                                        <div class="col-md-6 mb-3">
-                                                            <div class="card border-left-info shadow h-100 py-2">
-                                                                <div class="card-body">
-                                                                    <div class="row no-gutters align-items-center">
-                                                                        <div class="col mr-2">
-                                                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                                                                Account Created
-                                                                            </div>
-                                                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                                                <%= new Date(teacher.createdAt).toLocaleDateString() %>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-auto">
-                                                                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <div class="col-md-6 mb-3">
-                                                            <div class="card border-left-warning shadow h-100 py-2">
-                                                                <div class="card-body">
-                                                                    <div class="row no-gutters align-items-center">
-                                                                        <div class="col mr-2">
-                                                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                                                                Username
-                                                                            </div>
-                                                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                                                <%= teacher.username %>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-auto">
-                                                                            <i class="fas fa-user fa-2x text-gray-300"></i>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="card shadow-sm">
-                                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                                    <h5 class="mb-0">Actions</h5>
-                                                </div>
-                                                <div class="card-body">
-                                                    <div class="row">
-                                                        <div class="col-md-6 mb-2">
-                                                            <button type="button" class="btn btn-info w-100" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
-                                                                <i class="fas fa-key"></i> Reset Password
-                                                            </button>
-                                                        </div>
-                                                        <div class="col-md-6 mb-2">
-                                                            <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#assignClassModal">
-                                                                <i class="fas fa-plus"></i> Assign New Class
-                                                            </button>
+                                                        <div class="col-auto">
+                                                            <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-
-                                    <!-- Teacher's Classes -->
-                                    <div class="card shadow-sm">
-                                        <div class="card-header bg-light">
-                                            <h5 class="mb-0">Assigned Classes</h5>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card border-left-info shadow h-100 py-2">
+                                                <div class="card-body">
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col mr-2">
+                                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                                Account Created
+                                                            </div>
+                                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                                <%= new Date(teacher.createdAt).toLocaleDateString() %>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="card-body">
-                                            <% if (classes && classes.length > 0) { %>
-                                                <div class="table-responsive">
-                                                    <table class="table table-hover">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Class Name</th>
-                                                                <th>Description</th>
-                                                                <th>Students</th>
-                                                                <th>Status</th>
-                                                                <th>Actions</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <% classes.forEach(cls => { %>
-                                                                <tr>
-                                                                    <td><%= cls.name %></td>
-                                                                    <td><%= cls.description || 'No description' %></td>
-                                                                    <td><%= cls.students.length %></td>
-                                                                    <td>
-                                                                        <span class="badge <%= cls.isActive ? 'bg-success' : 'bg-danger' %>">
-                                                                            <%= cls.isActive ? 'Active' : 'Inactive' %>
-                                                                        </span>
-                                                                    </td>
-                                                                    <td>
-                                                                        <div class="btn-group btn-group-sm">
-                                                                            <a href="/admin/classes/<%= cls._id %>" class="btn btn-info">
-                                                                                <i class="fas fa-eye"></i>
-                                                                            </a>
-                                                                            <button type="button" class="btn btn-warning unassign-class"
-                                                                                data-class-id="<%= cls._id %>"
-                                                                                data-class-name="<%= cls.name %>">
-                                                                                <i class="fas fa-times"></i>
-                                                                            </button>
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            <% }); %>
-                                                        </tbody>
-                                                    </table>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card border-left-warning shadow h-100 py-2">
+                                                <div class="card-body">
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col mr-2">
+                                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                                Username
+                                                            </div>
+                                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                                <%= teacher.username %>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <i class="fas fa-user fa-2x text-gray-300"></i>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            <% } else { %>
-                                                <div class="alert alert-info">
-                                                    This teacher has no assigned classes.
-                                                </div>
-                                            <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Actions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <button type="button" class="btn btn-info w-100" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                                                <i class="fas fa-key"></i> Reset Password
+                                            </button>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#assignClassModal">
+                                                <i class="fas fa-plus"></i> Assign New Class
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Teacher's Classes -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Assigned Classes</h5>
+                        </div>
+                        <div class="card-body">
+                            <% if (classes && classes.length > 0) { %>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Class Name</th>
+                                                <th>Description</th>
+                                                <th>Students</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% classes.forEach(cls => { %>
+                                                <tr>
+                                                    <td><%= cls.name %></td>
+                                                    <td><%= cls.description || 'No description' %></td>
+                                                    <td><%= cls.students.length %></td>
+                                                    <td>
+                                                        <span class="badge <%= cls.isActive ? 'bg-success' : 'bg-danger' %>">
+                                                            <%= cls.isActive ? 'Active' : 'Inactive' %>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="/admin/classes/<%= cls._id %>" class="btn btn-info">
+                                                                <i class="fas fa-eye"></i>
+                                                            </a>
+                                                            <button type="button" class="btn btn-warning unassign-class"
+                                                                data-class-id="<%= cls._id %>"
+                                                                data-class-name="<%= cls.name %>">
+                                                                <i class="fas fa-times"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <% } else { %>
+                                <div class="alert alert-info">
+                                    This teacher has no assigned classes.
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="profile-actions">
+                        <button type="button" class="btn btn-primary btn-lg flex-grow-1 mx-2" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                            <i class="fas fa-key me-2"></i> Reset Password
+                        </button>
+                        <button type="button" class="btn btn-success btn-lg flex-grow-1 mx-2" data-bs-toggle="modal" data-bs-target="#assignClassModal">
+                            <i class="fas fa-plus me-2"></i> Assign New Class
+                        </button>
                     </div>
                 </div>
             </div>
@@ -257,20 +261,12 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" name="username" value="<%= teacher.username %>" required>
-                        </div>
-                        <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
                             <input type="email" class="form-control" id="email" name="email" value="<%= teacher.email %>" required>
                         </div>
                         <div class="mb-3">
                             <label for="phoneNumber" class="form-label">Phone Number</label>
-                            <input type="text" class="form-control" id="phoneNumber" name="phoneNumber" value="<%= teacher.phoneNumber %>">
-                        </div>
-                        <div class="mb-3">
-                            <label for="profilePicture" class="form-label">Profile Picture URL</label>
-                            <input type="text" class="form-control" id="profilePicture" name="profilePicture" value="<%= teacher.profilePicture %>">
+                            <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" value="<%= teacher.phoneNumber || '' %>">
                         </div>
                     </form>
                 </div>
@@ -282,23 +278,42 @@
         </div>
     </div>
 
+    <!-- Delete Teacher Modal -->
+    <div class="modal fade" id="deleteTeacherModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Teacher</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this teacher? This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteTeacher">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Reset Password Modal -->
     <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Reset Teacher Password</h5>
+                    <h5 class="modal-title">Reset Password</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="resetPasswordForm">
                         <div class="mb-3">
                             <label for="newPassword" class="form-label">New Password</label>
-                            <input type="password" class="form-control" id="newPassword" name="password" required>
+                            <input type="password" class="form-control" id="newPassword" name="newPassword" required>
                         </div>
                         <div class="mb-3">
                             <label for="confirmPassword" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="confirmPassword" required>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
                         </div>
                     </form>
                 </div>
@@ -319,224 +334,162 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="createClassForm">
+                    <form id="assignClassForm">
                         <div class="mb-3">
-                            <label for="className" class="form-label">Class Name</label>
-                            <input type="text" class="form-control" id="className" name="name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="classDescription" class="form-label">Description</label>
-                            <textarea class="form-control" id="classDescription" name="description" rows="3"></textarea>
-                        </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="classIsActive" name="isActive" checked>
-                            <label class="form-check-label" for="classIsActive">
-                                Active class
-                            </label>
+                            <label for="classSelect" class="form-label">Select Class</label>
+                            <select class="form-select" id="classSelect" name="classId" required>
+                                <option value="">Choose a class...</option>
+                                <% if (availableClasses && availableClasses.length > 0) { %>
+                                    <% availableClasses.forEach(cls => { %>
+                                        <option value="<%= cls._id %>"><%= cls.name %></option>
+                                    <% }); %>
+                                <% } else { %>
+                                    <option value="" disabled>No available classes to assign</option>
+                                <% } %>
+                            </select>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="createNewClass">Create Class</button>
+                    <button type="button" class="btn btn-primary" id="assignClassBtn" <%= (!availableClasses || availableClasses.length === 0) ? 'disabled' : '' %>>Assign Class</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Delete Teacher Modal -->
-    <div class="modal fade" id="deleteTeacherModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Delete Teacher</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete <strong><%= teacher.firstName %> <%= teacher.lastName %></strong>?</p>
-                    <div class="alert alert-danger">
-                        <p class="mb-0"><strong>Warning:</strong> This action cannot be undone. All teacher data will be permanently deleted.</p>
-                        <% if (classes && classes.length > 0) { %>
-                            <p class="mb-0 mt-2">This teacher has <%= classes.length %> assigned classes. Delete or reassign these classes first.</p>
-                        <% } %>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteTeacher" <%= (classes && classes.length > 0) ? 'disabled' : '' %>>
-                        Delete Teacher
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Unassign Class Confirmation Modal -->
-    <div class="modal fade" id="unassignClassModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Unassign Class</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to unassign <strong id="classToUnassignName"></strong> from this teacher?</p>
-                    <div class="alert alert-warning">
-                        <p class="mb-0">You'll need to assign a new teacher to this class afterwards.</p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-warning" id="confirmUnassignClass">Unassign</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Global variables
-            const teacherId = '<%= teacher._id %>';
-            let classToUnassignId = null;
+            // Sidebar toggle functionality
+            $("#sidebarToggle").on("click", function() {
+                $(".wrapper").toggleClass("sidebar-collapsed");
+            });
 
-            // Handle edit teacher profile
+            // Handle edit teacher form submission
             $('#saveTeacherChanges').click(function() {
                 const formData = {
                     firstName: $('#firstName').val(),
                     lastName: $('#lastName').val(),
-                    username: $('#username').val(),
                     email: $('#email').val(),
-                    phoneNumber: $('#phoneNumber').val(),
-                    profilePicture: $('#profilePicture').val()
+                    phoneNumber: $('#phoneNumber').val()
                 };
 
-                if (!formData.firstName || !formData.lastName || !formData.username || !formData.email) {
-                    alert('Please fill in all required fields');
-                    return;
-                }
-
-                // Send AJAX request to update teacher
                 $.ajax({
-                    url: `/admin/api/teachers/${teacherId}`,
-                    type: 'PUT',
-                    contentType: 'application/json',
-                    data: JSON.stringify(formData),
+                    url: '/admin/teachers/<%= teacher._id %>',
+                    method: 'PUT',
+                    data: formData,
                     success: function(response) {
-                        alert('Teacher profile updated successfully');
-                        location.reload();
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Error updating teacher profile');
+                        }
                     },
-                    error: function(error) {
-                        alert('Error updating teacher profile: ' + (error.responseJSON?.message || 'Unknown error'));
-                    }
-                });
-            });
-
-            // Handle password reset
-            $('#saveNewPassword').click(function() {
-                const password = $('#newPassword').val();
-                const confirmPassword = $('#confirmPassword').val();
-
-                if (!password || password.length < 6) {
-                    alert('Password must be at least 6 characters long');
-                    return;
-                }
-
-                if (password !== confirmPassword) {
-                    alert('Passwords do not match');
-                    return;
-                }
-
-                // Send AJAX request to reset password
-                $.ajax({
-                    url: `/admin/api/teachers/${teacherId}/password`,
-                    type: 'PUT',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ password }),
-                    success: function(response) {
-                        alert('Password reset successfully');
-                        $('#resetPasswordModal').modal('hide');
-                    },
-                    error: function(error) {
-                        alert('Error resetting password: ' + (error.responseJSON?.message || 'Unknown error'));
-                    }
-                });
-            });
-
-            // Handle create new class
-            $('#createNewClass').click(function() {
-                const name = $('#className').val();
-                const description = $('#classDescription').val();
-                const isActive = $('#classIsActive').prop('checked');
-
-                if (!name) {
-                    alert('Class name is required');
-                    return;
-                }
-
-                // Send AJAX request to create class
-                $.ajax({
-                    url: '/admin/api/classes',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ 
-                        name, 
-                        description, 
-                        teacherId,
-                        isActive 
-                    }),
-                    success: function(response) {
-                        alert('Class created successfully');
-                        location.reload();
-                    },
-                    error: function(error) {
-                        alert('Error creating class: ' + (error.responseJSON?.message || 'Unknown error'));
+                    error: function() {
+                        alert('Error updating teacher profile');
                     }
                 });
             });
 
             // Handle delete teacher
             $('#confirmDeleteTeacher').click(function() {
-                // Send AJAX request to delete teacher
                 $.ajax({
-                    url: `/admin/api/teachers/${teacherId}`,
-                    type: 'DELETE',
+                    url: '/admin/teachers/<%= teacher._id %>',
+                    method: 'DELETE',
                     success: function(response) {
-                        alert('Teacher deleted successfully');
-                        window.location.href = '/admin/teachers';
+                        if (response.success) {
+                            window.location.href = '/admin/teachers';
+                        } else {
+                            alert('Error deleting teacher');
+                        }
                     },
-                    error: function(error) {
-                        alert('Error deleting teacher: ' + (error.responseJSON?.message || 'Unknown error'));
+                    error: function() {
+                        alert('Error deleting teacher');
+                    }
+                });
+            });
+
+            // Handle reset password
+            $('#saveNewPassword').click(function() {
+                const newPassword = $('#newPassword').val();
+                const confirmPassword = $('#confirmPassword').val();
+
+                if (newPassword !== confirmPassword) {
+                    alert('Passwords do not match');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/admin/teachers/<%= teacher._id %>/reset-password',
+                    method: 'POST',
+                    data: { newPassword },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#resetPasswordModal').modal('hide');
+                            alert('Password reset successfully');
+                        } else {
+                            alert('Error resetting password');
+                        }
+                    },
+                    error: function() {
+                        alert('Error resetting password');
+                    }
+                });
+            });
+
+            // Handle assign class
+            $('#assignClassBtn').click(function() {
+                const classId = $('#classSelect').val();
+
+                if (!classId) {
+                    alert('Please select a class');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/admin/teachers/<%= teacher._id %>/assign-class',
+                    method: 'POST',
+                    data: { classId },
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Error assigning class');
+                        }
+                    },
+                    error: function() {
+                        alert('Error assigning class');
                     }
                 });
             });
 
             // Handle unassign class
             $('.unassign-class').click(function() {
-                classToUnassignId = $(this).data('class-id');
+                const classId = $(this).data('class-id');
                 const className = $(this).data('class-name');
-                $('#classToUnassignName').text(className);
-                $('#unassignClassModal').modal('show');
-            });
 
-            $('#confirmUnassignClass').click(function() {
-                if (!classToUnassignId) return;
-
-                // Send AJAX request to unassign class
-                $.ajax({
-                    url: `/admin/api/classes/${classToUnassignId}/teacher`,
-                    type: 'DELETE',
-                    success: function(response) {
-                        alert('Class unassigned successfully');
-                        location.reload();
-                    },
-                    error: function(error) {
-                        alert('Error unassigning class: ' + (error.responseJSON?.message || 'Unknown error'));
-                    }
-                });
+                if (confirm(`Are you sure you want to unassign ${className} from this teacher?`)) {
+                    $.ajax({
+                        url: '/admin/teachers/<%= teacher._id %>/unassign-class',
+                        method: 'POST',
+                        data: { classId },
+                        success: function(response) {
+                            if (response.success) {
+                                location.reload();
+                            } else {
+                                alert('Error unassigning class');
+                            }
+                        },
+                        error: function() {
+                            alert('Error unassigning class');
+                        }
+                    });
+                }
             });
         });
     </script>
 </body>
-</html> 
+</html>

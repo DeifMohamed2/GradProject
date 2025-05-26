@@ -1,8 +1,8 @@
 /* Global styles for Teacher Portal */
 :root {
-    --primary-color: #4CAF50;
-    --primary-dark: #45a049;
-    --primary-light: #e8f5e9;
+    --primary-color: #3498db;
+    --primary-dark: #2980b9;
+    --primary-light: #e3f2fd;
     --secondary-color: #2196F3;
     --secondary-dark: #1565c0;
     --secondary-light: #e3f2fd;
@@ -35,6 +35,7 @@ body {
     color: var(--dark-color);
     min-height: 100vh;
     display: flex;
+    overflow-x: hidden;
 }
 
 a {
@@ -52,7 +53,7 @@ a {
     left: 0;
     top: 0;
     overflow-y: auto;
-    z-index: 10;
+    z-index: 1050;
 }
 
 .sidebar h2 {
@@ -81,7 +82,7 @@ a {
 }
 
 .sidebar ul li a:hover, .sidebar ul li a.active {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(52, 152, 219, 0.2);
     border-left: 4px solid var(--primary-color);
 }
 
@@ -140,8 +141,11 @@ a {
 
 .content {
     flex: 1;
-    padding: 30px;
+    padding: 20px;
     background-color: #f5f5f5;
+    overflow-x: visible;
+    overflow-y: auto;
+    height: 100%;
 }
 
 /* Section styles */
@@ -163,16 +167,26 @@ a {
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
+    overflow: visible;
     margin-bottom: 20px;
+    width: 100%;
 }
 
 .card-header {
-    padding: 20px;
+    padding: 15px;
     border-bottom: 1px solid var(--gray-light);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.card-header-primary {
+    background-color: #3498db;
+    color: white;
+    padding: 15px;
+    margin: 0;
 }
 
 .card-title {
@@ -186,7 +200,7 @@ a {
 }
 
 .card-footer {
-    padding: 15px 20px;
+    padding: 10px 15px;
     border-top: 1px solid var(--gray-light);
     background-color: var(--gray-lighter);
 }
@@ -260,6 +274,12 @@ a {
 .table-container {
     overflow-x: auto;
     margin-bottom: 20px;
+    width: 100%;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
 }
 
 .table {
@@ -268,6 +288,8 @@ a {
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 0;
+    table-layout: auto;
 }
 
 .table th {
@@ -280,6 +302,9 @@ a {
 .table td {
     padding: 12px;
     border-bottom: 1px solid var(--gray-light);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .table tr:nth-child(even) {
@@ -292,24 +317,33 @@ a {
 
 /* Button styles */
 .btn {
-    display: inline-block;
-    padding: 8px 15px;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
     font-weight: 500;
-    transition: all 0.3s;
-    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
 }
 
 .btn-primary {
     background-color: var(--primary-color);
     color: white;
+    border-color: var(--primary-color);
 }
 
 .btn-primary:hover {
     background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
 }
 
 .btn-secondary {
@@ -608,4 +642,355 @@ a {
 
 .text-white { color: white; }
 .font-weight-bold { font-weight: bold; }
-.font-weight-light { font-weight: 300; } 
+.font-weight-light { font-weight: 300; }
+
+/* Main panel for admin pages */
+.main-panel, 
+.content {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    box-sizing: border-box;
+    float: none;
+    position: relative;
+}
+
+/* Admin teacher details specific styles */
+.admin-teacher-details .card,
+.admin-class-details .card {
+    margin-bottom: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    border-radius: 0;
+}
+
+.admin-teacher-details .container-fluid,
+.admin-class-details .container-fluid {
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+}
+
+.admin-teacher-details .row,
+.admin-class-details .row {
+    margin: 0;
+    width: 100%;
+}
+
+/* Adjust container padding */
+.container-fluid {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Remove padding from columns */
+.col, .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12,
+.col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12,
+.col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12,
+.col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12 {
+    padding: 5px;
+}
+
+.profile-image-lg {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 auto;
+    display: block;
+    border: 3px solid var(--primary-light);
+    max-width: 100%;
+    height: auto;
+}
+
+.border-left-primary,
+.border-left-success,
+.border-left-info,
+.border-left-warning {
+    border-left: 4px solid;
+    padding-left: 10px;
+}
+
+.border-left-primary {
+    border-left: 4px solid var(--primary-color);
+}
+
+.border-left-success {
+    border-left: 4px solid #27ae60;
+}
+
+.border-left-info {
+    border-left: 4px solid #3498db;
+}
+
+.border-left-warning {
+    border-left: 4px solid var(--warning-color);
+}
+
+/* Fix the accidentally removed styles */
+.admin-teacher-details .col-md-12,
+.admin-class-details .col-md-12 {
+    padding: 0;
+}
+
+.admin-teacher-details .card-body,
+.admin-class-details .card-body {
+    padding: 10px;
+    overflow: visible;
+}
+
+/* Make tables fill the available space */
+.table-responsive {
+    width: 100%;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+/* Make profile section take full height */
+.admin-teacher-details .card-body .row,
+.admin-class-details .card-body .row {
+    min-height: 100%;
+}
+
+/* Wrapper and layout fixes */
+.wrapper {
+    width: 100%;
+    display: flex;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Sidebar toggling behavior */
+.sidebar-collapsed .sidebar {
+    margin-left: -250px;
+}
+
+.sidebar-collapsed .main-panel {
+    width: 100%;
+    margin-left: 0;
+}
+
+/* Fix navbar position */
+.navbar {
+    width: 100%;
+    z-index: 5;
+}
+
+/* Alignment fix for teacher details */
+.admin-teacher-details {
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Fix the horizontal spacing */
+html, body {
+    max-width: 100%;
+}
+
+/* Classes page specific styling */
+.content {
+    padding: 20px;
+    overflow-x: visible;
+    overflow-y: auto;
+    height: 100%;
+}
+
+/* Ensure cards don't overlap */
+.card {
+    overflow: visible;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+/* Table styling */
+.table {
+    width: 100%;
+    table-layout: auto;
+}
+
+.table th, .table td {
+    padding: 12px;
+}
+
+/* Make sure form elements don't overflow */
+input, select, textarea {
+    max-width: 100%;
+}
+
+/* Fix for the search section */
+.search-section {
+    margin-bottom: 20px;
+    padding: 10px;
+}
+
+/* Make sure the admin classes content is visible */
+body {
+    overflow-x: hidden;
+}
+
+/* Teacher profile page specific styling */
+.content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: calc(100vh - var(--header-height));
+    padding: 0;
+    margin: 0;
+}
+
+/* Profile section styling */
+.teacher-profile-header {
+    background-color: #ffffff;
+    color: #333333;
+    padding: 15px 20px;
+    width: 100%;
+    margin: 0;
+    text-align: left;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.teacher-profile-header a {
+    color: #3498db;
+    border-color: #3498db;
+}
+
+.teacher-profile-header a:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+    color: #2980b9;
+}
+
+/* Content wrapper for teacher profile */
+.profile-content-wrapper {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 15px;
+    flex: 1;
+}
+
+/* Make rows take full width */
+.profile-content-wrapper .row {
+    width: 100%;
+    margin: 0;
+}
+
+/* Adjust card widths */
+.profile-content-wrapper .card {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+/* Make tables fill the available space */
+.table-responsive {
+    width: 100%;
+}
+
+/* Action buttons in profile - spread out more */
+.profile-actions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 15px 0;
+}
+
+/* Match styling with other screens */
+.main-panel .content {
+    align-items: normal;
+}
+
+/* Make the main panel fill the entire viewport */
+.main-panel {
+    width: calc(100% - var(--sidebar-width));
+    min-height: 100vh;
+    padding: 0;
+    margin-left: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Make the admin details take full width */
+.admin-teacher-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Card adjustments for full width */
+.card {
+    width: 100%;
+    border-radius: 0;
+}
+
+.card-header {
+    width: 100%;
+    padding: 15px;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+/* Teacher details page header */
+.admin-teacher-details .card {
+    border: none;
+    border-radius: 8px;
+}
+
+.admin-teacher-details h2 {
+    color: #333;
+    font-size: 28px;
+}
+
+/* Admin badge */
+.admin-badge {
+    background-color: #3498db;
+    color: white;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: 500;
+}
+
+/* Button styling for action buttons */
+.admin-teacher-details .btn-light {
+    background-color: #f8f9fa;
+    border-color: #ddd;
+}
+
+.admin-teacher-details .btn-light:hover {
+    background-color: #e9ecef;
+}
+
+/* Make the page content area have proper spacing */
+.admin-teacher-details .profile-content-wrapper {
+    padding-top: 0;
+}
+
+/* Class details header styling */
+.admin-class-details .card-header-primary {
+    background-color: #3498db; /* Baby blue color */
+    color: white;
+    padding: 15px 20px;
+    width: 100%;
+    margin: 0;
+    text-align: left;
+}
+
+.admin-class-details .card-header-primary a {
+    color: white;
+    border-color: white;
+}
+
+.admin-class-details .card-header-primary a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+} 

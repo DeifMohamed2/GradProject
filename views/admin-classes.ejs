@@ -5,6 +5,166 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Classes Management | School Management System</title>
     <%- include('./partials/styles') %>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* Custom styles for classes page */
+        .class-card {
+            transition: all 0.3s ease;
+            height: 100%;
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        
+        .class-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .class-card .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 15px 20px;
+        }
+        
+        .class-card .card-body {
+            padding: 20px;
+        }
+        
+        .class-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        .class-description {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            min-height: 40px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .teacher-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .teacher-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+            background-color: #e9ecef;
+        }
+        
+        .teacher-name {
+            font-size: 0.9rem;
+            color: #34495e;
+        }
+        
+        .class-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .student-count {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+        
+        .student-count i {
+            margin-right: 5px;
+            font-size: 1rem;
+        }
+        
+        .class-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        
+        .class-status {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+        }
+        
+        .filter-card {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 25px;
+        }
+        
+        .filter-body {
+            padding: 20px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .pagination-container {
+            margin-top: 30px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            color: #d1d8e0;
+            margin-bottom: 15px;
+        }
+        
+        .empty-state h5 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .empty-state p {
+            color: #7f8c8d;
+            max-width: 500px;
+            margin: 0 auto 20px;
+        }
+    </style>
 </head>
 <body>
     <%- include('./partials/sidebar', { activePage: 'classes' }) %>
@@ -13,62 +173,203 @@
     <div class="content">
         <%- include('./partials/header', { pageTitle: 'Classes Management' }) %>
         
-        <!-- Classes List Section -->
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold">All Classes</h6>
-                <a href="/admin/create-class" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus me-2"></i> Add New Class
-                </a>
+        <!-- Filter Section -->
+        <div class="filter-card">
+            <div class="filter-body">
+                <form id="filter-form" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">Class Name</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="<%= currentFilters.search || '' %>" placeholder="Search by class name">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="teacherId" class="form-label">Teacher</label>
+                        <select class="form-select" id="teacherId" name="teacherId">
+                            <option value="">All Teachers</option>
+                            <% teachers.forEach(teacher => { %>
+                                <option value="<%= teacher._id %>" <%= currentFilters.teacherId == teacher._id ? 'selected' : '' %>>
+                                    <%= teacher.firstName %> <%= teacher.lastName %>
+                                </option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">All Statuses</option>
+                            <option value="active" <%= currentFilters.status === 'active' ? 'selected' : '' %>>Active</option>
+                            <option value="inactive" <%= currentFilters.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="limit" class="form-label">Items per page</label>
+                        <select class="form-select" id="limit" name="limit">
+                            <option value="8" <%= currentFilters.limit == 8 ? 'selected' : '' %>>8</option>
+                            <option value="16" <%= currentFilters.limit == 16 ? 'selected' : '' %>>16</option>
+                            <option value="24" <%= currentFilters.limit == 24 ? 'selected' : '' %>>24</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover" id="classesTable">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Description</th>
-                                <th>Teacher</th>
-                                <th>Students</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% classes.forEach(cls => { %>
-                                <tr>
-                                    <td><%= cls.name %></td>
-                                    <td><%= cls.description || '-' %></td>
-                                    <td>
+        </div>
+        
+        <!-- Classes Section Header -->
+        <div class="section-header">
+            <h3 class="section-title">
+                <i class="bi bi-mortarboard-fill me-2"></i> 
+                Classes (<%= pagination.total %>)
+            </h3>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createClassModal">
+                <i class="bi bi-plus-lg me-1"></i> Add New Class
+            </button>
+        </div>
+        
+        <!-- Classes Grid -->
+        <% if (classes.length > 0) { %>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+                <% classes.forEach(cls => { %>
+                    <div class="col">
+                        <div class="card class-card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span class="class-status <%= cls.isActive ? 'bg-success text-white' : 'bg-danger text-white' %>">
+                                    <%= cls.isActive ? 'Active' : 'Inactive' %>
+                                </span>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="/admin/classes/<%= cls._id %>">
+                                            <i class="bi bi-eye me-2"></i> View Details
+                                        </a></li>
+                                        <li><a class="dropdown-item edit-class" href="#" data-id="<%= cls._id %>">
+                                            <i class="bi bi-pencil me-2"></i> Edit Class
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger delete-class" href="#" data-id="<%= cls._id %>">
+                                            <i class="bi bi-trash me-2"></i> Delete
+                                        </a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <a href="/admin/classes/<%= cls._id %>" class="class-title"><%= cls.name %></a>
+                                <p class="class-description"><%= cls.shortDescription || 'No description provided' %></p>
+                                
+                                <div class="teacher-info">
+                                    <div class="teacher-avatar">
+                                        <% if (cls.teacher) { %>
+                                            <i class="bi bi-person-fill"></i>
+                                        <% } %>
+                                    </div>
+                                    <div class="teacher-name">
                                         <% if (cls.teacher) { %>
                                             <%= cls.teacher.firstName %> <%= cls.teacher.lastName %>
                                         <% } else { %>
-                                            Not Assigned
+                                            No teacher assigned
                                         <% } %>
-                                    </td>
-                                    <td><%= cls.studentCount %></td>
-                                    <td>
-                                        <span class="badge <%= cls.isActive ? 'bg-success' : 'bg-danger' %>">
-                                            <%= cls.isActive ? 'Active' : 'Inactive' %>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex">
-                                            <a href="/admin/classes/<%= cls._id %>" class="btn btn-sm btn-info me-2">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <button class="btn btn-sm btn-danger delete-class" data-id="<%= cls._id %>">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <% }); %>
-                        </tbody>
-                    </table>
-                </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="class-meta">
+                                    <div class="student-count">
+                                        <i class="bi bi-people-fill"></i>
+                                        <%= cls.studentCount %> Student<%= cls.studentCount !== 1 ? 's' : '' %>
+                                    </div>
+                                    <div class="class-actions">
+                                        <a href="/admin/classes/<%= cls._id %>" class="btn btn-sm btn-primary btn-action" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
             </div>
-        </div>
+            
+            <!-- Pagination Controls -->
+            <% if (pagination && pagination.totalPages > 1) { %>
+            <div class="d-flex justify-content-between align-items-center pagination-container">
+                <div>
+                    <p class="text-muted mb-0">
+                        Showing <%= (pagination.page - 1) * pagination.limit + 1 %> to 
+                        <%= Math.min(pagination.page * pagination.limit, pagination.total) %> 
+                        of <%= pagination.total %> classes
+                    </p>
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0">
+                        <li class="page-item <%= pagination.hasPrevPage ? '' : 'disabled' %>">
+                            <a class="page-link" href="<%= pagination.hasPrevPage ? '/admin/classes?' + new URLSearchParams(
+                                Object.fromEntries(
+                                    Object.entries(currentFilters)
+                                    .filter(([key, value]) => value !== undefined && value !== 'undefined')
+                                    .map(([key, value]) => [key, key === 'page' ? pagination.page - 1 : value])
+                                )
+                            ).toString() : '#' %>" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        
+                        <% for(let i = 1; i <= pagination.totalPages; i++) { %>
+                            <% if (
+                                i === 1 || 
+                                i === pagination.totalPages || 
+                                (i >= pagination.page - 1 && i <= pagination.page + 1)
+                            ) { %>
+                                <li class="page-item <%= i === pagination.page ? 'active' : '' %>">
+                                    <a class="page-link" href="/admin/classes?<%= new URLSearchParams(
+                                        Object.fromEntries(
+                                            Object.entries(currentFilters)
+                                            .filter(([key, value]) => value !== undefined && value !== 'undefined')
+                                            .map(([key, value]) => [key, key === 'page' ? i : value])
+                                        )
+                                    ).toString() %>">
+                                        <%= i %>
+                                    </a>
+                                </li>
+                            <% } else if (
+                                i === pagination.page - 2 || 
+                                i === pagination.page + 2
+                            ) { %>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#">...</a>
+                                </li>
+                            <% } %>
+                        <% } %>
+                        
+                        <li class="page-item <%= pagination.hasNextPage ? '' : 'disabled' %>">
+                            <a class="page-link" href="<%= pagination.hasNextPage ? '/admin/classes?' + new URLSearchParams(
+                                Object.fromEntries(
+                                    Object.entries(currentFilters)
+                                    .filter(([key, value]) => value !== undefined && value !== 'undefined')
+                                    .map(([key, value]) => [key, key === 'page' ? pagination.page + 1 : value])
+                                )
+                            ).toString() : '#' %>" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <% } %>
+        <% } else { %>
+            <!-- Empty State -->
+            <div class="empty-state">
+                <i class="bi bi-mortarboard"></i>
+                <h5>No Classes Found</h5>
+                <p>There are no classes matching your criteria. Try adjusting your filters or create a new class.</p>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createClassModal">
+                    <i class="bi bi-plus-lg me-1"></i> Create New Class
+                </button>
+            </div>
+        <% } %>
         
         <!-- Create Class Modal -->
         <div class="modal fade" id="createClassModal" tabindex="-1" aria-hidden="true">
@@ -88,6 +389,7 @@
                             <div class="mb-3">
                                 <label for="classDescription" class="form-label">Description</label>
                                 <textarea class="form-control" id="classDescription" name="description" rows="3"></textarea>
+                                <small class="text-muted">Provide a brief description of the class content, objectives, or other relevant information.</small>
                             </div>
                             
                             <div class="mb-3">
@@ -98,6 +400,12 @@
                                         <option value="<%= teacher._id %>"><%= teacher.firstName %> <%= teacher.lastName %></option>
                                     <% }); %>
                                 </select>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="isActive" name="isActive" checked>
+                                <label class="form-check-label" for="isActive">Active</label>
+                                <small class="form-text text-muted d-block">Inactive classes won't appear in teacher and student dashboards.</small>
                             </div>
                         </form>
                     </div>
@@ -118,7 +426,11 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Are you sure you want to delete this class? This action cannot be undone.</p>
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            This action cannot be undone. All data associated with this class will be permanently removed.
+                        </div>
+                        <p>Are you sure you want to delete this class?</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -130,179 +442,164 @@
     </div>
     
     <%- include('./partials/scripts') %>
-    <script src="/js/class-api-test.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize DataTable - using vanilla JS to call the jQuery plugin
-            // DataTables is typically a jQuery plugin, so we still use it this way
-            const classesTable = document.getElementById('classesTable');
-            if (window.$ && $.fn.DataTable) {
-                $(classesTable).DataTable({
-                    order: [[0, 'asc']]
+        $(document).ready(function() {
+            let classIdToDelete = null;
+            
+            // Filter form submission
+            $('#filter-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form data
+                const formData = $(this).serializeArray();
+                
+                // Create URLSearchParams object for building the query
+                const params = new URLSearchParams();
+                
+                // Add form data to params (only non-empty values)
+                formData.forEach(item => {
+                    if (item.value && item.value !== 'undefined') {
+                        params.append(item.name, item.value);
+                    }
                 });
-            }
+                
+                // Reset to page 1 when filtering
+                params.set('page', '1');
+                
+                // Redirect with query parameters
+                window.location.href = '/admin/classes?' + params.toString();
+            });
             
             // Create Class Form Submission
-            const submitCreateClassFormBtn = document.getElementById('submitCreateClassForm');
-            const createClassModal = document.getElementById('createClassModal');
-            const bsCreateClassModal = new bootstrap.Modal(createClassModal);
-            
-            submitCreateClassFormBtn.addEventListener('click', function() {
-                const name = document.getElementById('className').value;
-                const description = document.getElementById('classDescription').value;
-                const teacherId = document.getElementById('teacherId').value;
+            $('#submitCreateClassForm').on('click', function() {
+                const name = $('#className').val();
+                const description = $('#classDescription').val();
+                const teacherId = $('#teacherId').val();
+                const isActive = $('#isActive').is(':checked');
                 
                 if (!name || !teacherId) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Missing Fields',
-                        text: 'Please fill all required fields'
+                        text: 'Please fill all required fields',
+                        confirmButtonColor: '#3498db'
                     });
                     return;
                 }
                 
-                console.log('Submitting class data:', { name, description, teacherId });
+                const classData = {
+                    name,
+                    description,
+                    teacherId,
+                    isActive
+                };
                 
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', '/admin/create-class');
-                xhr.setRequestHeader('Content-Type', 'application/json');
+                // Show loading
+                Swal.fire({
+                    title: 'Creating class...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
                 
-                xhr.onload = function() {
-                    console.log('Response status:', xhr.status);
-                    console.log('Response text:', xhr.responseText);
-                    
-                    bsCreateClassModal.hide();
-                    
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        // Success
+                // Send create request
+                fetch('/admin/create-class', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(classData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
                         Swal.fire({
                             icon: 'success',
                             title: 'Class Created',
                             text: 'The class has been created successfully',
-                            timer: 1500,
-                            showConfirmButton: false
+                            confirmButtonColor: '#3498db'
                         }).then(() => {
                             // Reload page to reflect changes
-                            location.reload();
+                            window.location.reload();
                         });
                     } else {
-                        // Error
-                        let errorMessage = 'An error occurred';
-                        try {
-                            const response = JSON.parse(xhr.responseText);
-                            console.error('Error response:', response);
-                            if (response.message) {
-                                errorMessage = response.message;
-                            }
-                        } catch (e) {
-                            console.error('Error parsing response:', e);
-                        }
-                        
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: errorMessage
+                            text: data.message || 'Failed to create class',
+                            confirmButtonColor: '#3498db'
                         });
                     }
-                };
-                
-                xhr.onerror = function(error) {
-                    console.error('Network error:', error);
-                    bsCreateClassModal.hide();
-                    
+                })
+                .catch(error => {
+                    console.error('Error:', error);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'Network error occurred'
+                        text: 'An error occurred while creating the class',
+                        confirmButtonColor: '#3498db'
                     });
-                };
-                
-                // Create payload
-                const payload = JSON.stringify({ 
-                    name, 
-                    description, 
-                    teacherId 
-                });
-                
-                console.log('Sending payload:', payload);
-                xhr.send(payload);
-            });
-            
-            // Handle delete class button click
-            let classIdToDelete;
-            const deleteButtons = document.querySelectorAll('.delete-class');
-            const deleteModal = document.getElementById('deleteClassModal');
-            const confirmDeleteBtn = document.getElementById('confirmDelete');
-            const bsDeleteModal = new bootstrap.Modal(deleteModal);
-            
-            deleteButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    classIdToDelete = this.getAttribute('data-id');
-                    bsDeleteModal.show();
                 });
             });
             
-            // Handle confirm delete button click
-            confirmDeleteBtn.addEventListener('click', function() {
-                const xhr = new XMLHttpRequest();
-                xhr.open('DELETE', `/admin/classes/${classIdToDelete}`);
+            // Handle class deletion
+            $('.delete-class').on('click', function(e) {
+                e.preventDefault();
+                classIdToDelete = $(this).data('id');
+                $('#deleteClassModal').modal('show');
+            });
+            
+            // Confirm delete
+            $('#confirmDelete').on('click', function() {
+                if (!classIdToDelete) return;
                 
-                xhr.onload = function() {
-                    bsDeleteModal.hide();
+                // Show loading
+                Swal.fire({
+                    title: 'Deleting class...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Send delete request
+                fetch(`/admin/classes/${classIdToDelete}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    $('#deleteClassModal').modal('hide');
                     
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        // Success
-                        // Show success message
+                    if (data.message === 'Class deleted successfully') {
                         Swal.fire({
                             icon: 'success',
-                            title: 'Class Deleted',
-                            text: 'The class has been deleted successfully',
-                            timer: 1500,
-                            showConfirmButton: false
+                            title: 'Deleted!',
+                            text: 'Class has been deleted.',
+                            confirmButtonColor: '#3498db'
                         }).then(() => {
                             // Reload page to reflect changes
-                            location.reload();
+                            window.location.reload();
                         });
                     } else {
-                        // Error
-                        let errorMessage = 'An error occurred';
-                        try {
-                            const response = JSON.parse(xhr.responseText);
-                            if (response.message) {
-                                errorMessage = response.message;
-                            }
-                        } catch (e) {
-                            // Use default error message
-                        }
-                        
-                        // Show error message
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: errorMessage
+                            text: data.message || 'Failed to delete class',
+                            confirmButtonColor: '#3498db'
                         });
                     }
-                };
-                
-                xhr.onerror = function(error) {
-                    console.error('Network error:', error);
-                    bsDeleteModal.hide();
-                    
+                })
+                .catch(error => {
+                    $('#deleteClassModal').modal('hide');
+                    console.error('Error:', error);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'Network error occurred'
+                        text: 'An error occurred while deleting the class',
+                        confirmButtonColor: '#3498db'
                     });
-                };
-                
-                xhr.send();
-            });
-            
-            // Show create class modal when clicking the Add New Class button
-            const addNewClassBtn = document.querySelector('.card-header .btn-primary');
-            addNewClassBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                bsCreateClassModal.show();
+                });
             });
         });
     </script>

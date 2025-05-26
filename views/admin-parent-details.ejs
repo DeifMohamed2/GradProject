@@ -898,6 +898,80 @@
                         </div>
                     </div>
                     
+                    <!-- Pending Transactions Section -->
+                    <div class="col-md-12 mb-4">
+                        <div class="info-card border-warning">
+                            <div class="section-title d-flex justify-content-between align-items-center text-warning">
+                                <span><i class="bi bi-clock-history me-2"></i> Pending Transactions</span>
+                                <span class="badge bg-warning text-dark">Requires Parent Approval</span>
+                            </div>
+                            
+                            <% 
+                            const pendingTransactions = parent.transactionHistory.filter(t => t.status === 'pending');
+                            if (pendingTransactions.length > 0) { 
+                            %>
+                                <div class="table-responsive mb-3">
+                                    <table class="table table-sm">
+                                        <thead class="table-warning">
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Type</th>
+                                                <th>Amount</th>
+                                                <th>Description</th>
+                                                <th>Initiated By</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% pendingTransactions.forEach(transaction => { %>
+                                                <tr>
+                                                    <td>
+                                                    <% 
+                                                    let displayDate = 'N/A';
+                                                    try { 
+                                                        if (transaction.createdAt) {
+                                                            displayDate = new Date(transaction.createdAt).toLocaleDateString();
+                                                        }
+                                                    } catch(e) { } 
+                                                    %>
+                                                    <%= displayDate %>
+                                                    </td>
+                                                    <td>
+                                                        <% 
+                                                        let typeBadge = 'bg-secondary';
+                                                        if (transaction.type === 'deposit') typeBadge = 'bg-success';
+                                                        if (transaction.type === 'withdrawal') typeBadge = 'bg-primary';
+                                                        %>
+                                                        <span class="badge <%= typeBadge %>">
+                                                            <%= transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1) %>
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-end">$<%= transaction.amount ? transaction.amount.toFixed(2) : '0.00' %></td>
+                                                    <td><%= transaction.description %></td>
+                                                    <td><span class="badge bg-info"><%= transaction.initiatedBy || 'Admin' %></span></td>
+                                                    <td>
+                                                        <span class="badge bg-warning text-dark d-flex align-items-center">
+                                                            <i class="bi bi-clock-history me-1"></i> Pending
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="alert alert-info mb-0">
+                                    <i class="bi bi-info-circle me-1"></i> 
+                                    Parent will need to approve these transactions in their account before they affect the balance.
+                                </div>
+                            <% } else { %>
+                                <div class="alert alert-secondary mb-0">
+                                    <i class="bi bi-info-circle me-1"></i> No pending transactions at this time.
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                    
                     <!-- Transaction History - IMPROVED VERSION -->
                     <div class="col-md-12 mb-4">
                         <div class="info-card">
@@ -1010,10 +1084,12 @@
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        <% if (transaction.status === 'completed') { %>
+                                                        <% if (transaction.status === 'completed' || transaction.status === 'approved') { %>
                                                             <span><span class="transaction-status transaction-completed"></span> Completed</span>
                                                         <% } else if (transaction.status === 'pending') { %>
                                                             <span><span class="transaction-status transaction-pending"></span> Pending</span>
+                                                        <% } else if (transaction.status === 'rejected') { %>
+                                                            <span><span class="transaction-status transaction-failed"></span> rejected</span>
                                                         <% } else { %>
                                                             <span><span class="transaction-status transaction-failed"></span> Failed</span>
                                                         <% } %>
@@ -1064,7 +1140,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="manageBalanceModalLabel">Manage Parent Balance</h5>
+                    <h5 class="modal-title" id="manageBalanceModalLabel">Create Pending Transaction</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -1085,13 +1161,13 @@
                             <label for="description" class="form-label">Description (Optional)</label>
                             <textarea class="form-control" id="description" rows="2" placeholder="Enter transaction description"></textarea>
                         </div>
-                        <div class="alert alert-info">
+                        <div class="alert alert-warning">
                             <div class="d-flex align-items-center">
-                                <i class="bi bi-info-circle-fill me-2"></i>
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
                                 <div>
                                     <strong>Current Balance:</strong> $<span id="currentBalance"><%= financialData.parentBalance.toFixed(2) %></span>
-                                    <div id="newBalancePreview" class="mt-1 d-none">
-                                        <strong>New Balance:</strong> $<span id="newBalance">0.00</span>
+                                    <div class="mt-1">
+                                        <strong>Note:</strong> This transaction will require parent approval before it affects the balance.
                                     </div>
                                 </div>
                             </div>
@@ -1100,7 +1176,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success" id="saveBalanceBtn">Save Changes</button>
+                    <button type="button" class="btn btn-success" id="saveBalanceBtn">Create Pending Transaction</button>
                 </div>
             </div>
         </div>
@@ -1166,31 +1242,30 @@
         document.getElementById('manage-balance-btn').addEventListener('click', function() {
             // Reset form
             document.getElementById('balanceForm').reset();
-            document.getElementById('newBalancePreview').classList.add('d-none');
             
             // Show modal
             new bootstrap.Modal(document.getElementById('manageBalanceModal')).show();
         });
         
-        // Calculate and preview new balance
-        function updateBalancePreview() {
-            const currentBalance = parseFloat(document.getElementById('currentBalance').textContent);
-            const amount = parseFloat(document.getElementById('amount').value) || 0;
-            const type = document.getElementById('transactionType').value;
-            let newBalance = currentBalance;
-            
-            if (type === 'deposit') {
-                newBalance = currentBalance + amount;
-            } else if (type === 'withdraw') {
-                newBalance = currentBalance - amount;
+        // We don't need to preview balance changes anymore since transactions are pending
+        document.getElementById('amount').addEventListener('input', function() {
+            // Just validate that amount is positive
+            const amount = parseFloat(this.value) || 0;
+            if (amount <= 0) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
             }
-            
-            document.getElementById('newBalance').textContent = newBalance.toFixed(2);
-            document.getElementById('newBalancePreview').classList.toggle('d-none', amount <= 0 || !type);
-        }
+        });
         
-        document.getElementById('amount').addEventListener('input', updateBalancePreview);
-        document.getElementById('transactionType').addEventListener('change', updateBalancePreview);
+        document.getElementById('transactionType').addEventListener('change', function() {
+            // Just validate that a transaction type is selected
+            if (!this.value) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
         
         // Save balance changes
         document.getElementById('saveBalanceBtn').addEventListener('click', function() {
@@ -1240,11 +1315,11 @@
                     // Show success message
                     Swal.fire({
                         icon: 'success',
-                        title: 'Balance Updated',
+                        title: 'Pending Transaction Created',
                         text: data.message,
                         confirmButtonColor: '#3498db'
                     }).then(() => {
-                        // Refresh page to show updated balance
+                        // Refresh page to show pending transaction
                         window.location.reload();
                     });
                 } else {

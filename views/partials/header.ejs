@@ -1,16 +1,14 @@
-<nav class="navbar d-flex justify-content-between">
-    <div class="d-flex align-items-center">
-        <button class="toggle-sidebar">
-            <i class="fas fa-bars"></i>
-        </button>
-        <span class="navbar-brand"><%= pageTitle %></span>
+<!-- Header -->
+<div class="header">
+    <div class="page-title">
+        <%= pageTitle || 'Dashboard' %>
     </div>
     
     <div class="user-profile">
-        <img src="https://ui-avatars.com/api/?name=<%= admin.username %>&background=3498db&color=fff" alt="Admin">
+        <img src="https://ui-avatars.com/api/?name=<%= admin && admin.username ? admin.username : 'Admin' %>&background=3498db&color=fff" alt="Admin">
         <div class="user-info">
-            <div class="user-name"><%= admin.username %></div>
+            <div class="user-name"><%= admin && admin.username ? admin.username : 'Admin' %></div>
             <div class="user-role">Administrator</div>
         </div>
     </div>
-</nav> 
+</div> 

@@ -85,7 +85,7 @@ router.get('/login', (req, res) => {
 router.post('/login', adminController.loginAdmin);
 
 // Create admin account
-router.post('/createAccount', adminController.creatAdminAccount);
+router.post('/createAccount', adminController.createAdminAccount);
 
 // ===== Dashboard Routes =====
 // Dashboard route (protected)

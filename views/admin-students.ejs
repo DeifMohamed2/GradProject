@@ -142,10 +142,19 @@
                     <div class="col-md-2">
                         <label for="status" class="form-label">Status</label>
                         <select class="form-select" id="status" name="status">
-                            <option value="">All Status</option>
+                            <option value="">All Statuses</option>
                             <% filters.statuses.forEach(status => { %>
                                 <option value="<%= status %>" <%= currentFilters.status === status ? 'selected' : '' %>><%= status %></option>
                             <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="limit" class="form-label">Items per page</label>
+                        <select class="form-select" id="limit" name="limit">
+                            <option value="10" <%= currentFilters.limit == 10 ? 'selected' : '' %>>10</option>
+                            <option value="25" <%= currentFilters.limit == 25 ? 'selected' : '' %>>25</option>
+                            <option value="50" <%= currentFilters.limit == 50 ? 'selected' : '' %>>50</option>
+                            <option value="100" <%= currentFilters.limit == 100 ? 'selected' : '' %>>100</option>
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -245,6 +254,73 @@
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Pagination Controls -->
+            <% if (pagination && pagination.totalPages > 1) { %>
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div>
+                    <p class="text-muted mb-0">
+                        Showing <%= (pagination.page - 1) * pagination.limit + 1 %> to 
+                        <%= Math.min(pagination.page * pagination.limit, pagination.total) %> 
+                        of <%= pagination.total %> students
+                    </p>
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0">
+                        <li class="page-item <%= pagination.hasPrevPage ? '' : 'disabled' %>">
+                            <a class="page-link" href="<%= pagination.hasPrevPage ? '/admin/students?' + new URLSearchParams(
+                                Object.fromEntries(
+                                    Object.entries(currentFilters)
+                                    .filter(([key, value]) => value !== undefined && value !== 'undefined')
+                                    .map(([key, value]) => [key, key === 'page' ? pagination.page - 1 : value])
+                                )
+                            ).toString() : '#' %>" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        
+                        <% for(let i = 1; i <= pagination.totalPages; i++) { %>
+                            <% if (
+                                i === 1 || 
+                                i === pagination.totalPages || 
+                                (i >= pagination.page - 1 && i <= pagination.page + 1)
+                            ) { %>
+                                <li class="page-item <%= i === pagination.page ? 'active' : '' %>">
+                                    <a class="page-link" href="/admin/students?<%= new URLSearchParams(
+                                        Object.fromEntries(
+                                            Object.entries(currentFilters)
+                                            .filter(([key, value]) => value !== undefined && value !== 'undefined')
+                                            .map(([key, value]) => [key, key === 'page' ? i : value])
+                                        )
+                                    ).toString() %>">
+                                        <%= i %>
+                                    </a>
+                                </li>
+                            <% } else if (
+                                i === pagination.page - 2 || 
+                                i === pagination.page + 2
+                            ) { %>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#">...</a>
+                                </li>
+                            <% } %>
+                        <% } %>
+                        
+                        <li class="page-item <%= pagination.hasNextPage ? '' : 'disabled' %>">
+                            <a class="page-link" href="<%= pagination.hasNextPage ? '/admin/students?' + new URLSearchParams(
+                                Object.fromEntries(
+                                    Object.entries(currentFilters)
+                                    .filter(([key, value]) => value !== undefined && value !== 'undefined')
+                                    .map(([key, value]) => [key, key === 'page' ? pagination.page + 1 : value])
+                                )
+                            ).toString() : '#' %>" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <% } %>
         </div>
     </div>
 
@@ -316,13 +392,13 @@
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Initialize DataTable
+            // Initialize DataTable with server-side pagination enabled
             const studentsTable = $('#studentsTable').DataTable({
-                paging: true,
+                paging: false,        // Disable client-side pagination since we're using server-side
                 ordering: true,
-                info: true,
-                lengthChange: true,
-                searching: false, // We have our own search
+                info: false,          // Disable info since we're showing our own pagination info
+                lengthChange: false,  // Disable length change since we're using server-side pagination
+                searching: false,     // We have our own search
                 language: {
                     emptyTable: "No students found with the current filters"
                 },
@@ -335,11 +411,24 @@
             $('#filter-form').on('submit', function(e) {
                 e.preventDefault();
                 
-                // Get form data and convert to query string
-                const formData = $(this).serialize();
+                // Get form data
+                const formData = $(this).serializeArray();
+                
+                // Create URLSearchParams object for building the query
+                const params = new URLSearchParams();
+                
+                // Add form data to params (only non-empty values)
+                formData.forEach(item => {
+                    if (item.value && item.value !== 'undefined') {
+                        params.append(item.name, item.value);
+                    }
+                });
+                
+                // Reset to page 1 when filtering
+                params.set('page', '1');
                 
                 // Redirect with query parameters
-                window.location.href = '/admin/students?' + formData;
+                window.location.href = '/admin/students?' + params.toString();
             });
             
             // Reset filters

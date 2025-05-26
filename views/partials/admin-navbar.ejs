@@ -1,15 +1,14 @@
 <!-- Top Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #3498db;">
     <div class="container-fluid">
         <!-- Sidebar Toggle -->
         <button type="button" id="sidebarToggle" class="btn btn-toggle">
-            <i class="fas fa-bars"></i>
+            <i class="fas fa-bars text-white"></i>
         </button>
         
         <!-- Navbar Brand -->
         <a class="navbar-brand d-flex align-items-center" href="/admin/dashboard">
-            <i class="fas fa-school me-2 text-primary"></i>
-            <span>School Management System</span>
+            <i class="fas fa-school me-2 text-white"></i>
         </a>
         
         <!-- Navbar Right Side -->
@@ -18,7 +17,7 @@
             <form class="d-none d-md-flex me-3">
                 <div class="input-group">
                     <input type="search" class="form-control" placeholder="Search..." aria-label="Search">
-                    <button class="btn btn-outline-primary" type="submit">
+                    <button class="btn btn-light" type="submit">
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
@@ -26,7 +25,7 @@
             
             <!-- Notification Dropdown -->
             <div class="dropdown me-3">
-                <a class="nav-link dropdown-toggle position-relative" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <a class="nav-link dropdown-toggle position-relative text-white" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-bell"></i>
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                         3
@@ -76,9 +75,9 @@
             
             <!-- Admin Profile Dropdown -->
             <div class="dropdown">
-                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <a class="nav-link dropdown-toggle d-flex align-items-center text-white" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <img src="<%= admin && admin.profilePicture ? admin.profilePicture : '/img/default-avatar.png' %>" 
-                        alt="Admin" class="rounded-circle me-2" width="32" height="32">
+                        alt="Admin" class="rounded-circle me-2 border border-white" width="32" height="32">
                     <span><%= admin ? admin.username : 'Admin' %></span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
@@ -101,14 +100,14 @@
 <style>
     .navbar {
         padding: 0.5rem 1rem;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         z-index: 1000;
     }
     
     .btn-toggle {
         background: none;
         border: none;
-        color: #333;
+        color: white;
         font-size: 1.25rem;
         padding: 0.25rem 0.5rem;
         border-radius: 0.25rem;
@@ -116,7 +115,7 @@
     }
     
     .btn-toggle:hover {
-        background-color: rgba(0, 0, 0, 0.05);
+        background-color: rgba(255, 255, 255, 0.2);
     }
     
     .dropdown-menu {
@@ -131,8 +130,8 @@
     }
     
     .dropdown-item:active {
-        background-color: #f8f9fa;
-        color: #212529;
+        background-color: #3498db;
+        color: white;
     }
 </style>
 

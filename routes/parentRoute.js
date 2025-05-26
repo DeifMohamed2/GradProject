@@ -52,6 +52,11 @@ router.post('/sendMoney/:studentId', authMiddleware, parentController.sendMoney)
 
 router.get('/profileData', authMiddleware, parentController.getProfileData);
 
+// Transaction management routes
+router.get('/pending-transactions', authMiddleware, parentController.getPendingTransactions);
+router.post('/transactions/:transactionId/approve', authMiddleware, parentController.approveTransaction);
+router.post('/transactions/:transactionId/reject', authMiddleware, parentController.rejectTransaction);
+
 router.put('/updateProfile' , authMiddleware, parentController.updateProfile);
 
 router.post('/forgetPassword', parentController.forgetPassword);    

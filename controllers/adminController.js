@@ -16,7 +16,7 @@ const jwtSecret = process.env.JWT_SECRET;
 
 
 
-const creatAdminAccount = async (req, res) => {
+const createAdminAccount = async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
@@ -796,18 +796,19 @@ const getDashboardData = async (req, res) => {
 const getAllStudents = async (req, res) => {
   try {
     // Extract filter parameters from query
-    const { grade, section, academicYear, status, search } = req.query;
+    const { grade, section, academicYear, status, search, page = 1, limit = 10 } = req.query;
     
     // Build filter object
     const filter = {};
     
-    if (grade) filter.grade = grade;
-    if (section) filter.section = section;
-    if (academicYear) filter.academicYear = academicYear;
-    if (status) filter.status = status;
+    // Only add filters if they have actual values (not undefined or empty strings)
+    if (grade && grade !== 'undefined') filter.grade = grade;
+    if (section && section !== 'undefined') filter.section = section;
+    if (academicYear && academicYear !== 'undefined') filter.academicYear = academicYear;
+    if (status && status !== 'undefined') filter.status = status;
     
     // Handle search (search by name, email, or student code)
-    if (search) {
+    if (search && search !== 'undefined') {
       filter.$or = [
         { firstName: { $regex: search, $options: 'i' } },
         { lastName: { $regex: search, $options: 'i' } },
@@ -817,16 +818,39 @@ const getAllStudents = async (req, res) => {
       ];
     }
     
-    // Get students with filter, populate parent details
+    // Convert page and limit to numbers
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    const skip = (pageNum - 1) * limitNum;
+    
+    // Get total count for pagination
+    const total = await Student.countDocuments(filter);
+    
+    // Get students with filter, populate parent details, with pagination
     const students = await Student.find(filter)
       .populate('parent', 'firstName lastName email phoneNumber parentCode')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
+    
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(total / limitNum);
+    const hasNextPage = pageNum < totalPages;
+    const hasPrevPage = pageNum > 1;
     
     // For API requests
     if (req.xhr || req.headers.accept.includes('application/json')) {
       return res.status(200).json({
         success: true,
-        data: students
+        data: students,
+        pagination: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages,
+          hasNextPage,
+          hasPrevPage
+        }
       });
     }
     
@@ -835,6 +859,18 @@ const getAllStudents = async (req, res) => {
     const grades = await Student.distinct('grade');
     const sections = await Student.distinct('section');
     const academicYears = await Student.distinct('academicYear');
+    
+    // Filter out undefined/null values to pass to the view
+    const currentFilters = {
+      page: pageNum,
+      limit: limitNum
+    };
+    
+    if (grade && grade !== 'undefined') currentFilters.grade = grade;
+    if (section && section !== 'undefined') currentFilters.section = section;
+    if (academicYear && academicYear !== 'undefined') currentFilters.academicYear = academicYear;
+    if (status && status !== 'undefined') currentFilters.status = status;
+    if (search && search !== 'undefined') currentFilters.search = search;
     
     res.render('admin-students', {
       admin: req.admin,
@@ -845,12 +881,14 @@ const getAllStudents = async (req, res) => {
         academicYears,
         statuses: ['Active', 'Inactive', 'Graduated', 'Transferred', 'Suspended']
       },
-      currentFilters: {
-        grade,
-        section,
-        academicYear,
-        status,
-        search
+      currentFilters,
+      pagination: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages,
+        hasNextPage,
+        hasPrevPage
       }
     });
   } catch (error) {
@@ -1185,12 +1223,12 @@ const deleteStudent = async (req, res) => {
 const getAllParents = async (req, res) => {
     try {
         // Get query parameters for filtering
-        const { relationshipToStudent, hasChildren, search } = req.query;
+        const { relationshipToStudent, hasChildren, search, page = 1, limit = 10 } = req.query;
         
         // Build filter query
         let query = {};
         
-        if (relationshipToStudent) {
+        if (relationshipToStudent && relationshipToStudent !== 'undefined') {
             query.relationshipToStudent = relationshipToStudent;
         }
         
@@ -1203,7 +1241,7 @@ const getAllParents = async (req, res) => {
             ];
         }
         
-        if (search) {
+        if (search && search !== 'undefined') {
             // Search in multiple fields
             query.$or = [
                 { firstName: { $regex: search, $options: 'i' } },
@@ -1214,16 +1252,39 @@ const getAllParents = async (req, res) => {
             ];
         }
         
-        // Get parents with populated children
+        // Convert page and limit to numbers
+        const pageNum = parseInt(page) || 1;
+        const limitNum = parseInt(limit) || 10;
+        const skip = (pageNum - 1) * limitNum;
+        
+        // Get total count for pagination
+        const total = await Parent.countDocuments(query);
+        
+        // Get parents with populated children, with pagination
         const parents = await Parent.find(query)
             .populate('childs')
-            .sort({ firstName: 1, lastName: 1 });
+            .sort({ firstName: 1, lastName: 1 })
+            .skip(skip)
+            .limit(limitNum);
+        
+        // Calculate pagination metadata
+        const totalPages = Math.ceil(total / limitNum);
+        const hasNextPage = pageNum < totalPages;
+        const hasPrevPage = pageNum > 1;
         
         // For API requests
         if (req.xhr || req.headers.accept.includes('application/json')) {
             return res.status(200).json({
                 success: true,
-                data: parents
+                data: parents,
+                pagination: {
+                    total,
+                    page: pageNum,
+                    limit: limitNum,
+                    totalPages,
+                    hasNextPage,
+                    hasPrevPage
+                }
             });
         }
         
@@ -1231,13 +1292,30 @@ const getAllParents = async (req, res) => {
         // Get distinct values for filters
         const relationships = await Parent.distinct('relationshipToStudent');
         
+        // Filter out undefined/null values to pass to the view
+        const currentFilters = {
+            page: pageNum,
+            limit: limitNum
+        };
+        
+        if (relationshipToStudent && relationshipToStudent !== 'undefined') 
+            currentFilters.relationshipToStudent = relationshipToStudent;
+        if (hasChildren && hasChildren !== 'undefined') 
+            currentFilters.hasChildren = hasChildren;
+        if (search && search !== 'undefined') 
+            currentFilters.search = search;
+        
         res.render('admin-parents', {
             admin: req.admin,
             parents,
-            currentFilters: {
-                relationshipToStudent,
-                hasChildren,
-                search
+            currentFilters,
+            pagination: {
+                total,
+                page: pageNum,
+                limit: limitNum,
+                totalPages,
+                hasNextPage,
+                hasPrevPage
             }
         });
     } catch (error) {
@@ -1550,52 +1628,44 @@ const updateParentBalance = async (req, res) => {
             });
         }
         
-        // Calculate new balance based on transaction type
-        let newBalance = parent.balance || 0;
-        if (type === 'deposit') {
-            newBalance += parsedAmount;
-        } else if (type === 'withdraw') {
-            newBalance -= parsedAmount;
-        } else {
+        // Validate transaction type
+        if (type !== 'deposit' && type !== 'withdraw') {
             return res.status(400).json({ 
                 success: false, 
                 message: 'Transaction type must be deposit or withdraw' 
             });
         }
         
-        // Create transaction record
+        // Create pending transaction record
         const transaction = new Transaction({
+            parent: parent._id,
             description: description || (type === 'deposit' ? 'Deposit to account' : 'Withdrawal from account'),
             amount: parsedAmount,
-            type: type === 'deposit' ? 'payment' : 'withdrawal',
-            status: 'completed'
+            type: type === 'deposit' ? 'deposit' : 'withdrawal',
+            status: 'pending',
+            initiatedBy: 'admin'
         });
         
         await transaction.save();
         
-        // Update parent with new balance and add transaction to history
-        const updatedParent = await Parent.findByIdAndUpdate(
+        // Add transaction to parent's transaction history without updating balance yet
+        await Parent.findByIdAndUpdate(
             id,
-            { 
-                $set: { balance: newBalance },
-                $push: { transactionHistory: transaction._id } 
-            },
+            { $push: { transactionHistory: transaction._id } },
             { new: true }
         );
         
         return res.status(200).json({ 
             success: true, 
-            data: updatedParent,
-            newBalance,
             transaction,
-            message: `Balance ${type === 'deposit' ? 'increased' : 'decreased'} successfully`
+            message: `Pending ${type} transaction created successfully. Awaiting parent approval.`
         });
         
     } catch (error) {
-        console.error('Error updating parent balance:', error);
+        console.error('Error creating pending transaction:', error);
         return res.status(500).json({ 
             success: false, 
-            message: 'An error occurred while updating the balance',
+            message: 'An error occurred while creating the pending transaction',
             error: error.message 
         });
     }
@@ -2675,6 +2745,7 @@ const getTeacherDetails = async (req, res) => {
     try {
         const { teacherId } = req.params;
         
+        // Get teacher details
         const teacher = await Teacher.findById(teacherId).select('-password');
         if (!teacher) {
             return res.status(404).json({ message: 'Teacher not found' });
@@ -2683,10 +2754,14 @@ const getTeacherDetails = async (req, res) => {
         // Get classes taught by this teacher
         const classes = await Class.find({ teacher: teacherId }).populate('students', 'firstName lastName');
         
+        // Get available classes (classes not assigned to this teacher)
+        const availableClasses = await Class.find({ teacher: { $ne: teacherId } }).select('name');
+        
         res.render('admin-teacher-details', {
             title: 'Teacher Details',
             teacher,
             classes,
+            availableClasses,
             admin: req.admin,
             activePage: 'teachers'
         });
@@ -2772,29 +2847,103 @@ const deleteTeacher = async (req, res) => {
 // Get all classes
 const getClasses = async (req, res) => {
     try {
-        const classes = await Class.find()
+        // Get pagination parameters
+        const { page = 1, limit = 10, search, teacherId, status } = req.query;
+        
+        // Build filter query
+        const filter = {};
+        if (search) {
+            filter.name = { $regex: search, $options: 'i' };
+        }
+        if (teacherId) {
+            filter.teacher = teacherId;
+        }
+        if (status === 'active') {
+            filter.isActive = true;
+        } else if (status === 'inactive') {
+            filter.isActive = false;
+        }
+        
+        // Convert page and limit to numbers
+        const pageNum = parseInt(page) || 1;
+        const limitNum = parseInt(limit) || 10;
+        const skip = (pageNum - 1) * limitNum;
+        
+        // Get total count for pagination
+        const total = await Class.countDocuments(filter);
+        
+        // Get classes with pagination
+        const classes = await Class.find(filter)
             .populate('teacher', 'firstName lastName')
-            .populate('students', 'firstName lastName');
+            .populate('students', 'firstName lastName profilePicture')
+            .sort({ name: 1 })
+            .skip(skip)
+            .limit(limitNum);
         
         // Calculate stats for each class
         const classesWithStats = classes.map(cls => ({
             ...cls.toObject(),
-            studentCount: cls.students.length
+            studentCount: cls.students.length,
+            // Truncate description if needed
+            shortDescription: cls.description && cls.description.length > 50 
+                ? cls.description.substring(0, 50) + '...' 
+                : cls.description
         }));
         
-        // Get all teachers for class creation
+        // Calculate pagination metadata
+        const totalPages = Math.ceil(total / limitNum);
+        const hasNextPage = pageNum < totalPages;
+        const hasPrevPage = pageNum > 1;
+        
+        // Get all teachers for filters and class creation
         const teachers = await Teacher.find().select('firstName lastName');
         
+        // For API requests
+        if (req.xhr || req.headers.accept.includes('application/json')) {
+            return res.status(200).json({
+                success: true,
+                data: classesWithStats,
+                pagination: {
+                    total,
+                    page: pageNum,
+                    limit: limitNum,
+                    totalPages,
+                    hasNextPage,
+                    hasPrevPage
+                }
+            });
+        }
+        
+        // For browser requests
         res.render('admin-classes', {
             title: 'Classes Management',
             classes: classesWithStats,
             teachers,
             admin: req.admin,
-            activePage: 'classes'
+            activePage: 'classes',
+            currentFilters: {
+                search,
+                teacherId,
+                status,
+                page: pageNum,
+                limit: limitNum
+            },
+            pagination: {
+                total,
+                page: pageNum,
+                limit: limitNum,
+                totalPages,
+                hasNextPage,
+                hasPrevPage
+            }
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error getting classes:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch classes',
+            error: error.message
+        });
     }
 };
 
@@ -2881,34 +3030,79 @@ const createClass = async (req, res) => {
 const getClassDetails = async (req, res) => {
     try {
         const { classId } = req.params;
+        const { page = 1, limit = 10 } = req.query;
         
-        const classDetails = await Class.findById(classId)
-            .populate('teacher', 'firstName lastName email')
-            .populate('students', 'firstName lastName email profilePicture');
+        // Convert page and limit to numbers
+        const pageNum = parseInt(page) || 1;
+        const limitNum = parseInt(limit) || 10;
+        const skip = (pageNum - 1) * limitNum;
         
-        if (!classDetails) {
-            return res.status(404).json({ message: 'Class not found' });
+        // First, get the class with basic info and teacher
+        const classData = await Class.findById(classId)
+            .populate('teacher', 'firstName lastName email profilePicture');
+        
+        if (!classData) {
+            return res.status(404).render('error', { 
+                message: 'Class not found',
+                error: { status: 404, stack: '' },
+                title: 'Error'
+            });
         }
         
-        // Get all teachers for teacher reassignment
-        const teachers = await Teacher.find().select('firstName lastName');
+        // Get total number of students in the class
+        const totalStudents = classData.students.length;
         
-        // Get all students not in the class for adding
-        const studentsNotInClass = await Student.find({
-            _id: { $nin: classDetails.students.map(student => student._id) }
-        }).select('firstName lastName');
+        // Get all teachers for the change teacher modal
+        const teachers = await Teacher.find({}, 'firstName lastName email');
+        
+        // Pagination for students (get only a slice of students to display)
+        // If the students array is empty, we'll handle that in the view
+        const studentIds = classData.students.slice(skip, skip + limitNum);
+        
+        // Populate student data only for the current page
+        if (studentIds.length > 0) {
+            await Class.populate(classData, {
+                path: 'students',
+                match: { _id: { $in: studentIds } },
+                select: 'firstName lastName email profilePicture'
+            });
+        } else {
+            classData.students = [];
+        }
+        
+        // Get available students (not in this class) for the add students modal
+        const availableStudents = await Student.find(
+            { _id: { $nin: classData.students } },
+            'firstName lastName email'
+        );
+        
+        // Create pagination info
+        const studentPagination = {
+            total: totalStudents,
+            page: pageNum,
+            limit: limitNum,
+            totalPages: Math.ceil(totalStudents / limitNum),
+            hasPrevPage: pageNum > 1,
+            hasNextPage: pageNum < Math.ceil(totalStudents / limitNum)
+        };
         
         res.render('admin-class-details', {
-            title: 'Class Details',
-            class: classDetails,
+            title: `Class: ${classData.name}`,
+            classData,
             teachers,
+            availableStudents,
+            studentPagination,
+            currentFilters: { page, limit },
             admin: req.admin,
-            availableStudents: studentsNotInClass,
             activePage: 'classes'
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error getting class details:', error);
+        res.status(500).render('error', { 
+            message: 'Error getting class details',
+            error: { status: 500, stack: process.env.NODE_ENV === 'development' ? error.stack : '' },
+            title: 'Error'
+        });
     }
 };
 
@@ -3049,7 +3243,7 @@ const removeStudentFromClass = async (req, res) => {
 
 module.exports = {
     loginAdmin,
-    creatAdminAccount,
+    createAdminAccount,
     getDashboardData,
     // getMyProfile,
     // addGrade,

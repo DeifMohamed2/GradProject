@@ -146,18 +146,27 @@
                             <option value="Other" <%= currentFilters.relationshipToStudent === 'Other' ? 'selected' : '' %>>Other</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label for="hasChildren" class="form-label">Children Status</label>
+                    <div class="col-md-3">
+                        <label for="hasChildren" class="form-label">Has Children</label>
                         <select class="form-select" id="hasChildren" name="hasChildren">
-                            <option value="">All Parents</option>
-                            <option value="true" <%= currentFilters.hasChildren === 'true' ? 'selected' : '' %>>With Children</option>
-                            <option value="false" <%= currentFilters.hasChildren === 'false' ? 'selected' : '' %>>Without Children</option>
+                            <option value="" <%= !currentFilters.hasChildren ? 'selected' : '' %>>All</option>
+                            <option value="true" <%= currentFilters.hasChildren === 'true' ? 'selected' : '' %>>Yes</option>
+                            <option value="false" <%= currentFilters.hasChildren === 'false' ? 'selected' : '' %>>No</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="limit" class="form-label">Items per page</label>
+                        <select class="form-select" id="limit" name="limit">
+                            <option value="10" <%= currentFilters.limit == 10 ? 'selected' : '' %>>10</option>
+                            <option value="25" <%= currentFilters.limit == 25 ? 'selected' : '' %>>25</option>
+                            <option value="50" <%= currentFilters.limit == 50 ? 'selected' : '' %>>50</option>
+                            <option value="100" <%= currentFilters.limit == 100 ? 'selected' : '' %>>100</option>
                         </select>
                     </div>
                     <div class="col-md-4">
                         <label for="search" class="form-label">Search</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" id="search" name="search" placeholder="Name, Email, Phone, ID..." value="<%= currentFilters.search || '' %>">
+                            <input type="text" class="form-control" id="search" name="search" placeholder="Name, email, phone or code" value="<%= currentFilters.search || '' %>">
                             <button class="btn btn-primary" type="submit">
                                 <i class="bi bi-search me-1"></i> Search
                             </button>
@@ -273,6 +282,73 @@
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Pagination Controls -->
+            <% if (pagination && pagination.totalPages > 1) { %>
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div>
+                    <p class="text-muted mb-0">
+                        Showing <%= (pagination.page - 1) * pagination.limit + 1 %> to 
+                        <%= Math.min(pagination.page * pagination.limit, pagination.total) %> 
+                        of <%= pagination.total %> parents
+                    </p>
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0">
+                        <li class="page-item <%= pagination.hasPrevPage ? '' : 'disabled' %>">
+                            <a class="page-link" href="<%= pagination.hasPrevPage ? '/admin/parents?' + new URLSearchParams(
+                                Object.fromEntries(
+                                    Object.entries(currentFilters)
+                                    .filter(([key, value]) => value !== undefined && value !== 'undefined')
+                                    .map(([key, value]) => [key, key === 'page' ? pagination.page - 1 : value])
+                                )
+                            ).toString() : '#' %>" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        
+                        <% for(let i = 1; i <= pagination.totalPages; i++) { %>
+                            <% if (
+                                i === 1 || 
+                                i === pagination.totalPages || 
+                                (i >= pagination.page - 1 && i <= pagination.page + 1)
+                            ) { %>
+                                <li class="page-item <%= i === pagination.page ? 'active' : '' %>">
+                                    <a class="page-link" href="/admin/parents?<%= new URLSearchParams(
+                                        Object.fromEntries(
+                                            Object.entries(currentFilters)
+                                            .filter(([key, value]) => value !== undefined && value !== 'undefined')
+                                            .map(([key, value]) => [key, key === 'page' ? i : value])
+                                        )
+                                    ).toString() %>">
+                                        <%= i %>
+                                    </a>
+                                </li>
+                            <% } else if (
+                                i === pagination.page - 2 || 
+                                i === pagination.page + 2
+                            ) { %>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#">...</a>
+                                </li>
+                            <% } %>
+                        <% } %>
+                        
+                        <li class="page-item <%= pagination.hasNextPage ? '' : 'disabled' %>">
+                            <a class="page-link" href="<%= pagination.hasNextPage ? '/admin/parents?' + new URLSearchParams(
+                                Object.fromEntries(
+                                    Object.entries(currentFilters)
+                                    .filter(([key, value]) => value !== undefined && value !== 'undefined')
+                                    .map(([key, value]) => [key, key === 'page' ? pagination.page + 1 : value])
+                                )
+                            ).toString() : '#' %>" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <% } %>
         </div>
     </div>
 
@@ -337,13 +413,13 @@
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Initialize DataTable
+            // Initialize DataTable with server-side pagination enabled
             const parentsTable = $('#parentsTable').DataTable({
-                paging: true,
+                paging: false,        // Disable client-side pagination since we're using server-side
                 ordering: true,
-                info: true,
-                lengthChange: true,
-                searching: false, // We have our own search
+                info: false,          // Disable info since we're showing our own pagination info
+                lengthChange: false,  // Disable length change since we're using server-side pagination
+                searching: false,     // We have our own search
                 language: {
                     emptyTable: "No parents found with the current filters"
                 },
@@ -356,11 +432,24 @@
             $('#filter-form').on('submit', function(e) {
                 e.preventDefault();
                 
-                // Get form data and convert to query string
-                const formData = $(this).serialize();
+                // Get form data
+                const formData = $(this).serializeArray();
+                
+                // Create URLSearchParams object for building the query
+                const params = new URLSearchParams();
+                
+                // Add form data to params (only non-empty values)
+                formData.forEach(item => {
+                    if (item.value && item.value !== 'undefined') {
+                        params.append(item.name, item.value);
+                    }
+                });
+                
+                // Reset to page 1 when filtering
+                params.set('page', '1');
                 
                 // Redirect with query parameters
-                window.location.href = '/admin/parents?' + formData;
+                window.location.href = '/admin/parents?' + params.toString();
             });
             
             // Reset filters

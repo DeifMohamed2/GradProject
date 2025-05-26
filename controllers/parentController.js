@@ -344,7 +344,179 @@ const updatePinCode = async (req, res) => {
   }
 }
 
+// Get pending transactions for parent
+const getPendingTransactions = async (req, res) => {
+  const { parent } = req;
+  
+  try {
+    // Populate parent with transaction history
+    await parent.populate({
+      path: 'transactionHistory',
+      match: { status: 'pending' },
+      options: { sort: { createdAt: -1 } }
+    });
 
+    // Filter to only include pending transactions
+    const pendingTransactions = parent.transactionHistory || [];
+    
+    return res.status(200).json({ 
+      success: true, 
+      transactions: pendingTransactions,
+      message: 'Pending transactions retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error getting pending transactions:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Failed to retrieve pending transactions',
+      error: error.message
+    });
+  }
+};
+
+// Approve a pending transaction
+const approveTransaction = async (req, res) => {
+  const { parent } = req;
+  const { transactionId } = req.params;
+  const { pinCode } = req.body;
+  
+  try {
+    // Validate pin code
+    if (!pinCode) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Pin code is required' 
+      });
+    }
+    
+    if (parent.pinCode !== pinCode) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid pin code' 
+      });
+    }
+    
+    // Find the transaction
+    const transaction = await Transaction.findById(transactionId);
+    
+    if (!transaction) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Transaction not found' 
+      });
+    }
+    
+    // Verify transaction belongs to this parent
+    if (transaction.parent.toString() !== parent._id.toString()) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'You are not authorized to approve this transaction' 
+      });
+    }
+    
+    // Verify transaction is still pending
+    if (transaction.status !== 'pending') {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Transaction cannot be approved as it is already ${transaction.status}` 
+      });
+    }
+    
+    // Calculate new balance based on transaction type
+    let newBalance = parent.balance || 0;
+    if (transaction.type === 'deposit') {
+      newBalance += transaction.amount;
+    } else if (transaction.type === 'withdrawal') {
+      // Ensure parent has sufficient balance
+      if (newBalance < transaction.amount) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Insufficient balance to approve this withdrawal' 
+        });
+      }
+      newBalance -= transaction.amount;
+    }
+    
+    // Update transaction status
+    transaction.status = 'approved';
+    await transaction.save();
+    
+    // Update parent balance
+    parent.balance = newBalance;
+    await parent.save();
+    
+    return res.status(200).json({ 
+      success: true, 
+      transaction,
+      newBalance,
+      message: 'Transaction approved successfully' 
+    });
+    
+  } catch (error) {
+    console.error('Error approving transaction:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Failed to approve transaction',
+      error: error.message
+    });
+  }
+};
+
+// Reject a pending transaction
+const rejectTransaction = async (req, res) => {
+  const { parent } = req;
+  const { transactionId } = req.params;
+  const { reason } = req.body;
+  
+  try {
+    // Find the transaction
+    const transaction = await Transaction.findById(transactionId);
+    
+    if (!transaction) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Transaction not found' 
+      });
+    }
+    
+    // Verify transaction belongs to this parent
+    if (transaction.parent.toString() !== parent._id.toString()) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'You are not authorized to reject this transaction' 
+      });
+    }
+    
+    // Verify transaction is still pending
+    if (transaction.status !== 'pending') {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Transaction cannot be rejected as it is already ${transaction.status}` 
+      });
+    }
+    
+    // Update transaction status and reason
+    transaction.status = 'rejected';
+    if (reason) {
+      transaction.reason = reason;
+    }
+    await transaction.save();
+    
+    return res.status(200).json({ 
+      success: true, 
+      transaction,
+      message: 'Transaction rejected successfully' 
+    });
+    
+  } catch (error) {
+    console.error('Error rejecting transaction:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Failed to reject transaction',
+      error: error.message
+    });
+  }
+};
 
 module.exports = {
   loginParent,
@@ -359,5 +531,7 @@ module.exports = {
 
   getStudentAllData,
   updatePinCode,
-
+  getPendingTransactions,
+  approveTransaction,
+  rejectTransaction,
 };

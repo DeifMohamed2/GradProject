@@ -310,6 +310,53 @@
         .avatar-label:hover {
             background-color: #bbdefb;
         }
+
+        /* Sidebar styles */
+        .sidebar {
+            width: 250px;
+            background-color: #343a40;
+            color: white;
+            position: fixed;
+            height: 100%;
+            padding-top: 20px;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 20px;
+            color: #f8f9fa;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            padding: 10px 20px;
+        }
+
+        .sidebar ul li a {
+            color: #f8f9fa;
+            text-decoration: none;
+            display: block;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #495057;
+            border-radius: 4px;
+        }
+
+        .sidebar ul li a.active {
+            background-color: #007bff;
+            border-radius: 4px;
+        }
+
+        /* Center buttons */
+        .profile-main .profile-card .form-actions {
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -499,6 +546,13 @@
                                     </div>
                                 </form>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-card">
+                        <div class="form-actions">
+                            <button class="btn-save">Reset Password</button>
+                            <button class="btn-save">Assign New Class</button>
                         </div>
                     </div>
                 </div>
@@ -749,4 +803,4 @@
         });
     </script>
 </body>
-</html> 
+</html>
