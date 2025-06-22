@@ -55,6 +55,7 @@ router.put('/profile', requireTeacherAuth, teacherController.updateProfile);
 // Classes routes
 router.get('/classes', requireTeacherAuth, teacherController.getClasses);
 router.get('/classes/:classId', requireTeacherAuth, teacherController.getClassDetails);
+router.get('/classes/:classId/quizzes', requireTeacherAuth, teacherController.getClassQuizzesView);
 
 // Attendance routes
 router.get('/attendance', requireTeacherAuth, teacherController.getAttendanceView);
@@ -69,7 +70,7 @@ router.get('/quizzes/create', requireTeacherAuth, teacherController.getCreateQui
 router.get('/grades/update', requireTeacherAuth, teacherController.getUpdateGradesView);
 
 // Class-specific routes for quizzes
-router.get('/classes/:classId/quizzes', requireTeacherAuth, async (req, res) => {
+router.get('/classes/:classId/quizzes/data', requireTeacherAuth, async (req, res) => {
   try {
     const { classId } = req.params;
     const quizzes = await teacherController.getQuizzes(classId, req.teacher._id);

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Quizzes | Teacher Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        .quiz-header {
+            background-color: #4a69bd;
+            padding: 30px;
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .quiz-header h2 {
+            font-size: 28px;
+            margin: 0 0 10px;
+        }
+        
+        .quiz-header p {
+            opacity: 0.9;
+            margin: 0;
+        }
+        
+        .quiz-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+        }
+        
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .stat-icon.blue {
+            background-color: #e3f2fd;
+        }
+        
+        .stat-icon.blue i {
+            color: #1565c0;
+        }
+        
+        .stat-icon.green {
+            background-color: #e8f5e9;
+        }
+        
+        .stat-icon.green i {
+            color: #2e7d32;
+        }
+        
+        .stat-icon.orange {
+            background-color: #fff3e0;
+        }
+        
+        .stat-icon.orange i {
+            color: #e65100;
+        }
+        
+        .stat-info {
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+        
+        .stat-label {
+            color: #777;
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: #555;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            color: #1565c0;
+        }
+        
+        .back-link i {
+            margin-right: 5px;
+        }
+        
+        .create-quiz-btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .create-quiz-btn:hover {
+            background-color: #219653;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+            color: white;
+        }
+        
+        .create-quiz-btn i {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <a href="/teacher/dashboard" class="sidebar-brand">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <h3>Teacher Portal</h3>
+            </a>
+        </div>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="/teacher/dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/teacher/classes" class="active">
+                    <i class="fas fa-users"></i> My Classes
+                </a>
+            </li>
+            <li>
+                <a href="/teacher/attendance">
+                    <i class="fas fa-clipboard-check"></i> Attendance
+                </a>
+            </li>
+            <li>
+                <a href="/teacher/quizzes">
+                    <i class="fas fa-question-circle"></i> Quizzes & Grades
+                </a>
+            </li>
+            <li>
+                <a href="/teacher/profile">
+                    <i class="fas fa-user"></i> My Profile
+                </a>
+            </li>
+            <li>
+                <a href="#" id="logout-link">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <div class="navbar">
+            <div class="d-flex justify-content-between align-items-center w-100">
+                <div>
+                    <h4 class="mb-0">Class Quizzes</h4>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="/teacher/dashboard">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="/teacher/classes">Classes</a></li>
+                            <li class="breadcrumb-item"><a href="/teacher/classes/<%= classData._id %>"><%= classData.name %></a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Quizzes</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown profile-dropdown">
+                        <button class="btn dropdown-toggle" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="<%= teacher.profilePicture || '/img/default-avatar.png' %>" alt="Profile" class="rounded-circle" width="40" height="40">
+                            <span class="ms-2"><%= teacher.firstName %> <%= teacher.lastName %></span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="profileDropdown">
+                            <li><a class="dropdown-item" href="/teacher/profile"><i class="fas fa-user"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="#" id="logout-dropdown-link"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fluid px-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <a href="/teacher/classes/<%= classData._id %>" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Class Details
+                </a>
+                <a href="/teacher/quizzes/create?classId=<%= classData._id %>" class="create-quiz-btn">
+                    <i class="fas fa-plus"></i> Create New Quiz
+                </a>
+            </div>
+            
+            <div class="quiz-header">
+                <h2><%= classData.name %> - Quizzes</h2>
+                <p>Manage and view all quizzes for this class</p>
+            </div>
+            
+            <div class="quiz-stats">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 class="stat-value" id="totalQuizzes">-</h3>
+                        <p class="stat-label">Total Quizzes</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 class="stat-value" id="avgSubmissions">-</h3>
+                        <p class="stat-label">Avg. Submissions</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 class="stat-value" id="avgScore">-</h3>
+                        <p class="stat-label">Avg. Score</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="quizzes-container">
+                <!-- Quizzes will be loaded here by JavaScript -->
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/class-quizzes.js"></script>
+    <script>
+        // Logout functionality
+        document.getElementById('logout-link').addEventListener('click', handleLogout);
+        document.getElementById('logout-dropdown-link').addEventListener('click', handleLogout);
+        
+        function handleLogout(e) {
+            e.preventDefault();
+            fetch('/teacher/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/teacher/login';
+                }
+            })
+            .catch(error => {
+                console.error('Logout error:', error);
+            });
+        }
+    </script>
+</body>
+</html> 

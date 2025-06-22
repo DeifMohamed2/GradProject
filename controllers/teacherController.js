@@ -1299,6 +1299,33 @@ const deleteQuiz = async (classId, quizId, teacherId) => {
   }
 };
 
+// Get class quizzes page
+const getClassQuizzesView = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const teacherId = req.teacher._id;
+    
+    // Verify the teacher has access to this class
+    const classData = await Class.findOne({ 
+      _id: classId,
+      teacher: teacherId
+    }).populate('teacher', 'firstName lastName');
+    
+    if (!classData) {
+      return res.status(404).render('404', { title: 'Class Not Found' });
+    }
+    
+    // Render the class quizzes page
+    res.render('teacher-class-quizzes', {
+      teacher: req.teacher,
+      classData
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server Error');
+  }
+};
+
 module.exports = {
   loginTeacher,
   logoutTeacher,
@@ -1319,7 +1346,6 @@ module.exports = {
   getQuizzes,
   getQuizDetails,
   updateQuizGrade,
-  // New API methods
   getDashboardData,
   getTeacherClasses,
   getClassById,
@@ -1327,5 +1353,6 @@ module.exports = {
   getStudentDetails,
   getAttendanceRecords,
   updateQuiz,
-  deleteQuiz
+  deleteQuiz,
+  getClassQuizzesView
 };

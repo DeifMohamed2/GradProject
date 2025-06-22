@@ -66,5 +66,9 @@ router.put('/updatePassword' ,authMiddleware , parentController.updatePassword);
 
 router.get('/get-student-all-data/:id', authMiddleware, parentController.getStudentAllData);
 
+// Student grades routes
+// router.get('/student-grades/:id', authMiddleware, parentController.renderStudentGrades);
+router.get('/student-grades/:id', authMiddleware, parentController.getStudentGrades);
+
 
 module.exports = router;

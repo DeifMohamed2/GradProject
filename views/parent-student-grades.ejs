@@ -1,0 +1,512 @@
+<%- include('./partials/parent-header') %>
+
+<div class="container-fluid py-4">
+    <input type="hidden" id="student-id" value="<%= student.id %>">
+    
+    <!-- Alert Container -->
+    <div id="alert-container"></div>
+    
+    <!-- Student Info Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-3">
+                    <div class="row">
+                        <div class="col-lg-6 col-md-7">
+                            <div class="d-flex">
+                                <div>
+                                    <img src="<%= student.profilePicture || '/img/default-avatar.png' %>" class="avatar avatar-lg me-3" alt="student image">
+                                </div>
+                                <div class="d-flex flex-column justify-content-center">
+                                    <h5 class="mb-0 text-lg">Student Info</h5>
+                                    <h6 class="mb-0 text-lg"><%= student.firstName %> <%= student.lastName %></h6>
+                                    <p class="text-sm mb-0">
+                                        Grade <%= student.grade %> | Section <%= student.section %>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-5 my-auto text-end">
+                            <div class="dropdown float-lg-end pe-4">
+                                <a class="cursor-pointer" id="dropdownTable" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa fa-ellipsis-v text-secondary"></i>
+                                </a>
+                                <ul class="dropdown-menu px-2 py-3 ms-sm-n4 ms-n5" aria-labelledby="dropdownTable">
+                                    <li><a class="dropdown-item border-radius-md" href="javascript:;">View Profile</a></li>
+                                    <li><a class="dropdown-item border-radius-md" href="javascript:;">View Attendance</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Breadcrumb for subject navigation -->
+    <div id="breadcrumb-container" class="row mb-4 d-none">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#" id="back-to-subjects">Subjects</a></li>
+                    <li class="breadcrumb-item active" id="subject-breadcrumb" aria-current="page"></li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Subjects Grid -->
+    <div id="subjects-grid" class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header pb-0">
+                    <h6>Subjects</h6>
+                </div>
+                <div class="card-body px-0 pt-0 pb-2">
+                    <div class="row p-3">
+                        <% if (Object.keys(gradesBySubject).length === 0) { %>
+                            <div class="col-12">
+                                <div class="alert alert-info" role="alert">
+                                    No grades available for this student.
+                                </div>
+                            </div>
+                        <% } else { %>
+                            <% Object.keys(gradesBySubject).forEach(subject => { %>
+                                <% gradesBySubject[subject].forEach(grade => { %>
+                                    <div class="col-xl-3 col-md-6 mb-4">
+                                        <div class="card subject-card cursor-pointer" 
+                                             data-subject-id="<%= grade._id %>" 
+                                             data-subject-name="<%= grade.subject %>"
+                                             data-semester="<%= grade.semester %>">
+                                            <div class="card-body p-3">
+                                                <div class="row">
+                                                    <div class="col-8">
+                                                        <div class="numbers">
+                                                            <p class="text-sm mb-0 text-capitalize font-weight-bold"><%= grade.subject %></p>
+                                                            <h5 class="font-weight-bolder mb-0">
+                                                                <%= grade.letterGrade || 'N/A' %>
+                                                                <% if (grade.overallPercentage) { %>
+                                                                    <span class="text-success text-sm font-weight-bolder">
+                                                                        <%= grade.overallPercentage %>%
+                                                                    </span>
+                                                                <% } %>
+                                                            </h5>
+                                                            <p class="mb-0 text-sm">
+                                                                Semester <%= grade.semester %>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4 text-end">
+                                                        <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                                                            <% if (subject === 'Mathematics') { %>
+                                                                <i class="fas fa-calculator text-lg opacity-10" aria-hidden="true"></i>
+                                                            <% } else if (subject === 'Science') { %>
+                                                                <i class="fas fa-flask text-lg opacity-10" aria-hidden="true"></i>
+                                                            <% } else if (subject === 'English') { %>
+                                                                <i class="fas fa-book text-lg opacity-10" aria-hidden="true"></i>
+                                                            <% } else if (subject === 'History') { %>
+                                                                <i class="fas fa-landmark text-lg opacity-10" aria-hidden="true"></i>
+                                                            <% } else if (subject === 'Physical Education') { %>
+                                                                <i class="fas fa-running text-lg opacity-10" aria-hidden="true"></i>
+                                                            <% } else if (subject === 'Art') { %>
+                                                                <i class="fas fa-palette text-lg opacity-10" aria-hidden="true"></i>
+                                                            <% } else { %>
+                                                                <i class="fas fa-book-open text-lg opacity-10" aria-hidden="true"></i>
+                                                            <% } %>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            <% }); %>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Subject Details (Initially Hidden) -->
+    <% Object.keys(gradesBySubject).forEach(subject => { %>
+        <% gradesBySubject[subject].forEach(grade => { %>
+            <div id="subject-detail-<%= grade._id %>-<%= grade.semester %>" class="subject-details d-none">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card mb-4">
+                            <div class="card-header pb-0">
+                                <div class="d-flex justify-content-between">
+                                    <h6><%= grade.subject %> - Semester <%= grade.semester %></h6>
+                                    <div>
+                                        <span class="badge bg-gradient-primary"><%= grade.letterGrade || 'N/A' %></span>
+                                        <span class="badge bg-gradient-info">Teacher: <%= grade.teacher || 'N/A' %></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body px-0 pt-0 pb-2">
+                                <!-- Midterm Exams Section -->
+                                <% if (grade.midterms && grade.midterms.length > 0) { %>
+                                    <div class="table-responsive p-0">
+                                        <div class="p-3">
+                                            <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">Midterm Exams</h6>
+                                            <div class="table-responsive">
+                                                <table class="table align-items-center mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Exam</th>
+                                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Date</th>
+                                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Score</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% grade.midterms.forEach((exam, index) => { %>
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="d-flex px-2 py-1">
+                                                                        <div class="d-flex flex-column justify-content-center">
+                                                                            <h6 class="mb-0 text-sm"><%= exam.name || `Midterm Exam ${index + 1}` %></h6>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <p class="text-xs font-weight-bold mb-0">
+                                                                        <%= exam.date ? new Date(exam.date).toLocaleDateString() : 'N/A' %>
+                                                                    </p>
+                                                                </td>
+                                                                <td class="align-middle text-center text-sm">
+                                                                    <span class="badge bg-gradient-success">
+                                                                        <%= exam.score || 0 %>/<%= exam.maxScore || 100 %>
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        <% }); %>
+                                                        <% if (grade.midterms.length > 1) { %>
+                                                            <tr>
+                                                                <td colspan="2" class="text-end">
+                                                                    <strong>Average:</strong>
+                                                                </td>
+                                                                <td class="align-middle text-center text-sm">
+                                                                    <% 
+                                                                        const midtermTotal = grade.midterms.reduce((sum, exam) => sum + (exam.score || 0), 0);
+                                                                        const midtermAvg = (midtermTotal / grade.midterms.length).toFixed(1);
+                                                                    %>
+                                                                    <span class="badge bg-gradient-info"><%= midtermAvg %></span>
+                                                                </td>
+                                                            </tr>
+                                                        <% } %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% } %>
+                                
+                                <!-- Quizzes Section -->
+                                <% if (grade.quizzes && grade.quizzes.length > 0) { %>
+                                    <div class="table-responsive p-0">
+                                        <div class="p-3">
+                                            <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">Quizzes</h6>
+                                            <div class="table-responsive">
+                                                <table class="table align-items-center mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Quiz</th>
+                                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Date</th>
+                                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Score</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% grade.quizzes.forEach((quiz, index) => { %>
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="d-flex px-2 py-1">
+                                                                        <div class="d-flex flex-column justify-content-center">
+                                                                            <h6 class="mb-0 text-sm"><%= quiz.name || `Quiz ${index + 1}` %></h6>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <p class="text-xs font-weight-bold mb-0">
+                                                                        <%= quiz.date ? new Date(quiz.date).toLocaleDateString() : 'N/A' %>
+                                                                    </p>
+                                                                </td>
+                                                                <td class="align-middle text-center text-sm">
+                                                                    <span class="badge bg-gradient-success">
+                                                                        <%= quiz.score || 0 %>/<%= quiz.maxScore || 20 %>
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        <% }); %>
+                                                        <% if (grade.quizzes.length > 1) { %>
+                                                            <tr>
+                                                                <td colspan="2" class="text-end">
+                                                                    <strong>Average:</strong>
+                                                                </td>
+                                                                <td class="align-middle text-center text-sm">
+                                                                    <% 
+                                                                        const quizTotal = grade.quizzes.reduce((sum, quiz) => {
+                                                                            const score = quiz.score || 0;
+                                                                            const maxScore = quiz.maxScore || 20;
+                                                                            return sum + (score / maxScore * 20);
+                                                                        }, 0);
+                                                                        const quizAvg = (quizTotal / grade.quizzes.length).toFixed(1);
+                                                                    %>
+                                                                    <span class="badge bg-gradient-info"><%= quizAvg %>/20</span>
+                                                                </td>
+                                                            </tr>
+                                                        <% } %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% } %>
+                                
+                                <!-- Assignments Section -->
+                                <% if (grade.assignments && grade.assignments.length > 0) { %>
+                                    <div class="table-responsive p-0">
+                                        <div class="p-3">
+                                            <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">Assignments</h6>
+                                            <div class="table-responsive">
+                                                <table class="table align-items-center mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Assignment</th>
+                                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Date</th>
+                                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Score</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% grade.assignments.forEach((assignment, index) => { %>
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="d-flex px-2 py-1">
+                                                                        <div class="d-flex flex-column justify-content-center">
+                                                                            <h6 class="mb-0 text-sm"><%= assignment.name || `Assignment ${index + 1}` %></h6>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <p class="text-xs font-weight-bold mb-0">
+                                                                        <%= assignment.date ? new Date(assignment.date).toLocaleDateString() : 'N/A' %>
+                                                                    </p>
+                                                                </td>
+                                                                <td class="align-middle text-center text-sm">
+                                                                    <span class="badge bg-gradient-success">
+                                                                        <%= assignment.score || 0 %>/<%= assignment.maxScore || 30 %>
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        <% }); %>
+                                                        <% if (grade.assignments.length > 1) { %>
+                                                            <tr>
+                                                                <td colspan="2" class="text-end">
+                                                                    <strong>Average:</strong>
+                                                                </td>
+                                                                <td class="align-middle text-center text-sm">
+                                                                    <% 
+                                                                        const assignmentTotal = grade.assignments.reduce((sum, assignment) => {
+                                                                            const score = assignment.score || 0;
+                                                                            const maxScore = assignment.maxScore || 30;
+                                                                            return sum + (score / maxScore * 30);
+                                                                        }, 0);
+                                                                        const assignmentAvg = (assignmentTotal / grade.assignments.length).toFixed(1);
+                                                                    %>
+                                                                    <span class="badge bg-gradient-info"><%= assignmentAvg %>/30</span>
+                                                                </td>
+                                                            </tr>
+                                                        <% } %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% } %>
+                                
+                                <!-- Class Participation -->
+                                <% if (grade.classParticipation) { %>
+                                    <div class="table-responsive p-0">
+                                        <div class="p-3">
+                                            <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">Class Participation</h6>
+                                            <div class="table-responsive">
+                                                <table class="table align-items-center mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Category</th>
+                                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Score</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="d-flex px-2 py-1">
+                                                                    <div class="d-flex flex-column justify-content-center">
+                                                                        <h6 class="mb-0 text-sm">Participation Score</h6>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td class="align-middle text-center text-sm">
+                                                                <span class="badge bg-gradient-success">
+                                                                    <%= grade.classParticipation.score || 0 %>/<%= grade.classParticipation.maxScore || 10 %>
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% } %>
+                                
+                                <!-- Final Exam -->
+                                <% if (grade.finalExam) { %>
+                                    <div class="table-responsive p-0">
+                                        <div class="p-3">
+                                            <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">Final Exam</h6>
+                                            <div class="table-responsive">
+                                                <table class="table align-items-center mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Exam</th>
+                                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Date</th>
+                                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+                                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Score</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="d-flex px-2 py-1">
+                                                                    <div class="d-flex flex-column justify-content-center">
+                                                                        <h6 class="mb-0 text-sm">Final Exam</h6>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <p class="text-xs font-weight-bold mb-0">
+                                                                    <%= grade.finalExam.date ? new Date(grade.finalExam.date).toLocaleDateString() : 'N/A' %>
+                                                                </p>
+                                                            </td>
+                                                            <td class="align-middle text-center text-sm">
+                                                                <% if (grade.finalExam.status === 'Pending') { %>
+                                                                    <span class="badge bg-gradient-warning">Pending</span>
+                                                                <% } else { %>
+                                                                    <span class="badge bg-gradient-success">Completed</span>
+                                                                <% } %>
+                                                            </td>
+                                                            <td class="align-middle text-center text-sm">
+                                                                <% if (grade.finalExam.status === 'Pending') { %>
+                                                                    <span class="badge bg-gradient-secondary">Pending</span>
+                                                                <% } else { %>
+                                                                    <span class="badge bg-gradient-success">
+                                                                        <%= grade.finalExam.score || 0 %>/<%= grade.finalExam.maxScore || 100 %>
+                                                                    </span>
+                                                                <% } %>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% } %>
+                                
+                                <!-- Grade Timeline -->
+                                <% if (grade.gradeProgress && grade.gradeProgress.length > 0) { %>
+                                    <div class="p-3">
+                                        <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">Grade Timeline</h6>
+                                        <div class="chart">
+                                            <canvas id="chart-line-<%= grade._id %>" class="chart-canvas" height="300"></canvas>
+                                        </div>
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                const ctx = document.getElementById('chart-line-<%= grade._id %>').getContext('2d');
+                                                const progressData = <%= JSON.stringify(grade.gradeProgress) %>;
+                                                
+                                                new Chart(ctx, {
+                                                    type: "line",
+                                                    data: {
+                                                        labels: progressData.map(item => new Date(item.date).toLocaleDateString()),
+                                                        datasets: [{
+                                                            label: "Grade Progress",
+                                                            tension: 0.4,
+                                                            borderWidth: 2,
+                                                            borderColor: "#5e72e4",
+                                                            backgroundColor: "rgba(94, 114, 228, 0.3)",
+                                                            fill: true,
+                                                            data: progressData.map(item => item.percentage),
+                                                            maxBarThickness: 6
+                                                        }],
+                                                    },
+                                                    options: {
+                                                        responsive: true,
+                                                        maintainAspectRatio: false,
+                                                        plugins: {
+                                                            legend: {
+                                                                display: false,
+                                                            }
+                                                        },
+                                                        scales: {
+                                                            y: {
+                                                                grid: {
+                                                                    drawBorder: false,
+                                                                    display: true,
+                                                                    drawOnChartArea: true,
+                                                                    drawTicks: false,
+                                                                    borderDash: [5, 5]
+                                                                },
+                                                                ticks: {
+                                                                    display: true,
+                                                                    padding: 10,
+                                                                    color: '#b2b9bf',
+                                                                    font: {
+                                                                        size: 11,
+                                                                        family: "Open Sans",
+                                                                        style: 'normal',
+                                                                        lineHeight: 2
+                                                                    },
+                                                                }
+                                                            },
+                                                            x: {
+                                                                grid: {
+                                                                    drawBorder: false,
+                                                                    display: false,
+                                                                    drawOnChartArea: false,
+                                                                    drawTicks: false,
+                                                                    borderDash: [5, 5]
+                                                                },
+                                                                ticks: {
+                                                                    display: true,
+                                                                    color: '#b2b9bf',
+                                                                    padding: 20,
+                                                                    font: {
+                                                                        size: 11,
+                                                                        family: "Open Sans",
+                                                                        style: 'normal',
+                                                                        lineHeight: 2
+                                                                    },
+                                                                }
+                                                            },
+                                                        },
+                                                    },
+                                                });
+                                            });
+                                        </script>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% }); %>
+    <% }); %>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Include the grades JS -->
+<script src="/js/parent-student-grades.js"></script>
+
+<%- include('./partials/parent-footer') %> 

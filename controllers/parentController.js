@@ -518,6 +518,109 @@ const rejectTransaction = async (req, res) => {
   }
 };
 
+// Get student grades
+const getStudentGrades = async (req, res) => {
+  const { parent } = req;
+  const { id: studentId } = req.params;
+
+  // Check if the student is a child of this parent
+  const isParentChild = parent.childs.some(child => child.toString() === studentId);
+  if (!isParentChild) {
+    return res.status(403).json({ message: 'Unauthorized access' });
+  }
+
+  try {
+    // Get the student with populated grades
+    const student = await Student.findById(studentId)
+      .populate({
+        path: 'Grades',
+        select: 'subject semester academicYear teacher letterGrade overallPercentage midterms quizzes assignments classParticipation finalExam gradeProgress'
+      })
+      .exec();
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Group grades by subject
+    const gradesBySubject = {};
+    
+    student.Grades.forEach(grade => {
+      if (!gradesBySubject[grade.subject]) {
+        gradesBySubject[grade.subject] = [];
+      }
+      gradesBySubject[grade.subject].push(grade);
+    });
+
+    return res.status(200).json({
+      message: 'Grades fetched successfully',
+      student: {
+        id: student._id,
+        name: `${student.firstName} ${student.lastName}`,
+        grade: student.grade,
+        section: student.section,
+        profilePicture: student.profilePicture
+      },
+      gradesBySubject
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Render student grades page
+const renderStudentGrades = async (req, res) => {
+  try {
+    const { parent } = req;
+    const { id: studentId } = req.params;
+
+    // Check if the student is a child of this parent
+    const isParentChild = parent.childs.some(child => child.toString() === studentId);
+    if (!isParentChild) {
+      return res.status(403).render('404', { message: 'Unauthorized access' });
+    }
+
+    // Get the student with populated grades
+    const student = await Student.findById(studentId)
+      .populate({
+        path: 'Grades',
+        select: 'subject semester academicYear teacher letterGrade overallPercentage midterms quizzes assignments classParticipation finalExam gradeProgress'
+      })
+      .exec();
+
+    if (!student) {
+      return res.status(404).render('404', { message: 'Student not found' });
+    }
+
+    // Group grades by subject
+    const gradesBySubject = {};
+    
+    student.Grades.forEach(grade => {
+      if (!gradesBySubject[grade.subject]) {
+        gradesBySubject[grade.subject] = [];
+      }
+      gradesBySubject[grade.subject].push(grade);
+    });
+
+    return res.render('parent-student-grades', { 
+      parent,
+      student: {
+        id: student._id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        grade: student.grade,
+        section: student.section,
+        profilePicture: student.profilePicture
+      },
+      gradesBySubject
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).render('404', { message: 'Server error' });
+  }
+};
+
 module.exports = {
   loginParent,
   dashbard_get,
@@ -534,4 +637,6 @@ module.exports = {
   getPendingTransactions,
   approveTransaction,
   rejectTransaction,
+  getStudentGrades,
+  renderStudentGrades
 };
