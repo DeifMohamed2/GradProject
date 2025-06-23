@@ -655,8 +655,22 @@
                             <% if (student.Grades && student.Grades.length > 0) { %>
                                 <div class="text-center mb-3">
                                     <div class="stats-card mb-3" style="background-color: rgba(52, 152, 219, 0.05);">
-                                        <div class="value" style="color: #3498db;"><%= gradesData.averageScore %></div>
-                                        <div class="label">Average Score</div>
+                                        <div class="value" style="color: #3498db;"><%= gradesData.averageScore %>%</div>
+                                        <div class="label">Overall Average Score</div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="stats-card" style="background-color: rgba(155, 89, 182, 0.05);">
+                                            <div class="value" style="color: #9b59b6;"><%= gradesData.semesterData[1].averageScore %>%</div>
+                                            <div class="label">Semester 1 Average</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="stats-card" style="background-color: rgba(46, 204, 113, 0.05);">
+                                            <div class="value" style="color: #2ecc71;"><%= gradesData.semesterData[2].averageScore %>%</div>
+                                            <div class="label">Semester 2 Average</div>
+                                        </div>
                                     </div>
                                 </div>
                             <% } else { %>
@@ -676,59 +690,421 @@
                                 <canvas id="gradesChart"></canvas>
                             </div>
                         </div>
-                        <div class="col-md-12">
+                    </div>
+
+                    <!-- Latest Assessments -->
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
                             <div class="info-card">
-                                <div class="section-title">Detailed Subject Performance</div>
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-hover">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Subject</th>
-                                                <th>Grade</th>
-                                                <th>Score</th>
-                                                <th>Performance</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% 
-                                            // Group grades by subject
-                                            const subjectGrades = {};
-                                            student.Grades.forEach(grade => {
-                                                if (!subjectGrades[grade.subject]) {
-                                                    subjectGrades[grade.subject] = [];
-                                                }
-                                                subjectGrades[grade.subject].push(grade);
-                                            });
-                                            
-                                            Object.keys(subjectGrades).forEach(subject => {
-                                                const grades = subjectGrades[subject];
-                                                const latestGrade = grades[grades.length - 1];
-                                                const score = latestGrade.score || latestGrade.grade;
-                                                
-                                                let performanceClass = 'secondary';
-                                                if (score >= 90) performanceClass = 'success';
-                                                else if (score >= 80) performanceClass = 'primary';
-                                                else if (score >= 70) performanceClass = 'info';
-                                                else if (score >= 60) performanceClass = 'warning';
-                                                else performanceClass = 'danger';
-                                            %>
+                                <div class="section-title">Latest Assessments</div>
+                                <% if (gradesData.latestAssessments && gradesData.latestAssessments.length > 0) { %>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover">
+                                            <thead class="table-light">
                                                 <tr>
-                                                    <td><%= subject %></td>
-                                                    <td><%= latestGrade.grade %></td>
-                                                    <td><%= latestGrade.score || '-' %></td>
+                                                    <th>Date</th>
+                                                    <th>Subject</th>
+                                                    <th>Type</th>
+                                                    <th>Name</th>
+                                                    <th>Score</th>
+                                                    <th>Performance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% gradesData.latestAssessments.forEach(assessment => { 
+                                                    let performanceClass = 'secondary';
+                                                    if (assessment.percentage >= 90) performanceClass = 'success';
+                                                    else if (assessment.percentage >= 80) performanceClass = 'primary';
+                                                    else if (assessment.percentage >= 70) performanceClass = 'info';
+                                                    else if (assessment.percentage >= 60) performanceClass = 'warning';
+                                                    else performanceClass = 'danger';
+                                                %>
+                                                <tr>
+                                                    <td><%= new Date(assessment.date).toLocaleDateString() %></td>
+                                                    <td><%= assessment.subject %></td>
+                                                    <td>
+                                                        <span class="badge rounded-pill bg-light text-dark">
+                                                            <%= assessment.type %>
+                                                        </span>
+                                                    </td>
+                                                    <td><%= assessment.name %></td>
+                                                    <td>
+                                                        <%= assessment.score %> / <%= assessment.maxScore %>
+                                                        <small class="text-muted">(<%= Math.round(assessment.percentage) %>%)</small>
+                                                    </td>
                                                     <td>
                                                         <div class="progress" style="height: 10px;">
                                                             <div class="progress-bar bg-<%= performanceClass %>" role="progressbar" 
-                                                                 style="width: <%= score %>%;" 
-                                                                 aria-valuenow="<%= score %>" 
-                                                                 aria-valuemin="0" 
-                                                                 aria-valuemax="100"></div>
+                                                                style="width: <%= assessment.percentage %>%;" 
+                                                                aria-valuenow="<%= assessment.percentage %>" 
+                                                                aria-valuemin="0" 
+                                                                aria-valuemax="100"></div>
                                                         </div>
                                                     </td>
                                                 </tr>
-                                            <% }); %>
-                                        </tbody>
-                                    </table>
+                                                <% }); %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                <% } else { %>
+                                    <div class="alert alert-info mb-0">
+                                        <i class="bi bi-info-circle me-2"></i> No recent assessments available.
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Semester Tabs -->
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <div class="info-card">
+                                <div class="section-title">Semester Performance</div>
+                                <ul class="nav nav-tabs" id="semesterTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="semester1-tab" data-bs-toggle="tab" 
+                                            data-bs-target="#semester1" type="button" role="tab" 
+                                            aria-controls="semester1" aria-selected="true">
+                                            Semester 1
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="semester2-tab" data-bs-toggle="tab" 
+                                            data-bs-target="#semester2" type="button" role="tab" 
+                                            aria-controls="semester2" aria-selected="false">
+                                            Semester 2
+                                        </button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content pt-3" id="semesterTabsContent">
+                                    <!-- Semester 1 Tab -->
+                                    <div class="tab-pane fade show active" id="semester1" role="tabpanel" aria-labelledby="semester1-tab">
+                                        <% if (gradesData.semesterData[1].subjects.length > 0) { %>
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-hover">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Subject</th>
+                                                            <th>Average Score</th>
+                                                            <th>Performance</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% gradesData.semesterData[1].subjects.forEach(subject => { 
+                                                            let performanceClass = 'secondary';
+                                                            if (subject.score >= 90) performanceClass = 'success';
+                                                            else if (subject.score >= 80) performanceClass = 'primary';
+                                                            else if (subject.score >= 70) performanceClass = 'info';
+                                                            else if (subject.score >= 60) performanceClass = 'warning';
+                                                            else performanceClass = 'danger';
+                                                        %>
+                                                        <tr>
+                                                            <td><%= subject.name %></td>
+                                                            <td><%= subject.score %>%</td>
+                                                            <td>
+                                                                <div class="progress" style="height: 10px;">
+                                                                    <div class="progress-bar bg-<%= performanceClass %>" role="progressbar" 
+                                                                        style="width: <%= subject.score %>%;" 
+                                                                        aria-valuenow="<%= subject.score %>" 
+                                                                        aria-valuemin="0" 
+                                                                        aria-valuemax="100"></div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <% }); %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        <% } else { %>
+                                            <div class="alert alert-info mb-0">
+                                                <i class="bi bi-info-circle me-2"></i> No grades available for Semester 1.
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                    
+                                    <!-- Semester 2 Tab -->
+                                    <div class="tab-pane fade" id="semester2" role="tabpanel" aria-labelledby="semester2-tab">
+                                        <% if (gradesData.semesterData[2].subjects.length > 0) { %>
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-hover">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Subject</th>
+                                                            <th>Average Score</th>
+                                                            <th>Performance</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% gradesData.semesterData[2].subjects.forEach(subject => { 
+                                                            let performanceClass = 'secondary';
+                                                            if (subject.score >= 90) performanceClass = 'success';
+                                                            else if (subject.score >= 80) performanceClass = 'primary';
+                                                            else if (subject.score >= 70) performanceClass = 'info';
+                                                            else if (subject.score >= 60) performanceClass = 'warning';
+                                                            else performanceClass = 'danger';
+                                                        %>
+                                                        <tr>
+                                                            <td><%= subject.name %></td>
+                                                            <td><%= subject.score %>%</td>
+                                                            <td>
+                                                                <div class="progress" style="height: 10px;">
+                                                                    <div class="progress-bar bg-<%= performanceClass %>" role="progressbar" 
+                                                                        style="width: <%= subject.score %>%;" 
+                                                                        aria-valuenow="<%= subject.score %>" 
+                                                                        aria-valuemin="0" 
+                                                                        aria-valuemax="100"></div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <% }); %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        <% } else { %>
+                                            <div class="alert alert-info mb-0">
+                                                <i class="bi bi-info-circle me-2"></i> No grades available for Semester 2.
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Subject Performance -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="info-card">
+                                <div class="section-title">Detailed Subject Performance</div>
+                                <div class="accordion" id="subjectsAccordion">
+                                    <% 
+                                    // Group grades by subject
+                                    const subjectGrades = {};
+                                    gradesData.detailedGrades.forEach(grade => {
+                                        if (!subjectGrades[grade.subject]) {
+                                            subjectGrades[grade.subject] = [];
+                                        }
+                                        subjectGrades[grade.subject].push(grade);
+                                    });
+                                    
+                                    // For each subject
+                                    Object.keys(subjectGrades).forEach((subject, index) => {
+                                        const grades = subjectGrades[subject];
+                                        const latestGrade = grades[0]; // Already sorted by date (newest first)
+                                        const score = latestGrade.overallPercentage;
+                                        
+                                        let performanceClass = 'secondary';
+                                        if (score >= 90) performanceClass = 'success';
+                                        else if (score >= 80) performanceClass = 'primary';
+                                        else if (score >= 70) performanceClass = 'info';
+                                        else if (score >= 60) performanceClass = 'warning';
+                                        else performanceClass = 'danger';
+                                    %>
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="heading<%= index %>">
+                                            <button class="accordion-button <%= index > 0 ? 'collapsed' : '' %>" type="button" data-bs-toggle="collapse" 
+                                                data-bs-target="#collapse<%= index %>" aria-expanded="<%= index === 0 ? 'true' : 'false' %>" 
+                                                aria-controls="collapse<%= index %>">
+                                                <div class="d-flex justify-content-between align-items-center w-100">
+                                                    <span><strong><%= subject %></strong></span>
+                                                    <span class="badge bg-<%= performanceClass %> ms-2"><%= score %>%</span>
+                                                </div>
+                                            </button>
+                                        </h2>
+                                        <div id="collapse<%= index %>" class="accordion-collapse collapse <%= index === 0 ? 'show' : '' %>" 
+                                            aria-labelledby="heading<%= index %>" data-bs-parent="#subjectsAccordion">
+                                            <div class="accordion-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <h6 class="mb-3">Grade Components</h6>
+                                                        <table class="table table-sm table-bordered">
+                                                            <thead class="table-light">
+                                                                <tr>
+                                                                    <th>Component</th>
+                                                                    <th>Score</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <% if (latestGrade.midterms && latestGrade.midterms.length > 0) { %>
+                                                                    <% latestGrade.midterms.forEach(midterm => { %>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <span class="badge bg-light text-dark">Midterm</span>
+                                                                            <%= midterm.name %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <%= midterm.score || 0 %> / <%= midterm.maxScore || 0 %>
+                                                                            <% if (midterm.maxScore) { %>
+                                                                                (<%= Math.round((midterm.score / midterm.maxScore) * 100) %>%)
+                                                                            <% } %>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <% }); %>
+                                                                <% } %>
+                                                                
+                                                                <% if (latestGrade.quizzes && latestGrade.quizzes.length > 0) { %>
+                                                                    <% latestGrade.quizzes.forEach(quiz => { %>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <span class="badge bg-light text-dark">Quiz</span>
+                                                                            <%= quiz.name %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <%= quiz.score || 0 %> / <%= quiz.maxScore || 0 %>
+                                                                            <% if (quiz.maxScore) { %>
+                                                                                (<%= Math.round((quiz.score / quiz.maxScore) * 100) %>%)
+                                                                            <% } %>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <% }); %>
+                                                                <% } %>
+                                                                
+                                                                <% if (latestGrade.assignments && latestGrade.assignments.length > 0) { %>
+                                                                    <% latestGrade.assignments.forEach(assignment => { %>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <span class="badge bg-light text-dark">Assignment</span>
+                                                                            <%= assignment.name %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <%= assignment.score || 0 %> / <%= assignment.maxScore || 0 %>
+                                                                            <% if (assignment.maxScore) { %>
+                                                                                (<%= Math.round((assignment.score / assignment.maxScore) * 100) %>%)
+                                                                            <% } %>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <% }); %>
+                                                                <% } %>
+                                                                
+                                                                <% if (latestGrade.classParticipation && latestGrade.classParticipation.maxScore) { %>
+                                                                <tr>
+                                                                    <td>
+                                                                        <span class="badge bg-light text-dark">Participation</span>
+                                                                        Class Participation
+                                                                    </td>
+                                                                    <td>
+                                                                        <%= latestGrade.classParticipation.score || 0 %> / <%= latestGrade.classParticipation.maxScore %>
+                                                                        <% if (latestGrade.classParticipation.maxScore) { %>
+                                                                            (<%= Math.round((latestGrade.classParticipation.score / latestGrade.classParticipation.maxScore) * 100) %>%)
+                                                                        <% } %>
+                                                                    </td>
+                                                                </tr>
+                                                                <% } %>
+                                                                
+                                                                <% if (latestGrade.finalExam && latestGrade.finalExam.maxScore) { %>
+                                                                <tr>
+                                                                    <td>
+                                                                        <span class="badge bg-light text-dark">Final</span>
+                                                                        Final Exam
+                                                                        <% if (latestGrade.finalExam.status === 'Pending') { %>
+                                                                            <span class="badge bg-warning text-dark">Pending</span>
+                                                                        <% } %>
+                                                                    </td>
+                                                                    <td>
+                                                                        <% if (latestGrade.finalExam.status === 'Completed') { %>
+                                                                            <%= latestGrade.finalExam.score || 0 %> / <%= latestGrade.finalExam.maxScore %>
+                                                                            <% if (latestGrade.finalExam.maxScore) { %>
+                                                                                (<%= Math.round((latestGrade.finalExam.score / latestGrade.finalExam.maxScore) * 100) %>%)
+                                                                            <% } %>
+                                                                        <% } else { %>
+                                                                            Not completed
+                                                                        <% } %>
+                                                                    </td>
+                                                                </tr>
+                                                                <% } %>
+                                                            </tbody>
+                                                            <tfoot class="table-light">
+                                                                <tr>
+                                                                    <th>Overall</th>
+                                                                    <th><%= latestGrade.overallPercentage %>%</th>
+                                                                </tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h6 class="mb-3">Grade Progress</h6>
+                                                        <% if (latestGrade.gradeProgress && latestGrade.gradeProgress.length > 0) { %>
+                                                            <div style="height: 200px;">
+                                                                <canvas id="progressChart<%= index %>"></canvas>
+                                                            </div>
+                                                            <script>
+                                                                document.addEventListener('DOMContentLoaded', function() {
+                                                                    const progressCtx<%= index %> = document.getElementById('progressChart<%= index %>').getContext('2d');
+                                                                    const progressData<%= index %> = {
+                                                                        labels: [
+                                                                            <% latestGrade.gradeProgress.forEach(progress => { %>
+                                                                                '<%= new Date(progress.date).toLocaleDateString() %>',
+                                                                            <% }); %>
+                                                                        ],
+                                                                        datasets: [{
+                                                                            label: 'Grade Progress',
+                                                                            data: [
+                                                                                <% latestGrade.gradeProgress.forEach(progress => { %>
+                                                                                    <%= progress.percentage %>,
+                                                                                <% }); %>
+                                                                            ],
+                                                                            borderColor: '#3498db',
+                                                                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                                                                            fill: true,
+                                                                            tension: 0.4
+                                                                        }]
+                                                                    };
+                                                                    
+                                                                    new Chart(progressCtx<%= index %>, {
+                                                                        type: 'line',
+                                                                        data: progressData<%= index %>,
+                                                                        options: {
+                                                                            responsive: true,
+                                                                            maintainAspectRatio: false,
+                                                                            scales: {
+                                                                                y: {
+                                                                                    beginAtZero: true,
+                                                                                    max: 100,
+                                                                                    title: {
+                                                                                        display: true,
+                                                                                        text: 'Percentage'
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    });
+                                                                });
+                                                            </script>
+                                                        <% } else { %>
+                                                            <div class="alert alert-info">
+                                                                <i class="bi bi-info-circle me-2"></i> No progress data available.
+                                                            </div>
+                                                        <% } %>
+                                                        
+                                                        <div class="mt-3">
+                                                            <h6>Additional Information</h6>
+                                                            <table class="table table-sm">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <th>Teacher</th>
+                                                                        <td><%= latestGrade.teacher || 'Not assigned' %></td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Letter Grade</th>
+                                                                        <td><%= latestGrade.letterGrade || '-' %></td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Academic Year</th>
+                                                                        <td><%= latestGrade.academicYear %></td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Semester</th>
+                                                                        <td><%= latestGrade.semester %></td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% }); %>
                                 </div>
                             </div>
                         </div>
@@ -846,8 +1222,55 @@
                                                         </span>
                                                     </div>
                                                 </div>
+                                                
+                                                <!-- Date Search Feature -->
+                                                <div class="row mb-3 mt-2">
+                                                    <div class="col-md-12">
+                                                        <div class="card">
+                                                            <div class="card-body p-3">
+                                                                <h6 class="mb-3"><i class="bi bi-search me-2"></i>Search Attendance Records</h6>
+                                                                <div class="row g-2">
+                                                                    <div class="col-md-4">
+                                                                        <div class="form-group">
+                                                                            <label for="startDate" class="form-label">From Date</label>
+                                                                            <input type="date" id="startDate" class="form-control form-control-sm">
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-4">
+                                                                        <div class="form-group">
+                                                                            <label for="endDate" class="form-label">To Date</label>
+                                                                            <input type="date" id="endDate" class="form-control form-control-sm">
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-4">
+                                                                        <div class="form-group">
+                                                                            <label for="statusFilter" class="form-label">Status</label>
+                                                                            <select id="statusFilter" class="form-select form-select-sm">
+                                                                                <option value="all">All Statuses</option>
+                                                                                <option value="present">Present</option>
+                                                                                <option value="absent">Absent</option>
+                                                                                <option value="late">Late</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row mt-2">
+                                                                    <div class="col-md-12">
+                                                                        <button id="searchAttendance" class="btn btn-sm btn-primary">
+                                                                            <i class="bi bi-search me-1"></i> Search
+                                                                        </button>
+                                                                        <button id="resetAttendanceSearch" class="btn btn-sm btn-outline-secondary ms-2">
+                                                                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 <div class="table-responsive">
-                                                    <table class="table table-bordered table-hover">
+                                                    <table class="table table-bordered table-hover" id="attendanceTable">
                                                         <thead class="table-light">
                                                             <tr>
                                                                 <th>Date</th>
@@ -869,7 +1292,9 @@
                                                                         attendance.status === 'present' ? 'check-circle-fill' : 
                                                                         attendance.status === 'absent' ? 'x-circle-fill' : 'exclamation-circle-fill';
                                                             %>
-                                                                <tr>
+                                                                <tr class="attendance-row" 
+                                                                    data-date="<%= date.toISOString().split('T')[0] %>" 
+                                                                    data-status="<%= attendance.status %>">
                                                                     <td><%= date.toLocaleDateString() %></td>
                                                                     <td><%= date.toLocaleDateString('en-US', {weekday: 'long'}) %></td>
                                                                     <td>
@@ -881,7 +1306,7 @@
                                                                     <td><%= attendance.remarks || '-' %></td>
                                                                 </tr>
                                                             <% })} else { %>
-                                                                <tr>
+                                                                <tr id="noAttendanceRow">
                                                                     <td colspan="4" class="text-center">No attendance records available for this student.</td>
                                                                 </tr>
                                                             <% } %>
@@ -891,7 +1316,7 @@
                                                 
                                                 <!-- Pagination Controls -->
                                                 <% if (attendancePagination && attendancePagination.totalPages > 1) { %>
-                                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                                <div class="d-flex justify-content-between align-items-center mt-3 attendance-pagination">
                                                     <div class="pagination-info">
                                                         Showing <%= Math.min((attendancePagination.page - 1) * attendancePagination.limit + 1, attendancePagination.total) %> 
                                                         to <%= Math.min(attendancePagination.page * attendancePagination.limit, attendancePagination.total) %>
@@ -1324,6 +1749,170 @@
         // Edit student redirect
         document.getElementById('edit-student-btn').addEventListener('click', function() {
             window.location.href = `/admin/students/<%= student._id %>/edit`;
+        });
+        
+        // Attendance Search Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get references to search form elements
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const statusFilter = document.getElementById('statusFilter');
+            const searchBtn = document.getElementById('searchAttendance');
+            const resetBtn = document.getElementById('resetAttendanceSearch');
+            const attendanceRows = document.querySelectorAll('.attendance-row');
+            const noAttendanceRow = document.getElementById('noAttendanceRow');
+            const attendanceTable = document.getElementById('attendanceTable');
+            
+            // Set default date range (last 30 days)
+            const today = new Date();
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            
+            // Format dates for input fields
+            const formatDateForInput = (date) => {
+                return date.toISOString().split('T')[0];
+            };
+            
+            // Initialize with default values
+            endDateInput.value = formatDateForInput(today);
+            
+            // Search function
+            const searchAttendance = () => {
+                const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
+                const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
+                const status = statusFilter.value;
+                
+                // Add one day to end date to include the end date in results
+                if (endDate) {
+                    endDate.setDate(endDate.getDate() + 1);
+                }
+                
+                let visibleCount = 0;
+                
+                // Loop through all attendance rows and filter
+                attendanceRows.forEach(row => {
+                    const rowDate = new Date(row.getAttribute('data-date'));
+                    const rowStatus = row.getAttribute('data-status');
+                    
+                    let showRow = true;
+                    
+                    // Filter by date range
+                    if (startDate && rowDate < startDate) {
+                        showRow = false;
+                    }
+                    
+                    if (endDate && rowDate > endDate) {
+                        showRow = false;
+                    }
+                    
+                    // Filter by status
+                    if (status !== 'all' && rowStatus !== status) {
+                        showRow = false;
+                    }
+                    
+                    // Show or hide the row
+                    row.style.display = showRow ? '' : 'none';
+                    
+                    // Count visible rows
+                    if (showRow) {
+                        visibleCount++;
+                    }
+                });
+                
+                // Show "no records" message if no visible rows
+                if (noAttendanceRow) {
+                    if (visibleCount === 0 && attendanceRows.length > 0) {
+                        // Create a new row if it doesn't exist
+                        let noMatchRow = attendanceTable.querySelector('.no-match-row');
+                        if (!noMatchRow) {
+                            const tbody = attendanceTable.querySelector('tbody');
+                            noMatchRow = document.createElement('tr');
+                            noMatchRow.className = 'no-match-row';
+                            noMatchRow.innerHTML = '<td colspan="4" class="text-center">No matching attendance records found.</td>';
+                            tbody.appendChild(noMatchRow);
+                        }
+                        noMatchRow.style.display = '';
+                        
+                        // Hide existing rows
+                        attendanceRows.forEach(row => {
+                            row.style.display = 'none';
+                        });
+                    } else {
+                        // Hide the "no match" row if we have visible results
+                        const noMatchRow = attendanceTable.querySelector('.no-match-row');
+                        if (noMatchRow) {
+                            noMatchRow.style.display = 'none';
+                        }
+                    }
+                }
+                
+                // Update the count display
+                const countDisplay = document.querySelector('.badge.rounded-pill.bg-light.text-dark');
+                if (countDisplay) {
+                    countDisplay.textContent = `Showing: ${visibleCount} of <%= attendanceStats.total %> records`;
+                }
+                
+                // Hide pagination when filtering
+                const paginationContainer = document.querySelector('.attendance-pagination');
+                if (paginationContainer) {
+                    paginationContainer.style.display = 'none';
+                }
+            };
+            
+            // Reset search function
+            const resetSearch = () => {
+                startDateInput.value = '';
+                endDateInput.value = formatDateForInput(today);
+                statusFilter.value = 'all';
+                
+                // Show all rows
+                attendanceRows.forEach(row => {
+                    row.style.display = '';
+                });
+                
+                // Hide the "no match" row
+                const noMatchRow = attendanceTable.querySelector('.no-match-row');
+                if (noMatchRow) {
+                    noMatchRow.style.display = 'none';
+                }
+                
+                // Reset the count display
+                const countDisplay = document.querySelector('.badge.rounded-pill.bg-light.text-dark');
+                if (countDisplay) {
+                    countDisplay.textContent = `Total: <%= attendanceStats.total %> records`;
+                }
+                
+                // Show pagination again
+                const paginationContainer = document.querySelector('.attendance-pagination');
+                if (paginationContainer) {
+                    paginationContainer.style.display = '';
+                }
+            };
+            
+            // Add event listeners
+            if (searchBtn) {
+                searchBtn.addEventListener('click', searchAttendance);
+            }
+            
+            if (resetBtn) {
+                resetBtn.addEventListener('click', resetSearch);
+            }
+            
+            // Also search when pressing Enter in the date inputs
+            [startDateInput, endDateInput].forEach(input => {
+                if (input) {
+                    input.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            searchAttendance();
+                        }
+                    });
+                }
+            });
+            
+            // Search when changing the status filter
+            if (statusFilter) {
+                statusFilter.addEventListener('change', searchAttendance);
+            }
         });
         
         // Charts initialization

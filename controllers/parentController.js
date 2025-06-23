@@ -199,7 +199,7 @@ const sendMoney = async (req,res) =>{
         }
 
         
-        transaction.status = 'Completed';
+        transaction.status = 'completed';
         await transaction.save();
 
         parent.balance -= amount;
@@ -466,9 +466,25 @@ const approveTransaction = async (req, res) => {
 const rejectTransaction = async (req, res) => {
   const { parent } = req;
   const { transactionId } = req.params;
-  const { reason } = req.body;
+  const { pinCode, reason } = req.body;
   
   try {
+     // Validate pin code
+    if (!pinCode) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Pin code is required' 
+      });
+    }
+    
+    if (parent.pinCode !== pinCode) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid pin code' 
+      });
+    }
+  
+
     // Find the transaction
     const transaction = await Transaction.findById(transactionId);
     

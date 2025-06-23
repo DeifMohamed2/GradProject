@@ -913,7 +913,10 @@ const getStudentDetails = async (req, res) => {
     // Get student with all referenced data
     const student = await Student.findById(id)
       .populate('parent', 'firstName lastName email phoneNumber parentCode relationshipToStudent')
-      .populate('Grades')
+      .populate({
+        path: 'Grades',
+        options: { sort: { createdAt: -1 } } // Sort by date descending
+      })
       .populate({
         path: 'attendances',
         options: { sort: { date: -1 } } // Sort by date descending but load all records for stats calculation
@@ -1000,36 +1003,223 @@ const getStudentDetails = async (req, res) => {
     let gradesData = {
       subjects: [],
       scores: [],
-      averageScore: 0
+      averageScore: 0,
+      semesterData: {
+        1: { subjects: [], averageScore: 0 },
+        2: { subjects: [], averageScore: 0 }
+      },
+      detailedGrades: [],
+      latestAssessments: []
     };
     
     if (student.Grades && student.Grades.length > 0) {
-      // Group grades by subject
+      // Group grades by subject and semester
       const subjectScores = {};
-      student.Grades.forEach(grade => {
-        if (!subjectScores[grade.subject]) {
-          subjectScores[grade.subject] = [];
-        }
-        subjectScores[grade.subject].push(grade.score || grade.grade);
-      });
-      
-      // Calculate average for each subject
+      const semesterScores = { 1: {}, 2: {} };
       let totalScore = 0;
       let scoreCount = 0;
       
+      // Collect all assessments across all grades
+      const allAssessments = [];
+      
+      // Process all grades
+      student.Grades.forEach(grade => {
+        // Calculate overall percentage if not already set
+        let overallScore = grade.overallPercentage;
+        if (!overallScore) {
+          // Calculate from components if available
+          let totalPoints = 0;
+          let earnedPoints = 0;
+          
+          // Add midterms
+          if (grade.midterms && grade.midterms.length > 0) {
+            grade.midterms.forEach(midterm => {
+              totalPoints += midterm.maxScore || 0;
+              earnedPoints += midterm.score || 0;
+            });
+          }
+          
+          // Add quizzes
+          if (grade.quizzes && grade.quizzes.length > 0) {
+            grade.quizzes.forEach(quiz => {
+              totalPoints += quiz.maxScore || 0;
+              earnedPoints += quiz.score || 0;
+            });
+          }
+          
+          // Add assignments
+          if (grade.assignments && grade.assignments.length > 0) {
+            grade.assignments.forEach(assignment => {
+              totalPoints += assignment.maxScore || 0;
+              earnedPoints += assignment.score || 0;
+            });
+          }
+          
+          // Add class participation
+          if (grade.classParticipation) {
+            totalPoints += grade.classParticipation.maxScore || 0;
+            earnedPoints += grade.classParticipation.score || 0;
+          }
+          
+          // Add final exam
+          if (grade.finalExam) {
+            totalPoints += grade.finalExam.maxScore || 0;
+            earnedPoints += grade.finalExam.score || 0;
+          }
+          
+          // Calculate percentage
+          overallScore = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
+        }
+        
+        // Store the calculated or provided overall percentage
+        const scoreValue = Math.round(overallScore * 10) / 10; // Round to 1 decimal place
+        
+        // Group by subject
+        if (!subjectScores[grade.subject]) {
+          subjectScores[grade.subject] = [];
+        }
+        subjectScores[grade.subject].push(scoreValue);
+        
+        // Group by semester
+        if (!semesterScores[grade.semester][grade.subject]) {
+          semesterScores[grade.semester][grade.subject] = [];
+        }
+        semesterScores[grade.semester][grade.subject].push(scoreValue);
+        
+        // Add to detailed grades array
+        gradesData.detailedGrades.push({
+          id: grade._id,
+          subject: grade.subject,
+          semester: grade.semester,
+          academicYear: grade.academicYear,
+          teacher: grade.teacher,
+          letterGrade: grade.letterGrade,
+          overallPercentage: scoreValue,
+          midterms: grade.midterms || [],
+          quizzes: grade.quizzes || [],
+          assignments: grade.assignments || [],
+          classParticipation: grade.classParticipation || { score: 0, maxScore: 0 },
+          finalExam: grade.finalExam || { score: 0, maxScore: 0, status: 'Pending' },
+          gradeProgress: grade.gradeProgress || []
+        });
+        
+        // Collect recent assessments for quick view
+        const gradeAssessments = [];
+        
+        // Add midterms
+        if (grade.midterms && grade.midterms.length > 0) {
+          grade.midterms.forEach(midterm => {
+            if (midterm.date && midterm.name) {
+              gradeAssessments.push({
+                type: 'Midterm',
+                name: midterm.name,
+                subject: grade.subject,
+                date: midterm.date,
+                score: midterm.score || 0,
+                maxScore: midterm.maxScore || 0,
+                percentage: midterm.maxScore ? (midterm.score / midterm.maxScore) * 100 : 0
+              });
+            }
+          });
+        }
+        
+        // Add quizzes
+        if (grade.quizzes && grade.quizzes.length > 0) {
+          grade.quizzes.forEach(quiz => {
+            if (quiz.date && quiz.name) {
+              gradeAssessments.push({
+                type: 'Quiz',
+                name: quiz.name,
+                subject: grade.subject,
+                date: quiz.date,
+                score: quiz.score || 0,
+                maxScore: quiz.maxScore || 0,
+                percentage: quiz.maxScore ? (quiz.score / quiz.maxScore) * 100 : 0
+              });
+            }
+          });
+        }
+        
+        // Add assignments
+        if (grade.assignments && grade.assignments.length > 0) {
+          grade.assignments.forEach(assignment => {
+            if (assignment.date && assignment.name) {
+              gradeAssessments.push({
+                type: 'Assignment',
+                name: assignment.name,
+                subject: grade.subject,
+                date: assignment.date,
+                score: assignment.score || 0,
+                maxScore: assignment.maxScore || 0,
+                percentage: assignment.maxScore ? (assignment.score / assignment.maxScore) * 100 : 0
+              });
+            }
+          });
+        }
+        
+        // Add final exam if completed
+        if (grade.finalExam && grade.finalExam.date && grade.finalExam.status === 'Completed') {
+          gradeAssessments.push({
+            type: 'Final Exam',
+            name: 'Final Exam',
+            subject: grade.subject,
+            date: grade.finalExam.date,
+            score: grade.finalExam.score || 0,
+            maxScore: grade.finalExam.maxScore || 0,
+            percentage: grade.finalExam.maxScore ? (grade.finalExam.score / grade.finalExam.maxScore) * 100 : 0
+          });
+        }
+        
+        // Add to total for overall average
+        totalScore += scoreValue;
+        scoreCount++;
+        
+        // Add this grade's assessments to the overall collection
+        allAssessments.push(...gradeAssessments);
+      });
+      
+      // Get latest 5 assessments sorted by date
+      if (allAssessments.length > 0) {
+        gradesData.latestAssessments = allAssessments
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .slice(0, 5);
+      }
+      
+      // Calculate subject averages for overall view
       Object.keys(subjectScores).forEach(subject => {
         const scores = subjectScores[subject];
         const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
         
         gradesData.subjects.push(subject);
         gradesData.scores.push(Math.round(avgScore * 10) / 10); // Round to 1 decimal place
+      });
+      
+      // Calculate semester averages
+      [1, 2].forEach(semester => {
+        let semTotalScore = 0;
+        let semScoreCount = 0;
         
-        totalScore += avgScore;
-        scoreCount++;
+        Object.keys(semesterScores[semester]).forEach(subject => {
+          const scores = semesterScores[semester][subject];
+          if (scores.length > 0) {
+            const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+            
+            gradesData.semesterData[semester].subjects.push({
+              name: subject,
+              score: Math.round(avgScore * 10) / 10
+            });
+            
+            semTotalScore += avgScore;
+            semScoreCount++;
+          }
+        });
+        
+        gradesData.semesterData[semester].averageScore = 
+          semScoreCount > 0 ? Math.round((semTotalScore / semScoreCount) * 10) / 10 : 0;
       });
       
       // Calculate overall average
-      gradesData.averageScore = Math.round((totalScore / scoreCount) * 10) / 10 || 0;
+      gradesData.averageScore = scoreCount > 0 ? Math.round((totalScore / scoreCount) * 10) / 10 : 0;
     }
     
     // Process expense data

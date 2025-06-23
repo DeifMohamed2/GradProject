@@ -27,8 +27,8 @@ async function seedSpecificGrades() {
     console.log('Starting to seed grades for specific parent children...');
     
     // Get the specific parent by username from the image
-    const parentUsername = "porter.connelly";
-    const parent = await Parent.findOne({ username: parentUsername }).populate('childs');
+    const parentUsername = "hector_schneider@gmail.com";
+    const parent = await Parent.findOne({ email: parentUsername }).populate('childs');
     
     if (!parent) {
       console.error(`Parent with username ${parentUsername} not found`);
