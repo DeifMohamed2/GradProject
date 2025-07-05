@@ -156,7 +156,11 @@ def delete_encoding():
 
 @app.route('/verify-face', methods=['POST'])
 def verify_face():
+    # Debug log the request
+    print("Received verify-face request with data:", request.json)
+    
     if 'photoPath' not in request.json or 'studentId' not in request.json:
+        print(f"Missing required parameters. Received: {list(request.json.keys())}")
         return jsonify({'error': 'Missing required parameters'}), 400
     
     photo_path = request.json['photoPath']

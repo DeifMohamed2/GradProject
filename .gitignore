@@ -1,3 +1,5 @@
 .env
 node_modules
 git pull --rebase
+
+python_service/venv

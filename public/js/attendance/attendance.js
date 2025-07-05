@@ -19,6 +19,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const manualVerificationResultElement = document.getElementById('manual-verification-result');
     const printBtn = document.getElementById('print-btn');
     
+    // New Manual Mode Automation Elements
+    const startManualSystemBtn = document.getElementById('start-manual-system');
+    const resetManualSystemBtn = document.getElementById('reset-manual-system');
+    const manualStatusOverlay = document.getElementById('manual-status-overlay');
+    const manualStatusMessage = document.getElementById('manual-status-message');
+    const manualRfidInputContainer = document.getElementById('manual-rfid-input-container');
+    const manualRfidDirectInput = document.getElementById('manual-rfid-direct-input');
+    
     // DOM Elements - Automated Mode
     const autoWebcamElement = document.getElementById('auto-webcam');
     const autoCanvasElement = document.getElementById('auto-canvas');
@@ -57,6 +65,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let socket = null;
     let systemActive = false;
     let faceCaptureInterval = null;
+    let autoRefreshInterval = null;
+    let manualSystemActive = false;
+    let manualFaceCaptureInterval = null;
+    let faceDetected = false;
+    let faceTrackingTimeout = null;
+    let autoCaptureCooldown = false;
+
+    // Default avatar for missing student photos
+    const DEFAULT_AVATAR = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgNjQwIDY0MCI+PHBhdGggZmlsbD0iI2RkZCIgZD0iTTMyMCAzMmMxNzYuNzIgMCAzMjAgMTQzLjI4IDMyMCAzMjBTNDk2LjcyIDY3MiAzMjAgNjcyIDAgNTI4LjcyIDAgMzUyIDEzMy4yOCAzMiAzMjAgMzJ6Ii8+PHBhdGggZmlsbD0iIzU1NSIgZD0iTTMyMCAzMDRjNTUuNTUgMCAxMDAtNDQuNDUgMTAwLTEwMHMtNDQuNDUtMTAwLTEwMC0xMDAtMTAwIDQ0LjQ1LTEwMCAxMDAgNDQuNDUgMTAwIDEwMCAxMDB6bTAgNTBjLTY2LjI3IDAtMjAwIDMzLjczLTIwMCAxMDB2NTBoNDAwdi01MGMwLTY2LjI3LTEzMy43My0xMDAtMjAwLTEwMHoiLz48L3N2Zz4=';
 
     // Initialize the page
     initPage();
@@ -91,6 +108,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Shared event listeners
         refreshAttendanceBtn.addEventListener('click', loadTodaysAttendance);
+        
+        // Connect to RFID events
+        connectToRfidEvents();
+        
+        // Initialize socket for real-time updates
+        initializeSocket();
+        
+        // Set up auto-refresh for attendance table
+        startAutoRefresh();
     }
     
     // Initialize Manual Mode
@@ -104,6 +130,17 @@ document.addEventListener('DOMContentLoaded', () => {
         initRfidBtn.addEventListener('click', initializeRfidReader);
         submitRfidBtn.addEventListener('click', simulateRfidCard);
         printBtn.addEventListener('click', printAttendance);
+        
+        // New automated manual mode event listeners
+        startManualSystemBtn.addEventListener('click', startAutomatedManualSystem);
+        resetManualSystemBtn.addEventListener('click', resetAutomatedManualSystem);
+        
+        // Direct RFID input event listener for manual mode
+        manualRfidDirectInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitManualDirectRfid();
+            }
+        });
     }
     
     // Initialize Automated Mode
@@ -146,6 +183,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.rfidCardId) {
                 console.log('RFID card detected:', data.rfidCardId);
                 manualRfidCardIdElement.textContent = data.rfidCardId;
+                
+                // If in automated manual mode, process the RFID
+                if (manualSystemActive) {
+                    handleManualRfidDetection(data.rfidCardId);
+                }
                 
                 // If student data is available, display it
                 if (data.student) {
@@ -416,8 +458,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Simulate RFID card for manual mode
+    // Simulate RFID card detection
     async function simulateRfidCard() {
+        const rfidInput = document.getElementById('rfid-input');
         const rfidCardId = rfidInput.value.trim();
         
         if (!rfidCardId) {
@@ -425,42 +468,28 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
+        // Update UI to show RFID card detected
+        updateManualRfidStatus('connected', rfidCardId);
+        
+        // Close the modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('simulateRfidModal'));
+        modal.hide();
+        
+        // Clear the input
+        rfidInput.value = '';
+        
         try {
-            submitRfidBtn.disabled = true;
-            submitRfidBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+            // Fetch student by RFID
+            const student = await fetchStudentByRfid(rfidCardId);
             
-            const response = await fetch('/api/rfid/simulate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ rfidCardId })
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                // Close the modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('simulateRfidModal'));
-                modal.hide();
-                
-                // Clear the input
-                rfidInput.value = '';
-                
-                // Update the UI
-                manualRfidCardIdElement.textContent = rfidCardId;
-                
-                // Fetch student data
-                fetchStudentByRfid(rfidCardId);
+            if (student) {
+                displayStudentInfo(student);
             } else {
-                alert(`Failed to simulate RFID card: ${data.message}`);
+                displayNoStudentFound('No student found with this RFID card');
             }
         } catch (error) {
-            console.error('Error simulating RFID card:', error);
-            alert('Failed to simulate RFID card. Check console for details.');
-        } finally {
-            submitRfidBtn.disabled = false;
-            submitRfidBtn.textContent = 'Submit';
+            console.error('Error fetching student:', error);
+            displayNoStudentFound('Error fetching student data');
         }
     }
     
@@ -496,47 +525,72 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 const student = await response.json();
                 displayStudentInfo(student);
+                return student;
             } else {
                 const errorData = await response.json();
                 displayNoStudentFound(errorData.message || 'Student not found');
+                return null;
             }
         } catch (error) {
             console.error('Error fetching student:', error);
             displayNoStudentFound('Error fetching student data');
+            return null;
         }
     }
 
-    // Display student information for manual mode
+    // Display student information
     function displayStudentInfo(student) {
+        document.getElementById('no-student-message').style.display = 'none';
+        document.getElementById('student-details').style.display = 'block';
+        
+        // Handle missing data with fallbacks
+        const studentName = student.name || (student.firstName && student.lastName ? `${student.firstName} ${student.lastName}` : 'Unknown');
+        const studentCode = student.studentCode || student.studentId || 'N/A';
+        const department = student.department || 'N/A';
+        
+        // Set student information
+        document.getElementById('student-name').textContent = studentName;
+        document.getElementById('student-id').textContent = `Code: ${studentCode}`;
+        document.getElementById('student-department').textContent = `Department: ${department}`;
+        
+        // Set photo or default
+        const photoElement = document.getElementById('student-photo');
+        if (student.photoUrl) {
+            photoElement.src = student.photoUrl;
+        } else {
+            photoElement.src = DEFAULT_AVATAR;
+        }
+        
+        // Enable capture button
+        document.getElementById('capture-photo').disabled = false;
+        
+        // Store current student
         currentStudent = student;
         
-        // Show student details and hide no-student message
-        studentDetailsElement.style.display = 'block';
-        noStudentMessageElement.style.display = 'none';
-        
-        // Set student information
-        studentPhotoElement.src = student.photoUrl;
-        studentNameElement.textContent = student.name;
-        studentIdElement.textContent = `ID: ${student.studentId}`;
-        studentDepartmentElement.textContent = `Department: ${student.department}`;
-        
         // Hide verification result
-        manualVerificationResultElement.style.display = 'none';
-        
-        // Enable camera button
-        startCameraBtn.disabled = false;
+        document.getElementById('manual-verification-result').style.display = 'none';
     }
     
-    // Display student information for automated mode
+    // Display student info for automated mode
     function displayAutoStudentInfo(student) {
-        // Show student card
-        autoStudentCardElement.style.display = 'block';
+        document.getElementById('auto-student-card').style.display = 'block';
         
-        // Set student information
-        autoStudentPhotoElement.src = student.photoUrl;
-        autoStudentNameElement.textContent = student.name;
-        autoStudentIdElement.textContent = `ID: ${student.studentId}`;
-        autoStudentDepartmentElement.textContent = `Department: ${student.department}`;
+        // Handle missing data with fallbacks
+        const studentName = student.name || (student.firstName && student.lastName ? `${student.firstName} ${student.lastName}` : 'Unknown');
+        const studentCode = student.studentCode || student.studentId || 'N/A';
+        const department = student.department || 'N/A';
+        
+        document.getElementById('auto-student-name').textContent = studentName;
+        document.getElementById('auto-student-id').textContent = `Code: ${studentCode}`;
+        document.getElementById('auto-student-department').textContent = `Department: ${department}`;
+        
+        // Set photo or default
+        const photoElement = document.getElementById('auto-student-photo');
+        if (student.photoUrl) {
+            photoElement.src = student.photoUrl;
+        } else {
+            photoElement.src = DEFAULT_AVATAR;
+        }
     }
 
     // Display no student found message for manual mode
@@ -556,7 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Start manual camera
-    async function startManualCamera() {
+    async function startManualCamera(automated = false) {
         try {
             startCameraBtn.disabled = true;
             startCameraBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
@@ -614,15 +668,25 @@ document.addEventListener('DOMContentLoaded', () => {
             
             console.log(`Manual camera started with ${resolution} resolution settings`);
             
-            // Update UI
-            startCameraBtn.innerHTML = '<i class="fas fa-video-slash"></i> Stop Camera';
-            capturePhotoBtn.disabled = false;
+            // Update UI based on mode
+            if (!automated) {
+                startCameraBtn.innerHTML = '<i class="fas fa-video-slash"></i> Stop Camera';
+                capturePhotoBtn.disabled = false;
+            } else {
+                // Hide the start camera button in automated mode
+                startCameraBtn.style.display = 'none';
+            }
         } catch (error) {
             console.error('Error starting camera:', error);
             alert('Failed to start camera. Please check camera permissions and try again.');
             
-            startCameraBtn.disabled = false;
-            startCameraBtn.innerHTML = '<i class="fas fa-video"></i> Start Camera';
+            if (!automated) {
+                startCameraBtn.disabled = false;
+                startCameraBtn.innerHTML = '<i class="fas fa-video"></i> Start Camera';
+            } else {
+                // Reset the automated system if camera fails
+                resetAutomatedManualSystem();
+            }
         }
     }
 
@@ -674,7 +738,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    studentId: currentStudent.studentId,
+                    studentCode: currentStudent.studentCode || currentStudent.studentId,
                     rfidCardId: currentStudent.rfidCardId,
                     imageData
                 })
@@ -771,12 +835,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function stopManualCamera() {
         if (manualStream) {
             manualStream.getTracks().forEach(track => track.stop());
-            manualWebcamElement.srcObject = null;
             manualStream = null;
+            manualWebcamElement.srcObject = null;
             
-            // Reset button
             startCameraBtn.disabled = false;
             startCameraBtn.innerHTML = '<i class="fas fa-video"></i> Start Camera';
+            capturePhotoBtn.disabled = true;
+            
+            console.log('Manual camera stopped');
         }
     }
     
@@ -1015,7 +1081,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    studentId: currentStudent.studentId,
+                    studentCode: currentStudent.studentCode || currentStudent.studentId,
                     rfidCardId: currentStudent.rfidCardId,
                     verificationMethod: 'manual'
                 })
@@ -1075,16 +1141,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Method badge
                     let methodBadge = '';
-                    if (record.verificationMethod === 'automated') {
-                        methodBadge = '<span class="badge bg-primary">Automated</span>';
+                    if (record.verificationMethod === 'DUAL_FACTOR') {
+                        methodBadge = '<span class="badge bg-primary">Dual Factor</span>';
+                    } else if (record.verificationMethod === 'FACE_ONLY') {
+                        methodBadge = '<span class="badge bg-info">Face Only</span>';
+                    } else if (record.verificationMethod === 'RFID_ONLY') {
+                        methodBadge = '<span class="badge bg-warning">RFID Only</span>';
                     } else {
-                        methodBadge = '<span class="badge bg-info">Manual</span>';
+                        methodBadge = '<span class="badge bg-secondary">Manual</span>';
                     }
                     
-                    // RFID number with truncation for display
-                    const rfidDisplay = record.student.rfidCardId ? 
-                        record.student.rfidCardId.substring(0, 8) + '...' : 
-                        'N/A';
+                    // Handle missing student data with fallbacks
+                    const student = record.student || {};
+                    const studentName = student.name || (student.firstName && student.lastName ? `${student.firstName} ${student.lastName}` : 'Unknown');
+                    const studentCode = student.studentCode || student.studentId || 'N/A';
+                    const department = student.department || 'N/A';
+                    
+                    // RFID number - show full number without truncation
+                    const rfidDisplay = student.rfidCardId || 'N/A';
+                    
+                    // Default photo if missing
+                    const photoUrl = student.photoUrl || DEFAULT_AVATAR;
                     
                     // Delete button
                     const deleteBtn = `
@@ -1093,16 +1170,23 @@ document.addEventListener('DOMContentLoaded', () => {
                         </button>
                     `;
                     
+                    // Add confidence info if available
+                    const confidenceInfo = record.faceConfidence ? 
+                        `<div class="small text-muted mt-1">Confidence: ${record.faceConfidence.toFixed(1)}%</div>` : '';
+                    
                     row.innerHTML = `
                         <td>
-                            <img src="${record.student.photoUrl}" alt="${record.student.name}" class="recent-photo">
+                            <img src="${photoUrl}" alt="${studentName}" class="recent-photo" onerror="this.src='${DEFAULT_AVATAR}'">
                         </td>
-                        <td>${record.student.studentId}</td>
-                        <td>${record.student.name}</td>
-                        <td>${rfidDisplay}</td>
-                        <td>${record.student.department}</td>
-                        <td>${formattedTime}</td>
-                        <td>${statusBadge}</td>
+                        <td>${studentCode}</td>
+                        <td>${studentName}</td>
+                        <td class="rfid-cell">${rfidDisplay}</td>
+                        <td>${department}</td>
+                        <td>
+                            ${formattedTime}
+                            <div class="small text-muted">${recordTime.toLocaleDateString()}</div>
+                        </td>
+                        <td>${statusBadge}${confidenceInfo}</td>
                         <td>${methodBadge}</td>
                         <td>${deleteBtn}</td>
                     `;
@@ -1115,6 +1199,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     button.addEventListener('click', deleteAttendanceRecord);
                 });
             }
+            
+            // Update last refresh timestamp
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('last-refresh-time').textContent = `Last updated: ${timeString}`;
+            
         } catch (error) {
             console.error('Error loading attendance records:', error);
             attendanceTableBody.innerHTML = `
@@ -1267,6 +1357,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Start auto-refresh for attendance table
+    function startAutoRefresh() {
+        // Clear any existing interval
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+        }
+        
+        // Refresh every 30 seconds
+        autoRefreshInterval = setInterval(() => {
+            loadTodaysAttendance();
+        }, 30000);
+    }
+
+    // Stop auto-refresh
+    function stopAutoRefresh() {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+        }
+    }
+
     // Clean up on page unload
     window.addEventListener('beforeunload', () => {
         // Close event source
@@ -1281,5 +1392,599 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Stop cameras
         stopManualCamera();
+        
+        // Stop auto-refresh
+        stopAutoRefresh();
     });
+
+    // Display RFID card ID
+    function displayRfidCardId(rfidCardId) {
+        document.getElementById('manual-rfid-card-id').textContent = rfidCardId || 'None';
+    }
+
+    // Update RFID status in manual mode
+    function updateManualRfidStatus(status, rfidCardId) {
+        const statusElement = document.getElementById('manual-rfid-status');
+        const cardIdElement = document.getElementById('manual-rfid-card-id');
+        
+        if (status === 'connected') {
+            statusElement.className = 'badge bg-success';
+            statusElement.textContent = 'Connected';
+            cardIdElement.textContent = rfidCardId || 'Waiting for card...';
+        } else {
+            statusElement.className = 'badge bg-secondary';
+            statusElement.textContent = 'Disconnected';
+            cardIdElement.textContent = 'None';
+        }
+    }
+
+    // Start automated manual system
+    async function startAutomatedManualSystem() {
+        try {
+            // Hide regular camera controls
+            startCameraBtn.style.display = 'none';
+            capturePhotoBtn.style.display = 'none';
+            
+            // Show reset button
+            resetManualSystemBtn.style.display = 'block';
+            
+            // Disable start button during initialization
+            startManualSystemBtn.disabled = true;
+            startManualSystemBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+            
+            // Start camera
+            await startManualCamera(true); // Pass true to indicate automated mode
+            
+            // Show and focus RFID input
+            manualRfidInputContainer.style.display = 'block';
+            manualRfidDirectInput.focus();
+            
+            // Show status overlay
+            manualStatusOverlay.style.display = 'block';
+            manualStatusMessage.textContent = 'Waiting for RFID card...';
+            
+            // Mark system as active
+            manualSystemActive = true;
+            
+            // Add active class to system button
+            startManualSystemBtn.classList.add('system-active');
+            startManualSystemBtn.innerHTML = '<i class="fas fa-check-circle"></i> System Active';
+            
+            // Add automation visual indicators
+            document.querySelector('.face-frame').classList.add('active-tracking');
+            
+            // Create face detected indicator
+            const faceDetectedIndicator = document.createElement('div');
+            faceDetectedIndicator.id = 'manual-face-detected';
+            faceDetectedIndicator.className = 'face-detected';
+            faceDetectedIndicator.style.display = 'none';
+            faceDetectedIndicator.innerHTML = '<i class="fas fa-circle"></i> Face Detected';
+            document.querySelector('.camera-container').appendChild(faceDetectedIndicator);
+            
+            // Create auto capture flash element
+            const autoCaptureFlash = document.createElement('div');
+            autoCaptureFlash.id = 'manual-auto-capture-flash';
+            autoCaptureFlash.className = 'auto-capture-flash';
+            document.querySelector('.camera-container').appendChild(autoCaptureFlash);
+            
+            // Update system state indicator in header
+            const manualSystemStateElement = document.getElementById('manual-system-state');
+            if (manualSystemStateElement) {
+                manualSystemStateElement.style.display = 'inline-block';
+                manualSystemStateElement.classList.remove('bg-light', 'text-dark');
+                manualSystemStateElement.classList.add('bg-success', 'text-white');
+                manualSystemStateElement.querySelector('i').classList.remove('text-secondary');
+                manualSystemStateElement.querySelector('i').classList.add('text-white');
+            }
+            
+            console.log('Automated manual system started');
+        } catch (error) {
+            console.error('Error starting automated manual system:', error);
+            alert('Failed to start automated system. Please check camera permissions and try again.');
+            
+            // Reset UI
+            resetAutomatedManualSystem();
+        }
+    }
+
+    // Reset automated manual system
+    function resetAutomatedManualSystem() {
+        // Stop face capture interval
+        stopManualFaceCapture();
+        
+        // Stop camera
+        stopManualCamera();
+        
+        // Reset UI
+        startCameraBtn.style.display = 'inline-block';
+        capturePhotoBtn.style.display = 'inline-block';
+        resetManualSystemBtn.style.display = 'none';
+        manualRfidInputContainer.style.display = 'none';
+        manualStatusOverlay.style.display = 'none';
+        
+        // Reset system state
+        manualSystemActive = false;
+        faceDetected = false;
+        
+        // Reset button state
+        startManualSystemBtn.disabled = false;
+        startManualSystemBtn.classList.remove('system-active');
+        startManualSystemBtn.innerHTML = '<i class="fas fa-play"></i> Start System';
+        
+        // Remove face tracking indicators
+        const faceFrame = document.querySelector('.face-frame');
+        if (faceFrame) {
+            faceFrame.classList.remove('active-tracking', 'face-detected');
+        }
+        
+        // Remove face detected indicator
+        const faceDetectedIndicator = document.getElementById('manual-face-detected');
+        if (faceDetectedIndicator) {
+            faceDetectedIndicator.remove();
+        }
+        
+        // Remove auto capture flash
+        const autoCaptureFlash = document.getElementById('manual-auto-capture-flash');
+        if (autoCaptureFlash) {
+            autoCaptureFlash.remove();
+        }
+        
+        // Reset system state indicator in header
+        const manualSystemStateElement = document.getElementById('manual-system-state');
+        if (manualSystemStateElement) {
+            manualSystemStateElement.style.display = 'none';
+            manualSystemStateElement.classList.remove('bg-success', 'text-white');
+            manualSystemStateElement.classList.add('bg-light', 'text-dark');
+            manualSystemStateElement.querySelector('i').classList.remove('text-white');
+            manualSystemStateElement.querySelector('i').classList.add('text-secondary');
+        }
+        
+        // Reset student data
+        resetStudentDataForNextEntry();
+        
+        console.log('Automated manual system reset');
+    }
+
+    // Handle RFID detection in manual automated mode
+    async function handleManualRfidDetection(rfidCardId) {
+        if (!manualSystemActive) return;
+        
+        try {
+            // Update status
+            manualStatusMessage.textContent = 'RFID detected. Verifying student...';
+            
+            // Fetch student data
+            const student = await fetchStudentByRfid(rfidCardId);
+            
+            if (student) {
+                // Update status
+                manualStatusMessage.textContent = 'Student verified. Position face in frame...';
+                
+                // Start face tracking
+                startManualFaceCapture();
+            } else {
+                // Update status for error
+                manualStatusMessage.textContent = 'Student not found. Please try again.';
+                manualStatusOverlay.classList.add('error');
+                
+                // Reset after delay
+                setTimeout(() => {
+                    manualStatusOverlay.classList.remove('error');
+                    manualStatusMessage.textContent = 'Waiting for RFID card...';
+                    manualRfidDirectInput.value = '';
+                    manualRfidDirectInput.focus();
+                }, 3000);
+            }
+        } catch (error) {
+            console.error('Error handling RFID in manual mode:', error);
+            
+            // Update status for error
+            manualStatusMessage.textContent = 'Error processing RFID. Please try again.';
+            manualStatusOverlay.classList.add('error');
+            
+            // Reset after delay
+            setTimeout(() => {
+                manualStatusOverlay.classList.remove('error');
+                manualStatusMessage.textContent = 'Waiting for RFID card...';
+                manualRfidDirectInput.value = '';
+                manualRfidDirectInput.focus();
+            }, 3000);
+        }
+    }
+
+    // Submit direct RFID input for manual mode
+    function submitManualDirectRfid() {
+        const rfidCardId = manualRfidDirectInput.value.trim();
+        
+        if (!rfidCardId) {
+            alert('Please enter an RFID card ID');
+            return;
+        }
+        
+        // Process the RFID
+        handleManualRfidDetection(rfidCardId);
+        
+        // Clear the input and refocus
+        manualRfidDirectInput.value = '';
+        manualRfidDirectInput.focus();
+    }
+
+    // Start manual face capture for automated detection
+    function startManualFaceCapture() {
+        // Clear any existing interval
+        stopManualFaceCapture();
+        
+        // Start a new interval to check for face position
+        manualFaceCaptureInterval = setInterval(() => {
+            checkFacePositionAndCapture();
+        }, 500); // Check every 500ms
+        
+        console.log('Manual face tracking started');
+    }
+
+    // Stop manual face capture interval
+    function stopManualFaceCapture() {
+        if (manualFaceCaptureInterval) {
+            clearInterval(manualFaceCaptureInterval);
+            manualFaceCaptureInterval = null;
+            console.log('Manual face tracking stopped');
+        }
+        
+        // Clear face tracking timeout
+        if (faceTrackingTimeout) {
+            clearTimeout(faceTrackingTimeout);
+            faceTrackingTimeout = null;
+        }
+        
+        // Reset face detection state
+        faceDetected = false;
+        
+        // Remove face-detected class from face frame
+        const faceFrame = document.querySelector('.face-frame');
+        if (faceFrame) {
+            faceFrame.classList.remove('face-detected');
+        }
+        
+        // Hide face detected indicator
+        const faceDetectedIndicator = document.getElementById('manual-face-detected');
+        if (faceDetectedIndicator) {
+            faceDetectedIndicator.style.display = 'none';
+        }
+    }
+
+    // Check face position and auto-capture if centered
+    function checkFacePositionAndCapture() {
+        try {
+            // Skip if on cooldown
+            if (autoCaptureCooldown) return;
+            
+            // Ensure we have a valid video stream
+            if (!manualWebcamElement.srcObject || !manualWebcamElement.videoWidth) {
+                console.log('Video not ready yet');
+                return;
+            }
+            
+            // Use a more realistic face detection simulation
+            // In a production environment, you would use a proper face detection library
+            
+            // Draw current frame to canvas to analyze
+            const tempCanvas = document.createElement('canvas');
+            const tempContext = tempCanvas.getContext('2d');
+            tempCanvas.width = 100; // Small size for performance
+            tempCanvas.height = 100;
+            
+            // Draw video frame to canvas (centered and scaled down)
+            tempContext.drawImage(
+                manualWebcamElement, 
+                (manualWebcamElement.videoWidth - manualWebcamElement.videoWidth/2)/2, 
+                (manualWebcamElement.videoHeight - manualWebcamElement.videoHeight/2)/2,
+                manualWebcamElement.videoWidth/2, 
+                manualWebcamElement.videoHeight/2,
+                0, 0, 100, 100
+            );
+            
+            // Get image data
+            const imageData = tempContext.getImageData(0, 0, 100, 100);
+            const data = imageData.data;
+            
+            // Calculate average brightness in center region
+            let totalBrightness = 0;
+            let pixelCount = 0;
+            
+            for (let y = 30; y < 70; y++) {
+                for (let x = 30; x < 70; x++) {
+                    const index = (y * 100 + x) * 4;
+                    const r = data[index];
+                    const g = data[index + 1];
+                    const b = data[index + 2];
+                    
+                    // Calculate brightness (simple average)
+                    const brightness = (r + g + b) / 3;
+                    totalBrightness += brightness;
+                    pixelCount++;
+                }
+            }
+            
+            const averageBrightness = totalBrightness / pixelCount;
+            
+            // Calculate variance (for movement detection)
+            let totalVariance = 0;
+            for (let y = 30; y < 70; y++) {
+                for (let x = 30; x < 70; x++) {
+                    const index = (y * 100 + x) * 4;
+                    const r = data[index];
+                    const g = data[index + 1];
+                    const b = data[index + 2];
+                    
+                    const pixelBrightness = (r + g + b) / 3;
+                    const diff = pixelBrightness - averageBrightness;
+                    totalVariance += diff * diff;
+                }
+            }
+            
+            const variance = Math.sqrt(totalVariance / pixelCount);
+            
+            // Face detection criteria - RELAXED for faster detection:
+            // 1. Brightness in acceptable range (wider range)
+            // 2. Enough variance (lower threshold for features)
+            const brightnessFactor = averageBrightness > 30 && averageBrightness < 230;
+            const varianceFactor = variance > 10 && variance < 100;
+            
+            // Combine factors with less randomness for more consistent detection
+            const faceDetectionResult = brightnessFactor && varianceFactor && (Math.random() > 0.1);
+            
+            const faceDetectedIndicator = document.getElementById('manual-face-detected');
+            const faceFrame = document.querySelector('.face-frame');
+            
+            if (faceDetectionResult) {
+                // Face detected
+                if (!faceDetected) {
+                    console.log('Face detected', {averageBrightness, variance});
+                    faceDetected = true;
+                    
+                    // Show face detected indicator
+                    if (faceDetectedIndicator) {
+                        faceDetectedIndicator.style.display = 'flex';
+                    }
+                    
+                    // Update face frame to show detection
+                    if (faceFrame) {
+                        faceFrame.classList.add('face-detected');
+                    }
+                    
+                    // Start timeout for auto capture (REDUCED to 0.8s for faster response)
+                    faceTrackingTimeout = setTimeout(() => {
+                        // Auto capture if face is still detected
+                        if (faceDetected && manualSystemActive) {
+                            autoCaptureFace();
+                        }
+                    }, 800);
+                }
+            } else {
+                // Face not detected
+                if (faceDetected) {
+                    console.log('Face lost', {averageBrightness, variance});
+                    faceDetected = false;
+                    
+                    // Hide face detected indicator
+                    if (faceDetectedIndicator) {
+                        faceDetectedIndicator.style.display = 'none';
+                    }
+                    
+                    // Update face frame to show no detection
+                    if (faceFrame) {
+                        faceFrame.classList.remove('face-detected');
+                    }
+                    
+                    // Clear timeout
+                    if (faceTrackingTimeout) {
+                        clearTimeout(faceTrackingTimeout);
+                        faceTrackingTimeout = null;
+                    }
+                }
+            }
+            
+            // Clean up
+            tempCanvas.remove();
+        } catch (error) {
+            console.error('Error checking face position:', error);
+        }
+    }
+
+    // Auto capture face when positioned correctly
+    async function autoCaptureFace() {
+        if (!manualStream || !manualSystemActive || !currentStudent) {
+            console.log('Cannot auto-capture: system not ready');
+            return;
+        }
+        
+        try {
+            // Set cooldown flag to prevent multiple captures
+            autoCaptureCooldown = true;
+            
+            // Update status
+            manualStatusMessage.textContent = 'Capturing face...';
+            manualStatusOverlay.classList.add('processing');
+            
+            // Add capture flash effect
+            const autoCaptureFlash = document.getElementById('manual-auto-capture-flash');
+            if (autoCaptureFlash) {
+                autoCaptureFlash.classList.add('active');
+                setTimeout(() => {
+                    autoCaptureFlash.classList.remove('active');
+                }, 500);
+            }
+            
+            // Set canvas dimensions to match video
+            manualCanvasElement.width = manualWebcamElement.videoWidth;
+            manualCanvasElement.height = manualWebcamElement.videoHeight;
+            
+            // Draw video frame to canvas
+            const context = manualCanvasElement.getContext('2d');
+            context.drawImage(manualWebcamElement, 0, 0, manualCanvasElement.width, manualCanvasElement.height);
+            
+            // Get image data as base64
+            const imageData = manualCanvasElement.toDataURL('image/jpeg', 0.9);
+            
+            // Show processing message
+            manualVerificationResultElement.style.display = 'block';
+            manualVerificationResultElement.className = 'alert alert-info';
+            manualVerificationResultElement.innerHTML = `
+                <i class="fas fa-spinner fa-spin me-2"></i>
+                <strong>Processing...</strong> Verifying student identity.
+            `;
+            
+            // Store current student for reset
+            const processedStudent = {...currentStudent};
+            
+            // Send to server for verification
+            const response = await fetch('/api/attendance/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    studentId: processedStudent.id || processedStudent._id || processedStudent.studentId,
+                    rfidCardId: processedStudent.rfidCardId,
+                    imageData: imageData
+                })
+            });
+            
+            // Process response
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Update status based on verification result
+                if (data.verified) {
+                    // Success
+                    manualStatusMessage.textContent = 'Attendance recorded successfully!';
+                    manualStatusOverlay.classList.remove('processing');
+                    manualStatusOverlay.classList.add('success');
+                    
+                    // Show success message
+                    manualVerificationResultElement.className = 'alert alert-success';
+                    manualVerificationResultElement.innerHTML = `
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Success!</strong> ${data.message || 'Attendance recorded.'}
+                    `;
+                    
+                    // Enable print button
+                    printBtn.disabled = false;
+                    
+                    // Refresh attendance table
+                    loadTodaysAttendance();
+                    
+                    // Reset system after delay
+                    setTimeout(() => {
+                        // Reset for next student
+                        resetStudentDataForNextEntry();
+                        
+                        // Reset cooldown
+                        autoCaptureCooldown = false;
+                    }, 2000);
+                } else {
+                    // Verification failed
+                    manualStatusMessage.textContent = 'Verification failed. Please try again.';
+                    manualStatusOverlay.classList.remove('processing');
+                    manualStatusOverlay.classList.add('error');
+                    
+                    // Show error message
+                    manualVerificationResultElement.className = 'alert alert-danger';
+                    manualVerificationResultElement.innerHTML = `
+                        <i class="fas fa-times-circle me-2"></i>
+                        <strong>Failed!</strong> ${data.message || 'Face verification failed.'}
+                    `;
+                    
+                    // Reset after delay
+                    setTimeout(() => {
+                        // Reset for next student
+                        resetStudentDataForNextEntry();
+                        
+                        // Reset cooldown
+                        autoCaptureCooldown = false;
+                    }, 2000);
+                }
+            } else {
+                // API error
+                const errorData = await response.json();
+                
+                manualStatusMessage.textContent = 'Server error. Please try again.';
+                manualStatusOverlay.classList.remove('processing');
+                manualStatusOverlay.classList.add('error');
+                
+                // Show error message
+                manualVerificationResultElement.className = 'alert alert-danger';
+                manualVerificationResultElement.innerHTML = `
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Error!</strong> ${errorData.message || 'Failed to process verification.'}
+                `;
+                
+                // Reset after delay
+                setTimeout(() => {
+                    // Reset for next student
+                    resetStudentDataForNextEntry();
+                    
+                    // Reset cooldown
+                    autoCaptureCooldown = false;
+                }, 2000);
+            }
+        } catch (error) {
+            console.error('Error in auto capture:', error);
+            
+            manualStatusMessage.textContent = 'System error. Please try again.';
+            manualStatusOverlay.classList.remove('processing');
+            manualStatusOverlay.classList.add('error');
+            
+            // Show error message
+            manualVerificationResultElement.className = 'alert alert-danger';
+            manualVerificationResultElement.innerHTML = `
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Error!</strong> System error occurred.
+            `;
+            
+            // Reset after delay
+            setTimeout(() => {
+                // Reset for next student
+                resetStudentDataForNextEntry();
+                
+                // Reset cooldown
+                autoCaptureCooldown = false;
+            }, 2000);
+        }
+    }
+    
+    // Helper function to reset student data and prepare for next entry
+    function resetStudentDataForNextEntry() {
+        // Clear current student
+        currentStudent = null;
+        
+        // Hide student details
+        studentDetailsElement.style.display = 'none';
+        noStudentMessageElement.style.display = 'block';
+        
+        // Reset student photo
+        studentPhotoElement.src = '';
+        
+        // Clear student info
+        studentNameElement.textContent = '';
+        studentIdElement.textContent = '';
+        studentDepartmentElement.textContent = '';
+        
+        // Hide verification result
+        manualVerificationResultElement.style.display = 'none';
+        
+        // Reset status overlay
+        manualStatusOverlay.classList.remove('success', 'error', 'processing');
+        manualStatusMessage.textContent = 'Waiting for RFID card...';
+        
+        // Reset RFID input
+        manualRfidDirectInput.value = '';
+        manualRfidCardIdElement.textContent = 'None';
+        
+        // Focus on RFID input
+        manualRfidDirectInput.focus();
+        
+        // Stop face tracking
+        stopManualFaceCapture();
+    }
 }); 

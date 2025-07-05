@@ -78,8 +78,8 @@ router.get('/today', async (req, res) => {
 // Verify student attendance using dual-factor authentication
 router.post('/verify', async (req, res) => {
   try {
-    const { rfidCardId, imageData, studentId } = req.body;
-    
+    const { rfidCardId, imageData, studentCode } = req.body;
+    console.log(req.body);
     if (!rfidCardId || !imageData) {
       return res.status(400).json({ 
         verified: false,
@@ -87,12 +87,20 @@ router.post('/verify', async (req, res) => {
       });
     }
     
-    // Find student by RFID card ID
-    const student = await Student.findOne({ rfidCardId });
+    // Find student by RFID card ID or student code
+    let student;
+    if (rfidCardId) {
+      student = await Student.findOne({ rfidCardId });
+    }
+    
+    if (!student && studentCode) {
+      student = await Student.findOne({ studentCode });
+    }
+    
     if (!student) {
       return res.status(404).json({ 
         verified: false,
-        message: 'Student not found with this RFID card' 
+        message: 'Student not found with this RFID card or code' 
       });
     }
     
@@ -111,8 +119,26 @@ router.post('/verify', async (req, res) => {
       
       // Send the image to Python service for face verification
       const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:5321';
+      
+      // Enhanced validation before making API call
+      // Debug log the request data
+      console.log('Sending verification request with data:', {
+        studentId: student._id.toString(),
+        photoPath: tempImagePath
+      });
+      
+      // Enhanced validation: Ensure studentId is defined and valid before making the API call
+      if (!student._id) {
+        throw new Error('Student ID is undefined. Cannot verify face without a student ID.');
+      }
+      
+      // Ensure the photoPath exists
+      if (!fs.existsSync(tempImagePath)) {
+        throw new Error('Image file not found at path: ' + tempImagePath);
+      }
+      
       const verificationResponse = await axios.post(`${pythonServiceUrl}/verify-face`, {
-        studentId: student.studentId,
+        studentId: student._id.toString(),
         photoPath: tempImagePath
       });
       
@@ -145,7 +171,8 @@ router.post('/verify', async (req, res) => {
           student: {
             _id: student._id,
             name: student.name,
-            studentId: student.studentId,
+            studentId: student._id.toString(),
+            studentCode: student.studentCode,
             department: student.department,
             photoUrl: primaryPhoto ? primaryPhoto.url : null
           }
@@ -161,7 +188,8 @@ router.post('/verify', async (req, res) => {
           student: {
             _id: student._id,
             name: student.name,
-            studentId: student.studentId,
+            studentId: student._id.toString(),
+            studentCode: student.studentCode,
             department: student.department,
             photoUrl: primaryPhoto ? primaryPhoto.url : null
           },
@@ -182,31 +210,51 @@ router.post('/verify', async (req, res) => {
       // Create new attendance record
       const attendance = new Attendance({
         student: student._id,
+        date: new Date(),
         verificationMethod: 'DUAL_FACTOR',
         status: status,
         faceConfidence: verificationResponse.data.confidence,
         verificationDetails: verificationDetails
       });
       
-      const savedAttendance = await attendance.save();
-      
-      // Update student's last attendance timestamp
-      student.lastAttendance = new Date();
-      await student.save();
-      
-      res.status(201).json({
-        verified: true,
-        message: 'Attendance recorded successfully',
-        confidence: verificationResponse.data.confidence,
-        student: {
-          _id: student._id,
-          name: student.name,
-          studentId: student.studentId,
-          department: student.department,
-          photoUrl: primaryPhoto ? primaryPhoto.url : null
-        },
-        attendance: savedAttendance
-      });
+      try {
+        const savedAttendance = await attendance.save();
+        
+        // Update student's last attendance timestamp
+        student.lastAttendance = new Date();
+        await student.save();
+        
+        res.status(201).json({
+          verified: true,
+          message: 'Attendance recorded successfully',
+          confidence: verificationResponse.data.confidence,
+          student: {
+            _id: student._id,
+            name: student.name,
+            studentId: student._id.toString(),
+            studentCode: student.studentCode,
+            department: student.department,
+            photoUrl: primaryPhoto ? primaryPhoto.url : null
+          },
+          attendance: savedAttendance
+        });
+      } catch (saveError) {
+        console.warn('Error saving attendance:', saveError);
+        // Still return success but with a note about the error
+        res.status(200).json({
+          verified: true,
+          message: 'Face verified but could not save attendance record: ' + saveError.message,
+          confidence: verificationResponse.data.confidence,
+          student: {
+            _id: student._id,
+            name: student.name,
+            studentId: student._id.toString(),
+            studentCode: student.studentCode,
+            department: student.department,
+            photoUrl: primaryPhoto ? primaryPhoto.url : null
+          }
+        });
+      }
     } catch (imageError) {
       console.error('Error processing image:', imageError);
       res.status(400).json({ 
@@ -226,19 +274,27 @@ router.post('/verify', async (req, res) => {
 // Automated attendance verification (for system-initiated verification)
 router.post('/auto-verify', async (req, res) => {
   try {
-    const { rfidCardId, imageData } = req.body;
+    const { rfidCardId, imageData, studentCode } = req.body;
     
-    if (!rfidCardId || !imageData) {
-      return res.status(400).json({ message: 'RFID card ID and image data are required' });
+    if (!rfidCardId && !studentCode || !imageData) {
+      return res.status(400).json({ message: 'RFID card ID or student code, and image data are required' });
     }
     
-    // Find student by RFID card ID
-    const student = await Student.findOne({ rfidCardId });
+    // Find student by RFID card ID or student code
+    let student;
+    if (rfidCardId) {
+      student = await Student.findOne({ rfidCardId });
+    }
+    
+    if (!student && studentCode) {
+      student = await Student.findOne({ studentCode });
+    }
+    
     if (!student) {
       return res.status(404).json({ 
         success: false,
-        message: 'Student not found with this RFID card',
-        errorType: 'RFID_NOT_FOUND'
+        message: 'Student not found with this RFID card or code',
+        errorType: 'STUDENT_NOT_FOUND'
       });
     }
     
@@ -258,8 +314,25 @@ router.post('/auto-verify', async (req, res) => {
       
       // Send the image to Python service for face verification
       const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:5321';
+      
+      // Debug log the request data
+      console.log('Sending verification request with data:', {
+        studentId: student._id.toString(),
+        photoPath: tempImagePath
+      });
+      
+      // Enhanced validation: Ensure studentId is defined and valid before making the API call
+      if (!student._id) {
+        throw new Error('Student ID is undefined. Cannot verify face without a student ID.');
+      }
+      
+      // Ensure the photoPath exists
+      if (!fs.existsSync(tempImagePath)) {
+        throw new Error('Image file not found at path: ' + tempImagePath);
+      }
+      
       const verificationResponse = await axios.post(`${pythonServiceUrl}/verify-face`, {
-        studentId: student.studentId,
+        studentId: student._id.toString(),
         photoPath: tempImagePath
       });
       
@@ -293,7 +366,7 @@ router.post('/auto-verify', async (req, res) => {
       if (verificationResponse.data.batch_matches && verificationResponse.data.batch_matches.length > 0) {
         // If the best match is not the current student, we might have an identity mismatch
         const bestMatch = verificationResponse.data.batch_matches[0];
-        if (bestMatch.studentId !== student.studentId && bestMatch.confidence > 80) {
+        if (bestMatch.studentId !== student._id.toString() && bestMatch.confidence > 80) {
           identityMismatch = true;
           bestMatchStudentId = bestMatch.studentId;
         }
@@ -310,7 +383,8 @@ router.post('/auto-verify', async (req, res) => {
           student: {
             _id: student._id,
             name: student.name,
-            studentId: student.studentId,
+            studentId: student._id.toString(),
+            studentCode: student.studentCode,
             department: student.department,
             photoUrl: primaryPhoto ? primaryPhoto.url : null
           },
@@ -332,7 +406,8 @@ router.post('/auto-verify', async (req, res) => {
           student: {
             _id: student._id,
             name: student.name,
-            studentId: student.studentId,
+            studentId: student._id.toString(),
+            studentCode: student.studentCode,
             department: student.department,
             photoUrl: primaryPhoto ? primaryPhoto.url : null
           },
@@ -353,35 +428,59 @@ router.post('/auto-verify', async (req, res) => {
       // Create new attendance record
       const attendance = new Attendance({
         student: student._id,
+        date: new Date(),
         verificationMethod: 'DUAL_FACTOR',
         status: 'PRESENT',
         faceConfidence: confidence,
         verificationDetails: verificationDetails
       });
       
-      const savedAttendance = await attendance.save();
-      
-      // Update student's last attendance timestamp
-      student.lastAttendance = new Date();
-      await student.save();
-      
-      return res.status(201).json({
-        success: true,
-        message: 'Attendance recorded successfully',
-        faceMatchConfidence: confidence,
-        rawConfidence: verificationResponse.data.raw_confidence,
-        detectionModel: verificationResponse.data.detection_model,
-        student: {
-          _id: student._id,
-          name: student.name,
-          studentId: student.studentId,
-          department: student.department,
-          photoUrl: primaryPhoto ? primaryPhoto.url : null
-        },
-        attendance: savedAttendance,
-        identityMismatch: identityMismatch,
-        possibleMatch: identityMismatch ? bestMatchStudentId : null
-      });
+      try {
+        const savedAttendance = await attendance.save();
+        
+        // Update student's last attendance timestamp
+        student.lastAttendance = new Date();
+        await student.save();
+        
+        return res.status(201).json({
+          success: true,
+          message: 'Attendance recorded successfully',
+          faceMatchConfidence: confidence,
+          rawConfidence: verificationResponse.data.raw_confidence,
+          detectionModel: verificationResponse.data.detection_model,
+          student: {
+            _id: student._id,
+            name: student.name,
+            studentId: student._id.toString(),
+            studentCode: student.studentCode,
+            department: student.department,
+            photoUrl: primaryPhoto ? primaryPhoto.url : null
+          },
+          attendance: savedAttendance,
+          identityMismatch: identityMismatch,
+          possibleMatch: identityMismatch ? bestMatchStudentId : null
+        });
+      } catch (saveError) {
+        console.warn('Error saving attendance:', saveError);
+        // Still return success but with a note about the error
+        return res.status(200).json({
+          success: true,
+          message: 'Face verified but could not save attendance record: ' + saveError.message,
+          faceMatchConfidence: confidence,
+          rawConfidence: verificationResponse.data.raw_confidence,
+          detectionModel: verificationResponse.data.detection_model,
+          student: {
+            _id: student._id,
+            name: student.name,
+            studentId: student._id.toString(),
+            studentCode: student.studentCode,
+            department: student.department,
+            photoUrl: primaryPhoto ? primaryPhoto.url : null
+          },
+          identityMismatch: identityMismatch,
+          possibleMatch: identityMismatch ? bestMatchStudentId : null
+        });
+      }
     } catch (imageError) {
       console.error('Error processing image:', imageError);
       res.status(400).json({ 
@@ -475,5 +574,71 @@ router.get('/student-faces/:studentId', async (req, res) => {
 
 // Delete student face encodings
 router.delete('/delete-student-faces/:studentId', automatedAttendanceController.deleteStudentFaces);
+
+// Mark attendance manually
+router.post('/mark', async (req, res) => {
+  try {
+    const { studentCode, rfidCardId, verificationMethod } = req.body;
+    
+    if (!studentCode && !rfidCardId) {
+      return res.status(400).json({ message: 'Student code or RFID card ID is required' });
+    }
+    
+    // Find student by studentCode or rfidCardId
+    let student;
+    if (studentCode) {
+      student = await Student.findOne({ studentCode });
+    }
+    
+    if (!student && rfidCardId) {
+      student = await Student.findOne({ rfidCardId });
+    }
+    
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    
+    // Check if student already has attendance record for today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const existingAttendance = await Attendance.findOne({
+      student: student._id,
+      timestamp: { $gte: today, $lt: tomorrow },
+      status: 'PRESENT'
+    });
+    
+    if (existingAttendance) {
+      return res.status(200).json({
+        message: 'Student already marked present today',
+        attendance: existingAttendance
+      });
+    }
+    
+    // Create new attendance record
+    const attendance = new Attendance({
+      student: student._id,
+      date: new Date(),
+      verificationMethod: verificationMethod || 'MANUAL',
+      status: 'PRESENT'
+    });
+    
+    const savedAttendance = await attendance.save();
+    
+    // Update student's last attendance timestamp
+    student.lastAttendance = new Date();
+    await student.save();
+    
+    res.status(201).json({
+      message: 'Attendance marked successfully',
+      attendance: savedAttendance
+    });
+  } catch (err) {
+    console.error('Error marking attendance:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
 
 module.exports = router; 

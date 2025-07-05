@@ -10,7 +10,7 @@ const attendanceSchema = new Schema({
     class: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Class',
-        required: true
+        required: false
     },
     date: {
         type: Date,

@@ -375,12 +375,23 @@ const encodeStudentFace = async (req, res) => {
       const photoUrl = `/uploads/${file.filename}`;
       
       try {
+        // Validate photo path
+        const photoPath = path.join(__dirname, '../public', photoUrl);
+        if (!fs.existsSync(photoPath)) {
+          throw new Error(`Photo file not found at path: ${photoPath}`);
+        }
+        
+        // Ensure student ID is valid
+        if (!student._id) {
+          throw new Error('Student ID is undefined. Cannot encode face without a student ID.');
+        }
+        
         // Send photo to Python service for face encoding
         const encodingResponse = await axios.post(`${pythonServiceUrl}/encode-face`, {
           studentId: student._id.toString(),
           studentCode: student.studentCode,
           name: name || `${student.firstName} ${student.lastName}`,
-          photoPath: path.join(__dirname, '../public', photoUrl)
+          photoPath: photoPath
         });
         
         // Add new photo to student
@@ -505,6 +516,13 @@ const deleteStudentFaces = async (req, res) => {
     for (const photo of student.photos) {
       try {
         if (photo.encodingId) {
+          // Validate encodingId format before making API call
+          if (typeof photo.encodingId !== 'string' || photo.encodingId.trim() === '') {
+            console.warn(`Invalid encodingId format for photo: ${photo.url}`);
+            failedDeletions.push(`${photo.encodingId || 'unknown'} (invalid format)`);
+            continue;
+          }
+          
           await axios.post(`${pythonServiceUrl}/delete-encoding`, {
             encodingId: photo.encodingId
           });
