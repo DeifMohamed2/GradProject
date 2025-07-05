@@ -8,6 +8,7 @@ const path = require('path');
 const jwtSecret = process.env.JWT_SECRET;
 
 const adminController = require('../controllers/adminController.js');
+const automatedAttendanceController = require('../controllers/automatedAttendance');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -241,6 +242,15 @@ router.put('/attendance/:id', authMiddleware, adminController.updateAttendance);
 
 // Delete attendance
 router.delete('/attendance/:id', authMiddleware, adminController.deleteAttendance);
+
+// Get student by code
+router.get('/getStudentByCode/:studentCode', automatedAttendanceController.getStudentByCode);
+
+// Update student profile picture
+router.post('/updateStudentProfilePicture/:studentId', automatedAttendanceController.updateStudentProfilePicture);
+
+// Update student RFID
+router.post('/updateStudentRfid/:studentId', automatedAttendanceController.updateStudentRfid);
 
 module.exports = router;
 

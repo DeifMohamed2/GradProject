@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Attendance System</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/attendaceStyles.css">
+</head>
+<body>
+    <!-- Header -->
+    <div class="header-section">
+        <!-- Back Button -->
+        <a href="http://localhost:9700/admin/classes" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to ALL Classes
+        </a>
+        
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5 fw-bold">Student Attendance System</h1>
+                    <p class="lead">Dual-factor authentication with RFID and Facial Recognition</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="system-status">
+                        <span id="system-state" class="badge bg-light text-dark badge-large">
+                            <i class="fas fa-circle text-secondary me-2"></i> Manual Mode
+                        </span>
+                        <span id="rfid-status" class="badge bg-light text-dark badge-large ms-2">
+                            <i class="fas fa-wifi text-secondary me-2"></i> RFID
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <!-- Mode Selector Tabs -->
+        <div class="tab-container">
+            <ul class="nav nav-tabs" id="attendanceModeTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="automated-tab" data-bs-toggle="tab" data-bs-target="#automated" type="button" role="tab" aria-controls="automated" aria-selected="true">
+                        <i class="fas fa-robot me-2"></i> Automated Mode
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab" aria-controls="manual" aria-selected="false">
+                        <i class="fas fa-user-edit me-2"></i> Manual Mode
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="attendanceModeContent">
+                <!-- Automated Mode Tab -->
+                <div class="tab-pane fade show active" id="automated" role="tabpanel" aria-labelledby="automated-tab">
+                    <div class="row">
+                        <!-- Main Camera and Status -->
+                        <div class="col-lg-8">
+                            <div class="camera-container mb-3">
+                                <video id="auto-webcam" autoplay playsinline></video>
+                                <canvas id="auto-canvas" style="display: none;"></canvas>
+                                <div class="face-frame">
+                                    <div class="face-frame-corners corner-top-left"></div>
+                                    <div class="face-frame-corners corner-top-right"></div>
+                                    <div class="face-frame-corners corner-bottom-left"></div>
+                                    <div class="face-frame-corners corner-bottom-right"></div>
+                                    <div class="face-guide">Position your face within the frame</div>
+                                </div>
+                                <div id="status-overlay" class="status-overlay">
+                                    <div id="status-message">Waiting for RFID card...</div>
+                                    <div id="countdown-timer" class="countdown-timer" style="display: none;"></div>
+                                </div>
+                            </div>
+
+                            <!-- RFID Input for Automated Mode -->
+                            <div id="auto-rfid-input-container" class="card mb-3" style="display: none;">
+                                <div class="card-body">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                        <input type="text" id="auto-rfid-direct-input" class="form-control" placeholder="Enter RFID Card ID and press Enter">
+                                        <button id="auto-rfid-submit-btn" class="btn btn-primary">Submit</button>
+                                    </div>
+                                    <div class="mt-3">
+                                        <label for="auto-camera-resolution" class="form-label">Camera Resolution:</label>
+                                        <select id="auto-camera-resolution" class="form-select">
+                                            <option value="low">Low (640x480)</option>
+                                            <option value="medium" selected>Medium (1280x720)</option>
+                                            <option value="high">High (1920x1080)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Verification Result -->
+                            <div id="verification-result" class="card mb-3" style="display: none;">
+                                <div class="card-body text-center">
+                                    <div id="result-icon" class="result-icon">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </div>
+                                    <h3 id="result-title">Processing...</h3>
+                                    <p id="result-message" class="lead"></p>
+                                    <div id="result-details" class="text-muted"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Student Info and Recent Activity -->
+                        <div class="col-lg-4">
+                            <!-- Student Info Card -->
+                            <div id="auto-student-card" class="card mb-3" style="display: none;">
+                                <img id="auto-student-photo" class="student-photo" src="" alt="Student Photo">
+                                <div class="card-body">
+                                    <h4 id="auto-student-name" class="student-name"></h4>
+                                    <p id="auto-student-id" class="student-info mb-1"></p>
+                                    <p id="auto-student-department" class="student-info"></p>
+                                </div>
+                            </div>
+
+                            <!-- System Controls -->
+                            <div class="card mb-3">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fas fa-cogs me-2"></i> System Controls
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-grid gap-2">
+                                        <button id="start-system" class="btn btn-primary btn-icon">
+                                            <i class="fas fa-play"></i> Start Automated System
+                                        </button>
+                                        <button id="reset-system" class="btn btn-danger btn-icon">
+                                            <i class="fas fa-redo"></i> Reset System
+                                        </button>
+                                        <button id="simulate-auto-rfid-btn" class="btn btn-secondary btn-icon" data-bs-toggle="modal" data-bs-target="#simulateAutoRfidModal">
+                                            <i class="fas fa-id-card"></i> Simulate RFID Card
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Manual Mode Tab -->
+                <div class="tab-pane fade" id="manual" role="tabpanel" aria-labelledby="manual-tab">
+                    <div class="row">
+                        <!-- Webcam (now on the left side and larger) -->
+                        <div class="col-lg-8">
+                            <div class="card mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fas fa-camera me-2"></i> Face Verification
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="camera-container mb-3">
+                                        <video id="manual-webcam" autoplay playsinline></video>
+                                        <canvas id="manual-canvas" style="display: none;"></canvas>
+                                        <div class="face-frame">
+                                            <div class="face-frame-corners corner-top-left"></div>
+                                            <div class="face-frame-corners corner-top-right"></div>
+                                            <div class="face-frame-corners corner-bottom-left"></div>
+                                            <div class="face-frame-corners corner-bottom-right"></div>
+                                            <div class="face-guide">Position your face within the frame</div>
+                                        </div>
+                                    </div>
+                                    <div id="camera-controls">
+                                        <button id="start-camera" class="btn btn-primary btn-icon">
+                                            <i class="fas fa-video"></i> Start Camera
+                                        </button>
+                                        <button id="capture-photo" class="btn btn-success btn-icon" disabled>
+                                            <i class="fas fa-camera"></i> Capture & Verify
+                                        </button>
+                                        <div class="mt-3">
+                                            <label for="camera-resolution" class="form-label">Camera Resolution:</label>
+                                            <select id="camera-resolution" class="form-select">
+                                                <option value="low">Low (640x480)</option>
+                                                <option value="medium" selected>Medium (1280x720)</option>
+                                                <option value="high">High (1920x1080)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right side panel with RFID and Student Info -->
+                        <div class="col-lg-4">
+                            <!-- RFID Status -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fas fa-id-card me-2"></i> RFID Status
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span>Connection:</span>
+                                        <span id="manual-rfid-status" class="badge bg-secondary">Disconnected</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Card ID:</span>
+                                        <span id="manual-rfid-card-id">None</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-grid gap-2">
+                                        <button id="init-rfid-btn" class="btn btn-primary btn-icon">
+                                            <i class="fas fa-plug"></i> Initialize Reader
+                                        </button>
+                                        <button id="simulate-rfid-btn" class="btn btn-outline-secondary btn-icon" data-bs-toggle="modal" data-bs-target="#simulateRfidModal">
+                                            <i class="fas fa-id-card"></i> Simulate RFID Card
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Student Info -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fas fa-user me-2"></i> Student Information
+                                </div>
+                                <div class="card-body">
+                                    <div id="student-info-container" class="text-center">
+                                        <div id="no-student-message">
+                                            <p class="text-muted">Please tap an RFID card to display student information.</p>
+                                        </div>
+                                        <div id="student-details" style="display: none;">
+                                            <img id="student-photo" src="" alt="Student Photo" class="student-photo mb-3">
+                                            <h4 id="student-name" class="student-name"></h4>
+                                            <p id="student-id" class="student-info mb-1"></p>
+                                            <p id="student-department" class="student-info mb-3"></p>
+                                            <div id="manual-verification-result" class="alert" style="display: none;"></div>
+                                            <button id="print-btn" class="btn btn-outline-primary btn-icon" disabled>
+                                                <i class="fas fa-print"></i> Print Attendance
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Attendance -->
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i> Today's Attendance</h5>
+                <button id="refresh-attendance" class="btn btn-sm btn-light btn-icon">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Photo</th>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>RFID</th>
+                                <th>Department</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Method</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-table-body">
+                            <!-- Attendance records will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simulate RFID Modal (Manual Mode) -->
+    <div class="modal fade" id="simulateRfidModal" tabindex="-1" aria-labelledby="simulateRfidModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="simulateRfidModalLabel">Simulate RFID Card</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="rfid-input" class="form-label">Enter RFID Card ID:</label>
+                        <input type="text" class="form-control" id="rfid-input" placeholder="e.g., 1234567890">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submit-rfid">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simulate RFID Modal (Auto Mode) -->
+    <div class="modal fade" id="simulateAutoRfidModal" tabindex="-1" aria-labelledby="simulateAutoRfidModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="simulateAutoRfidModalLabel">Simulate RFID Card</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="auto-rfid-input" class="form-label">Enter RFID Card ID:</label>
+                        <input type="text" class="form-control" id="auto-rfid-input" placeholder="e.g., 1234567890">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submit-auto-rfid">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar fixed-bottom navbar-expand-sm navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand">Student Attendance System</span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/attendance">
+                            <i class="fas fa-clipboard-check me-1"></i> Attendance
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/student-capture">
+                            <i class="fas fa-user-plus me-1"></i> Add Student
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <script src="/js/attendance/attendance.js"></script>
+</body>
+</html> 

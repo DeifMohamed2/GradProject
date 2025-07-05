@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Photo Capture - Student Attendance System</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/attendaceStyles.css">
+</head>
+<body>
+    <!-- Header -->
+    <div class="header-section">
+        <!-- Back Button -->
+        <a href="http://localhost:9700/admin/classes" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to ALL Classes
+        </a>
+        
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5 fw-bold">Student Photo Capture</h1>
+                    <p class="lead">Find existing students and capture their photos for attendance</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <div class="row">
+            <!-- Student Search Form -->
+            <div class="col-lg-5">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <i class="fas fa-search me-2"></i> Find Student
+                    </div>
+                    <div class="card-body">
+                        <form id="student-search-form">
+                            <div class="mb-3">
+                                <label for="student-code" class="form-label">Student Code</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="student-code" name="studentCode" required placeholder="Enter student code">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search"></i> Find
+                                    </button>
+                                </div>
+                                <div class="form-text">Enter the student code to find an existing student</div>
+                            </div>
+                        </form>
+                        
+                        <!-- Student Information (Hidden until student is found) -->
+                        <div id="student-info-container" style="display: none;">
+                            <hr>
+                            <h5 class="card-title"><i class="fas fa-user me-2"></i>Student Information</h5>
+                            <div class="alert alert-success mb-3">
+                                <i class="fas fa-check-circle me-2"></i> Student found!
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Name:</label>
+                                <p id="student-name" class="mb-1">-</p>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Grade:</label>
+                                    <p id="student-grade" class="mb-1">-</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Section:</label>
+                                    <p id="student-section" class="mb-1">-</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="rfid-card-id" class="form-label">RFID Card ID</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="rfid-card-id" name="rfidCardId" required>
+                                    <button type="button" class="btn btn-outline-primary" id="scan-rfid-btn" data-bs-toggle="modal" data-bs-target="#scanRfidModal">
+                                        <i class="fas fa-id-card"></i> Scan
+                                    </button>
+                                </div>
+                                <div class="form-text">Tap an RFID card or enter the ID manually</div>
+                            </div>
+                            
+                            <!-- Photo Upload Section -->
+                            <div class="mb-3">
+                                <label class="form-label">Photos</label>
+                                <div class="photo-upload-zone" id="photo-upload-zone">
+                                    <input type="file" id="photo-file-input" accept="image/*" style="display: none;" multiple>
+                                    <i class="fas fa-cloud-upload-alt fa-2x text-primary mb-2"></i>
+                                    <p class="mb-0">Drop images here or click to upload</p>
+                                    <small class="text-muted">Upload multiple photos to improve recognition</small>
+                                </div>
+                            </div>
+
+                            <!-- Photo Gallery -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label mb-0">Photo Gallery</label>
+                                    <span class="badge bg-primary" id="photo-count">0 Photos</span>
+                                </div>
+                                <div class="photo-gallery" id="photo-gallery">
+                                    <!-- Photos will be added here dynamically -->
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="set-profile-picture" checked>
+                                    <label class="form-check-label" for="set-profile-picture">
+                                        Set first photo as profile picture
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-primary btn-icon" id="save-student-btn">
+                                    <i class="fas fa-save"></i> Save Photos
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Webcam Capture -->
+            <div class="col-lg-7">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <i class="fas fa-camera me-2"></i> Photo Capture
+                    </div>
+                    <div class="card-body">
+                        <div class="camera-container mb-3">
+                            <video id="webcam" autoplay playsinline></video>
+                            <canvas id="canvas" style="display: none;"></canvas>
+                        </div>
+                        <div id="capture-preview" style="display: none;" class="mb-3">
+                            <img id="captured-image" src="" alt="Captured Photo" class="img-fluid rounded">
+                        </div>
+                        <div class="d-flex justify-content-center gap-2 mb-3">
+                            <button id="start-camera" class="btn btn-primary btn-icon">
+                                <i class="fas fa-video"></i> Start Camera
+                            </button>
+                            <button id="capture-photo" class="btn btn-success btn-icon" disabled>
+                                <i class="fas fa-camera"></i> Capture Photo
+                            </button>
+                            <button id="retake-photo" class="btn btn-secondary btn-icon" style="display: none;">
+                                <i class="fas fa-redo"></i> Retake Photo
+                            </button>
+                            <button id="add-captured-photo" class="btn btn-info btn-icon" style="display: none;">
+                                <i class="fas fa-plus"></i> Add to Gallery
+                            </button>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> Capture multiple photos from different angles to improve facial recognition accuracy.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student List -->
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-users me-2"></i> Students with Captured Photos</h5>
+                <button id="refresh-students" class="btn btn-sm btn-light btn-icon">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Profile Photo</th>
+                                <th>Student Code</th>
+                                <th>Name</th>
+                                <th>Grade/Section</th>
+                                <th>RFID Card</th>
+                                <th>Photos</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-table-body">
+                            <!-- Students will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scan RFID Modal -->
+    <div class="modal fade" id="scanRfidModal" tabindex="-1" aria-labelledby="scanRfidModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="scanRfidModalLabel">Scan RFID Card</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Please tap an RFID card on the reader...</p>
+                    <div class="alert alert-info">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Status:</span>
+                            <span id="modal-rfid-status" class="badge bg-secondary">Waiting</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span>Detected Card ID:</span>
+                            <span id="modal-rfid-card-id">None</span>
+                        </div>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="simulate-rfid-check">
+                        <label class="form-check-label" for="simulate-rfid-check">
+                            Simulate RFID Card
+                        </label>
+                    </div>
+                    <div id="simulate-rfid-input" class="mt-3" style="display: none;">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="manual-rfid-input" placeholder="Enter RFID Card ID">
+                            <button class="btn btn-outline-secondary" type="button" id="simulate-rfid-btn">Simulate</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="use-rfid-btn" disabled>Use This Card</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Photos Modal -->
+    <div class="modal fade" id="studentPhotosModal" tabindex="-1" aria-labelledby="studentPhotosModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="studentPhotosModalLabel">Student Photos</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row" id="student-photos-container">
+                        <!-- Photos will be displayed here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar fixed-bottom navbar-expand-sm navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand">Student Attendance System</span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/attendance">
+                            <i class="fas fa-clipboard-check me-1"></i> Attendance
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/student-capture">
+                            <i class="fas fa-camera me-1"></i> Student Photos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/create-student">
+                            <i class="fas fa-user-plus me-1"></i> Add Student
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/attendance/student_capture.js"></script>
+</body>
+</html> 

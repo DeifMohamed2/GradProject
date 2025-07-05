@@ -36,6 +36,20 @@ const classSchema = new Schema({
     isActive: {
         type: Boolean,
         default: true
+    },
+    hasRaspberryDevice: {
+        type: Boolean,
+        default: false
+    },
+    deviceInfo: {
+        name: {
+            type: String,
+            default: ''
+        },
+        ipAddress: {
+            type: String,
+            default: ''
+        }
     }
 }, { timestamps: true });
 

@@ -92,6 +92,24 @@
                 </li>
             </ul>
         </li>
+                <li class="sidebar-submenu">
+            <a href="#" class="<%= activePage === 'gates' || activePage === 'create-gate' ? 'active' : '' %>">
+                <i class="fas fa-door-open"></i> Gates
+                <i class="fas fa-chevron-right submenu-icon"></i>
+            </a>
+            <ul class="submenu <%= activePage === 'gates' || activePage === 'create-gate' ? 'show' : '' %>">
+                <li>
+                    <a href="/admin/gates" class="<%= activePage === 'gates' ? 'active' : '' %>">
+                        <i class="fas fa-list"></i> All Gates
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/create-gate" class="<%= activePage === 'create-gate' ? 'active' : '' %>">
+                        <i class="fas fa-plus"></i> Add Gate
+                    </a>
+                </li>
+            </ul>
+        </li>
         <li>
             <a href="/admin/grades" class="<%= activePage === 'grades' ? 'active' : '' %>">
                 <i class="fas fa-book"></i> Grades

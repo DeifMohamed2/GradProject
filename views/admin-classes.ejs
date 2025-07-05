@@ -72,11 +72,17 @@
         
         .class-meta {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
             margin-top: auto;
             padding-top: 15px;
             border-top: 1px solid rgba(0, 0, 0, 0.05);
+            gap: 10px;
+        }
+        
+        .class-meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         .student-count {
@@ -104,6 +110,180 @@
             align-items: center;
             justify-content: center;
             border-radius: 8px;
+        }
+        
+        .attendance-btn {
+            font-size: 0.85rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #28a745;
+            border-color: #28a745;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .attendance-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+        
+        .attendance-btn i {
+            font-size: 1rem;
+        }
+        
+        .attendance-btn.btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            opacity: 0.85;
+            cursor: not-allowed;
+        }
+        
+        .attendance-btn.btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+            transform: none;
+        }
+        
+        .control-attendance-btn {
+            font-size: 0.85rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 8px;
+            width: 100%;
+        }
+        
+        .control-attendance-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #0069d9;
+            border-color: #0062cc;
+            color: white;
+        }
+        
+        .control-attendance-btn i {
+            margin-right: 5px;
+            font-size: 1rem;
+        }
+        
+        /* Device Info Styles */
+        .device-info-container {
+            margin-bottom: 10px;
+        }
+        
+        .device-info {
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .device-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background-color: #e9f7ef;
+            border-radius: 8px;
+            margin-right: 12px;
+            color: #27ae60;
+        }
+        
+        .device-icon i {
+            font-size: 1.2rem;
+        }
+        
+        .device-details {
+            flex: 1;
+        }
+        
+        .device-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #2c3e50;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .device-ip {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            display: flex;
+            align-items: center;
+        }
+        
+        .device-ip i {
+            font-size: 0.8rem;
+            margin-right: 4px;
+        }
+        
+        .device-status {
+            display: flex;
+            align-items: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding-left: 10px;
+        }
+        
+        .device-status.online {
+            color: #27ae60;
+        }
+        
+        .device-status.offline {
+            color: #e74c3c;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .device-status.online .status-dot {
+            background-color: #27ae60;
+            box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.2);
+            animation: pulse 2s infinite;
+        }
+        
+        .device-status.offline .status-dot {
+            background-color: #e74c3c;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 5px rgba(39, 174, 96, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(39, 174, 96, 0);
+            }
         }
         
         .class-status {
@@ -277,15 +457,48 @@
                                 </div>
                                 
                                 <div class="class-meta">
-                                    <div class="student-count">
-                                        <i class="bi bi-people-fill"></i>
-                                        <%= cls.studentCount %> Student<%= cls.studentCount !== 1 ? 's' : '' %>
+                                    <div class="class-meta-row">
+                                        <div class="student-count">
+                                            <i class="bi bi-people-fill"></i>
+                                            <%= cls.studentCount %> Student<%= cls.studentCount !== 1 ? 's' : '' %>
+                                        </div>
+                                        <div class="class-actions">
+                                            <a href="/admin/classes/<%= cls._id %>" class="btn btn-sm btn-primary btn-action" title="View Details">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </div>
                                     </div>
-                                    <div class="class-actions">
-                                        <a href="/admin/classes/<%= cls._id %>" class="btn btn-sm btn-primary btn-action" title="View Details">
-                                            <i class="bi bi-eye"></i>
+                                    <% if (cls.hasRaspberryDevice) { %>
+                                    <div class="device-info-container mb-2">
+                                        <div class="device-info">
+                                            <div class="device-icon">
+                                                <i class="bi bi-cpu"></i>
+                                            </div>
+                                            <div class="device-details">
+                                                <div class="device-name"><%= cls.deviceInfo?.name || 'Unnamed Device' %></div>
+                                                <div class="device-ip"><i class="bi bi-ethernet"></i> <%= cls.deviceInfo?.ipAddress || 'IP not set' %></div>
+                                            </div>
+                                            <div class="device-status online">
+                                                <span class="status-dot"></span>
+                                                <span class="status-text">Online</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="class-meta-row">
+                                        <a href="/attendance" target="_blank" class="btn btn-sm btn-success attendance-btn w-100">
+                                            <i class="bi bi-camera-video me-1"></i> Control Attendance
                                         </a>
                                     </div>
+                                <% } else { %>
+                                    <div class="class-meta-row">
+                                        <button class="btn btn-sm btn-secondary attendance-btn w-100" disabled
+                                               data-bs-toggle="tooltip" data-bs-placement="top" 
+                                               title="No Raspberry Pi device connected">
+                                            <i class="bi bi-calendar-check me-1"></i> No Device Connected
+                                        </button>
+                                    </div>
+                                <% } %>
+                                
                                 </div>
                             </div>
                         </div>
@@ -407,6 +620,28 @@
                                 <label class="form-check-label" for="isActive">Active</label>
                                 <small class="form-text text-muted d-block">Inactive classes won't appear in teacher and student dashboards.</small>
                             </div>
+                            
+                            <hr>
+                            <h6 class="mb-3">Attendance Device Configuration</h6>
+                            
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="hasRaspberryDevice" name="hasRaspberryDevice">
+                                <label class="form-check-label" for="hasRaspberryDevice">Has Raspberry Pi Device</label>
+                                <small class="form-text text-muted d-block">Enable to connect a Raspberry Pi device for automated attendance.</small>
+                            </div>
+                            
+                            <div id="deviceInfoFields" style="display: none;">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="deviceName" class="form-label">Device Name</label>
+                                        <input type="text" class="form-control" id="deviceName" name="deviceName" placeholder="e.g., Classroom-1-Pi">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="deviceIp" class="form-label">IP Address</label>
+                                        <input type="text" class="form-control" id="deviceIp" name="deviceIp" placeholder="e.g., 192.168.1.100">
+                                    </div>
+                                </div>
+                            </div>
                         </form>
                     </div>
                     <div class="modal-footer">
@@ -417,7 +652,6 @@
             </div>
         </div>
         
-        <!-- Delete Confirmation Modal -->
         <div class="modal fade" id="deleteClassModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -444,6 +678,33 @@
     <%- include('./partials/scripts') %>
     <script>
         $(document).ready(function() {
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Simulate device status checking
+            // In a real application, this would be replaced with actual status checking
+            function checkDeviceStatus() {
+                $('.device-status').each(function() {
+                    // Randomly set some devices as offline for demonstration
+                    if (Math.random() > 0.8) {
+                        $(this).removeClass('online').addClass('offline');
+                        $(this).find('.status-text').text('Offline');
+                    } else {
+                        $(this).removeClass('offline').addClass('online');
+                        $(this).find('.status-text').text('Online');
+                    }
+                });
+            }
+            
+            // Initial check
+            checkDeviceStatus();
+            
+            // Periodically check status (every 30 seconds)
+            setInterval(checkDeviceStatus, 30000);
+            
             let classIdToDelete = null;
             
             // Filter form submission
@@ -470,12 +731,24 @@
                 window.location.href = '/admin/classes?' + params.toString();
             });
             
+            // Toggle device info fields based on checkbox
+            $('#hasRaspberryDevice').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#deviceInfoFields').slideDown(200);
+                } else {
+                    $('#deviceInfoFields').slideUp(200);
+                }
+            });
+            
             // Create Class Form Submission
             $('#submitCreateClassForm').on('click', function() {
                 const name = $('#className').val();
                 const description = $('#classDescription').val();
                 const teacherId = $('#teacherId').val();
                 const isActive = $('#isActive').is(':checked');
+                const hasRaspberryDevice = $('#hasRaspberryDevice').is(':checked');
+                const deviceName = $('#deviceName').val();
+                const deviceIp = $('#deviceIp').val();
                 
                 if (!name || !teacherId) {
                     Swal.fire({
@@ -487,11 +760,27 @@
                     return;
                 }
                 
+                // Validate device fields if device is enabled
+                if (hasRaspberryDevice && (!deviceName || !deviceIp)) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Device Information Missing',
+                        text: 'Please provide both device name and IP address',
+                        confirmButtonColor: '#3498db'
+                    });
+                    return;
+                }
+                
                 const classData = {
                     name,
                     description,
                     teacherId,
-                    isActive
+                    isActive,
+                    hasRaspberryDevice,
+                    deviceInfo: {
+                        name: deviceName,
+                        ipAddress: deviceIp
+                    }
                 };
                 
                 // Show loading

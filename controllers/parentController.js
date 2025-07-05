@@ -135,7 +135,7 @@ const getWallet = async (req, res) => {
       })
       .populate({
         path: 'transactionHistory',
-        select: 'amount type',
+        select: 'amount type status',
         populate: { path: 'student', select: 'username profilePicture' },
       })
       .exec();

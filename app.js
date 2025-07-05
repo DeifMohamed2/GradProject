@@ -8,15 +8,29 @@ const session = require('express-session');
 const cors = require('cors');
 const path = require('path');
 const http = require('http');
+const bodyParser = require('body-parser');
 
 const adminRoute = require('./routes/adminRoute');
 const parentRoute = require('./routes/parentRoute');
 const teacherRoute = require('./routes/teacherRoute');
 const teacherApi = require('./routes/teacherApi');
-// console.log(adminRoute);
+
+// Import attendance system routes
+const attendanceRoutes = require('./routes/attendance/attendance');
+const studentRoutes = require('./routes/attendance/student');
+const rfidRoutes = require('./routes/attendance/rfid');
+
+// Import services
+const automatedAttendanceSocket = require('./services/automatedAttendanceSocket');
+
 // express app
 const app = express();
-app.use(express.json());
+
+// Configure body parser with increased limits first
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 // Request logging middleware for debugging
 app.use((req, res, next) => {
@@ -52,15 +66,9 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
-app.use(express.json())
 app.use(morgan('dev'));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
-
-
-
-// let uri = ""; // Declare the 'uri' variable
 
 app.use(session({
     secret: "Keybord",
@@ -84,6 +92,20 @@ app.use('/parent' , parentRoute);
 app.use('/teacher', teacherRoute);
 app.use('/api/teacher', teacherApi);
 
+// Attendance system routes
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/rfid', rfidRoutes);
+
+// Serve HTML pages for attendance system
+app.get('/attendance', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'attendance', 'attendance.html'));
+});
+
+app.get('/student-capture', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'attendance', 'student_capture.html'));
+});
+
 
 // 404 page
 app.use((req, res) => {
@@ -103,6 +125,9 @@ function startServer(port = process.env.PORT || 9700, retries = 0) {
   
   // Create server but don't start listening yet
   const server = http.createServer(app);
+  
+  // Initialize socket service for automated attendance
+  automatedAttendanceSocket.initialize(server);
   
   // Handle server errors
   server.on('error', (error) => {

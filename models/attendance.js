@@ -16,10 +16,41 @@ const attendanceSchema = new Schema({
         type: Date,
         required: true
     },
+    timestamp: {
+        type: Date,
+        default: Date.now
+    },
     status: {
         type: String,
         required: true,
-        enum: ['absent', 'late', 'present']
+        enum: ['absent', 'late', 'present', 'PRESENT', 'ABSENT', 'LATE', 'MISMATCH']
+    },
+    verificationMethod: {
+        type: String,
+        enum: ['RFID_ONLY', 'FACE_ONLY', 'DUAL_FACTOR'],
+        default: 'DUAL_FACTOR'
+    },
+    faceConfidence: {
+        type: Number,
+        default: 0
+    },
+    verificationDetails: {
+        rfidVerified: {
+            type: Boolean,
+            default: false
+        },
+        faceVerified: {
+            type: Boolean,
+            default: false
+        },
+        matchedPhotoId: {
+            type: String,
+            default: null
+        }
+    },
+    retryCount: {
+        type: Number,
+        default: 0
     }
 }, { timestamps: true });
 
