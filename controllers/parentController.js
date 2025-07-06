@@ -4,6 +4,7 @@ const Attendance = require('../models/attendance');
 const Expense = require('../models/expenses');
 const Grade = require('../models/Grade');
 const Transaction = require('../models/transaction');
+const Notification = require('../models/notification');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
@@ -135,7 +136,7 @@ const getWallet = async (req, res) => {
       })
       .populate({
         path: 'transactionHistory',
-        select: 'amount type status',
+        select: 'amount type status createdAt',
         populate: { path: 'student', select: 'username profilePicture' },
       })
       .exec();
@@ -637,6 +638,22 @@ const renderStudentGrades = async (req, res) => {
   }
 };
 
+// Get notification
+const getNotification = async (req, res) => {
+  const { parent } = req;
+  try {
+    const notifications = await Notification.find({ parent: parent._id })
+    .sort({ createdAt: -1 });
+    return res.status(200).json({ message: 'Notification fetched successfully', notifications });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+}
+
+
+
+
 module.exports = {
   loginParent,
   dashbard_get,
@@ -654,5 +671,6 @@ module.exports = {
   approveTransaction,
   rejectTransaction,
   getStudentGrades,
-  renderStudentGrades
+  renderStudentGrades,
+  getNotification,
 };

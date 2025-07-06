@@ -70,5 +70,7 @@ router.get('/get-student-all-data/:id', authMiddleware, parentController.getStud
 // router.get('/student-grades/:id', authMiddleware, parentController.renderStudentGrades);
 router.get('/student-grades/:id', authMiddleware, parentController.getStudentGrades);
 
+// Notification routes
+router.get('/get-notification', authMiddleware, parentController.getNotification);
 
 module.exports = router;

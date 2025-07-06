@@ -621,15 +621,15 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let videoConstraints = {
                 facingMode: "user",
-                aspectRatio: { ideal: 16/9 }, // 16:9 aspect ratio for wider view
-                frameRate: { ideal: 30, min: 20 } // Increased minimum framerate
+                aspectRatio: { ideal: 16/9 },
+                frameRate: { ideal: 30, min: 15 }
             };
             
-            // Set resolution based on selection with higher values
+            // Set resolution based on selection
             switch(resolution) {
                 case 'low':
-                    videoConstraints.width = { ideal: 800, min: 640 }; // Increased from 640
-                    videoConstraints.height = { ideal: 600, min: 480 }; // Increased from 480
+                    videoConstraints.width = { ideal: 640, min: 640 };
+                    videoConstraints.height = { ideal: 480, min: 480 };
                     break;
                 case 'high':
                     videoConstraints.width = { ideal: 1920, min: 1280 };
@@ -651,10 +651,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Set video source
             manualWebcamElement.srcObject = manualStream;
             
-            // Apply CSS to ensure the video fills the container properly
-            manualWebcamElement.style.width = '100%';
-            manualWebcamElement.style.height = '100%';
-            
             // Wait for video to be ready
             await new Promise(resolve => {
                 manualWebcamElement.onloadedmetadata = () => {
@@ -665,22 +661,32 @@ document.addEventListener('DOMContentLoaded', () => {
             // Start playing video
             await manualWebcamElement.play();
             
-            // Enable capture button
-            capturePhotoBtn.disabled = false;
+            // Apply CSS to ensure the video fills the container properly
+            manualWebcamElement.style.width = '100%';
+            manualWebcamElement.style.height = '100%';
+            manualWebcamElement.style.objectFit = 'cover';
             
-            // Start face detection if in automated mode
-            if (automated && manualSystemActive) {
-                startManualFaceCapture();
+            console.log(`Manual camera started with ${resolution} resolution settings`);
+            
+            // Update UI based on mode
+            if (!automated) {
+                startCameraBtn.innerHTML = '<i class="fas fa-video-slash"></i> Stop Camera';
+                capturePhotoBtn.disabled = false;
+            } else {
+                // Hide the start camera button in automated mode
+                startCameraBtn.style.display = 'none';
             }
-            
-            console.log('Manual camera started');
         } catch (error) {
-            console.error('Error starting manual camera:', error);
-            alert('Could not start camera. Please check camera permissions and try again.');
+            console.error('Error starting camera:', error);
+            alert('Failed to start camera. Please check camera permissions and try again.');
             
-            // Reset button
-            startCameraBtn.disabled = false;
-            startCameraBtn.innerHTML = '<i class="fas fa-video"></i> Start Camera';
+            if (!automated) {
+                startCameraBtn.disabled = false;
+                startCameraBtn.innerHTML = '<i class="fas fa-video"></i> Start Camera';
+            } else {
+                // Reset the automated system if camera fails
+                resetAutomatedManualSystem();
+            }
         }
     }
 
@@ -876,15 +882,15 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let videoConstraints = {
                 facingMode: "user",
-                aspectRatio: { ideal: 16/9 }, // 16:9 aspect ratio for wider view
-                frameRate: { ideal: 30, min: 20 } // Increased minimum framerate
+                aspectRatio: { ideal: 16/9 },
+                frameRate: { ideal: 30, min: 15 }
             };
             
-            // Set resolution based on selection with higher values
+            // Set resolution based on selection
             switch(resolution) {
                 case 'low':
-                    videoConstraints.width = { ideal: 800, min: 640 }; // Increased from 640
-                    videoConstraints.height = { ideal: 600, min: 480 }; // Increased from 480
+                    videoConstraints.width = { ideal: 640, min: 640 };
+                    videoConstraints.height = { ideal: 480, min: 480 };
                     break;
                 case 'high':
                     videoConstraints.width = { ideal: 1920, min: 1280 };
@@ -906,10 +912,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Set video source
             autoWebcamElement.srcObject = autoStream;
             
-            // Apply CSS to ensure the video fills the container properly
-            autoWebcamElement.style.width = '100%';
-            autoWebcamElement.style.height = '100%';
-            
             // Wait for video to be ready
             await new Promise(resolve => {
                 autoWebcamElement.onloadedmetadata = () => {
@@ -920,13 +922,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // Start playing video
             await autoWebcamElement.play();
             
-            console.log('Automated camera started');
+            // Apply CSS to ensure the video fills the container properly
+            autoWebcamElement.style.width = '100%';
+            autoWebcamElement.style.height = '100%';
+            autoWebcamElement.style.objectFit = 'cover';
+            
+            console.log(`Automated camera started with ${resolution} resolution settings`);
+            return true;
         } catch (error) {
             console.error('Error starting automated camera:', error);
-            alert('Could not start camera. Please check camera permissions and try again.');
-            
-            // Reset automated system if camera fails
-            resetAutomatedSystem();
+            throw error;
         }
     }
 
@@ -1659,42 +1664,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            // Use a more sophisticated face detection approach
-            // Draw current frame to canvas to analyze - using a larger size for better detection
+            // Use a more realistic face detection simulation
+            // In a production environment, you would use a proper face detection library
+            
+            // Draw current frame to canvas to analyze
             const tempCanvas = document.createElement('canvas');
             const tempContext = tempCanvas.getContext('2d');
-            tempCanvas.width = 200; // Increased from 100 for better analysis
-            tempCanvas.height = 200;
+            tempCanvas.width = 100; // Small size for performance
+            tempCanvas.height = 100;
             
             // Draw video frame to canvas (centered and scaled down)
             tempContext.drawImage(
                 manualWebcamElement, 
-                (manualWebcamElement.videoWidth - manualWebcamElement.videoWidth*0.7)/2, // Use more of the frame (70% vs 50%)
-                (manualWebcamElement.videoHeight - manualWebcamElement.videoHeight*0.7)/2,
-                manualWebcamElement.videoWidth*0.7, 
-                manualWebcamElement.videoHeight*0.7,
-                0, 0, 200, 200
+                (manualWebcamElement.videoWidth - manualWebcamElement.videoWidth/2)/2, 
+                (manualWebcamElement.videoHeight - manualWebcamElement.videoHeight/2)/2,
+                manualWebcamElement.videoWidth/2, 
+                manualWebcamElement.videoHeight/2,
+                0, 0, 100, 100
             );
             
             // Get image data
-            const imageData = tempContext.getImageData(0, 0, 200, 200);
+            const imageData = tempContext.getImageData(0, 0, 100, 100);
             const data = imageData.data;
             
             // Calculate average brightness in center region
             let totalBrightness = 0;
             let pixelCount = 0;
             
-            // Focus on center region where face is likely to be
-            for (let y = 60; y < 140; y++) {
-                for (let x = 60; x < 140; x++) {
-                    const index = (y * 200 + x) * 4;
+            for (let y = 30; y < 70; y++) {
+                for (let x = 30; x < 70; x++) {
+                    const index = (y * 100 + x) * 4;
                     const r = data[index];
                     const g = data[index + 1];
                     const b = data[index + 2];
                     
-                    // Calculate brightness (weighted average for better skin tone detection)
-                    // Human skin has higher red component regardless of ethnicity
-                    const brightness = (r * 0.5 + g * 0.3 + b * 0.2);
+                    // Calculate brightness (simple average)
+                    const brightness = (r + g + b) / 3;
                     totalBrightness += brightness;
                     pixelCount++;
                 }
@@ -1704,23 +1709,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Calculate variance (for movement detection)
             let totalVariance = 0;
-            
-            // Calculate skin tone ratio - faces have a specific R:G:B ratio
-            let redSum = 0, greenSum = 0, blueSum = 0;
-            
-            for (let y = 60; y < 140; y++) {
-                for (let x = 60; x < 140; x++) {
-                    const index = (y * 200 + x) * 4;
+            for (let y = 30; y < 70; y++) {
+                for (let x = 30; x < 70; x++) {
+                    const index = (y * 100 + x) * 4;
                     const r = data[index];
                     const g = data[index + 1];
                     const b = data[index + 2];
                     
-                    // Add to color sums
-                    redSum += r;
-                    greenSum += g;
-                    blueSum += b;
-                    
-                    const pixelBrightness = (r * 0.5 + g * 0.3 + b * 0.2);
+                    const pixelBrightness = (r + g + b) / 3;
                     const diff = pixelBrightness - averageBrightness;
                     totalVariance += diff * diff;
                 }
@@ -1728,22 +1724,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const variance = Math.sqrt(totalVariance / pixelCount);
             
-            // Calculate color ratios (most human faces have R>G>B regardless of ethnicity)
-            const redRatio = redSum / (redSum + greenSum + blueSum);
-            const greenRatio = greenSum / (redSum + greenSum + blueSum);
-            const blueRatio = blueSum / (redSum + greenSum + blueSum);
-            
-            // Face detection criteria:
+            // Face detection criteria - RELAXED for faster detection:
             // 1. Brightness in acceptable range (wider range)
-            // 2. Enough variance (for facial features)
-            // 3. Color ratios typical of human skin (R > G > B in most cases)
-            // 4. Variance not too high (to avoid detecting hands waving)
-            const brightnessFactor = averageBrightness > 40 && averageBrightness < 220;
-            const varianceFactor = variance > 15 && variance < 80; // Tighter range to avoid false positives
-            const colorFactor = (redRatio > greenRatio) && (greenRatio > blueRatio) && (redRatio < 0.5); // Basic skin tone check
+            // 2. Enough variance (lower threshold for features)
+            const brightnessFactor = averageBrightness > 30 && averageBrightness < 230;
+            const varianceFactor = variance > 10 && variance < 100;
             
-            // Combine factors - no randomness for consistent detection
-            const faceDetectionResult = brightnessFactor && varianceFactor && colorFactor;
+            // Combine factors with less randomness for more consistent detection
+            const faceDetectionResult = brightnessFactor && varianceFactor && (Math.random() > 0.1);
             
             const faceDetectedIndicator = document.getElementById('manual-face-detected');
             const faceFrame = document.querySelector('.face-frame');
@@ -1751,7 +1739,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (faceDetectionResult) {
                 // Face detected
                 if (!faceDetected) {
-                    console.log('Face detected', {averageBrightness, variance, redRatio, greenRatio, blueRatio});
+                    console.log('Face detected', {averageBrightness, variance});
                     faceDetected = true;
                     
                     // Show face detected indicator
@@ -1764,18 +1752,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         faceFrame.classList.add('face-detected');
                     }
                     
-                    // Start timeout for auto capture (REDUCED to 0.7s for faster response)
+                    // Start timeout for auto capture (REDUCED to 0.8s for faster response)
                     faceTrackingTimeout = setTimeout(() => {
                         // Auto capture if face is still detected
                         if (faceDetected && manualSystemActive) {
                             autoCaptureFace();
                         }
-                    }, 700);
+                    }, 800);
                 }
             } else {
                 // Face not detected
                 if (faceDetected) {
-                    console.log('Face lost', {averageBrightness, variance, redRatio, greenRatio, blueRatio});
+                    console.log('Face lost', {averageBrightness, variance});
                     faceDetected = false;
                     
                     // Hide face detected indicator
