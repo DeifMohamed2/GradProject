@@ -130,6 +130,8 @@ body {
     border-radius: 0.5rem;
     background-color: #000;
     aspect-ratio: 16/9;
+    max-width: 100%;
+    margin: 0 auto;
 }
 
 /* Face Frame Styles */
@@ -138,8 +140,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 300px;
-    height: 350px;
+    width: 400px;
+    height: 450px;
     border: 3px dashed rgba(255, 255, 255, 0.7);
     border-radius: 15px;
     box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.3);
@@ -432,6 +434,11 @@ body {
     .recent-photo {
         width: 35px;
         height: 35px;
+    }
+    
+    .face-frame {
+        width: 280px;
+        height: 320px;
     }
 }
 
@@ -770,4 +777,12 @@ body {
     padding: 6px 8px !important;
     word-break: break-all;
     max-width: 150px;
+}
+
+/* Make sure the face frame is responsive on very small screens */
+@media (max-width: 480px) {
+    .face-frame {
+        width: 220px;
+        height: 260px;
+    }
 } 
